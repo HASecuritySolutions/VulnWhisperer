@@ -1,0 +1,38 @@
+#!/usr/bin/env python
+
+
+#Written by Austin Taylor
+#www.austintaylor.io
+
+from vulnwhisp.vulnwhisp import vulnWhisperer
+from vulnwhisp.utils.cli import bcolors
+
+import argparse
+import sys
+
+def main():
+
+    parser = argparse.ArgumentParser(description=""" VulnWhisperer is designed to create actionable data from\
+     your vulnerability scans through aggregation of historical scans.""")
+    parser.add_argument('-c', '--config', dest='config', required=False, default='frameworks.ini',
+                        help='Path of config file')
+    parser.add_argument('-v', '--verbose', dest='verbose', action='store_true', default=True,
+                        help='Prints status out to screen (defaults to True)')
+    args = parser.parse_args()
+
+    try:
+
+        vw = vulnWhisperer(config=args.config,
+                           verbose=args.verbose)
+
+        vw.whisper_nessus()
+
+    except Exception as e:
+        if args.verbose:
+            print('{red}ERROR: {error}{endc}'.format(red=bcolors.FAIL, error=e, endc=bcolors.ENDC))
+        sys.exit(0)
+
+
+
+if __name__ == '__main__':
+    main()
