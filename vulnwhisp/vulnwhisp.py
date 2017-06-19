@@ -261,7 +261,7 @@ class vulnWhisperer(object):
                             self.conn.commit()
             #self.conn.commit()
             self.conn.close()
-            "{success} Scan aggregation complete!".format(success=bcolors.SUCCESS)
+            "{success} Scan aggregation complete! Connection to database closed.".format(success=bcolors.SUCCESS)
 
 
         else:
