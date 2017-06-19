@@ -181,7 +181,6 @@ class vulnWhisperer(object):
     def whisper_nessus(self):
         if self.nessus_connect:
             scan_data = self.nessus.get_scans()
-            # print scan_data
             folders = scan_data['folders']
             scans = scan_data['scans']
             all_scans = self.scan_count(scans)
@@ -259,7 +258,6 @@ class vulnWhisperer(object):
                             self.record_insert(record_meta)
                             self.vprint(file_name + ' has no host available... Updating database and skipping!')
                             self.conn.commit()
-            #self.conn.commit()
             self.conn.close()
             "{success} Scan aggregation complete! Connection to database closed.".format(success=bcolors.SUCCESS)
 
