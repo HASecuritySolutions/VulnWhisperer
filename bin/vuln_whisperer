@@ -26,11 +26,12 @@ def main():
                            verbose=args.verbose)
 
         vw.whisper_nessus()
+        sys.exit(1)
 
     except Exception as e:
         if args.verbose:
-            print('{red}ERROR: {error}{endc}'.format(red=bcolors.FAIL, error=e, endc=bcolors.ENDC))
-        sys.exit(0)
+            print('{red} ERROR: {error}{endc}'.format(red=bcolors.FAIL, error=e, endc=bcolors.ENDC))
+        sys.exit(2)
 
 
 

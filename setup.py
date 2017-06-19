@@ -1,8 +1,10 @@
+#!/usr/bin/env python
+
 from setuptools import setup, find_packages
 
 setup(
     name='VulnWhisperer',
-    version='1.0a',
+    version='1.0.1',
     packages=find_packages(),
     url='https://github.com/austin-taylor/vulnwhisperer',
     license="""MIT License

@@ -34,6 +34,7 @@ class vulnWhisperer(object):
                     self.nessus_username = self.config.get('nessus', 'username')
                     self.nessus_password = self.config.get('nessus', 'password')
                     self.nessus_writepath = self.config.get('nessus', 'write_path')
+                    self.nessus_dbpath = self.config.get('nessus', 'db_path')
                     self.nessus_trash = self.config.getbool('nessus', 'trash')
                     self.verbose = self.config.getbool('nessus', 'verbose')
 
@@ -62,9 +63,18 @@ class vulnWhisperer(object):
                 sys.exit(0)
 
         if db_name is not None:
-            self.database = os.path.abspath(os.path.join(os.path.dirname( __file__ ), 'database', db_name))
-            self.conn = sqlite3.connect(self.database)
-            self.cur = self.conn.cursor()
+            if self.nessus_dbpath:
+                self.database = os.path.join(self.nessus_dbpath, db_name)
+            else:
+                self.database = os.path.abspath(os.path.join(os.path.dirname( __file__ ), 'database', db_name))
+
+            try:
+                self.conn = sqlite3.connect(self.database)
+                self.cur = self.conn.cursor()
+                self.vprint("{info} Connected to database at {loc}".format(info=bcolors.INFO, loc=self.database))
+            except Exception as e:
+                self.vprint("{fail} Could not connect to database at {loc}\nReason: {e} - Please ensure the path exist".format(e=e, fail=bcolors.FAIL, loc=self.database))
+
         else:
             self.vprint('{fail} Please specify a database to connect to!'.format(fail=bcolors.FAIL))
             exit(0)
@@ -121,7 +131,7 @@ class vulnWhisperer(object):
         :param completed: Only return completed scans
         :return:
         """
-        self.vprint('{info} Gathering all scan data...'.format(info=bcolors.INFO))
+        self.vprint('{info} Gathering all scan data... this may take a while...'.format(info=bcolors.INFO))
         scan_records = []
         for s in scans:
             if s:
@@ -175,11 +185,13 @@ class vulnWhisperer(object):
             folders = scan_data['folders']
             scans = scan_data['scans']
             all_scans = self.scan_count(scans)
-            scan_list = [scan for scan in all_scans if scan['uuid'] not in self.uuids]
-            print scan_list, self.uuids
-            self.vprint("{info} Identified {new} new scans to be processed".format(info=bcolors.INFO, new=len(scan_list)))
-            #print scan_list, len(scan_list)
-            # create scan subfolders
+            if self.uuids:
+                scan_list = [scan for scan in all_scans if scan['uuid'] not in self.uuids]
+            else:
+                scan_list = all_scans
+            self.vprint("{info} Identified {new} scans to be processed".format(info=bcolors.INFO, new=len(scan_list)))
+
+            # Create scan subfolders
             for f in folders:
                 if not os.path.exists(self.path_check(f['name'])):
                     if f['name'] == 'Trash' and self.nessus_trash:
@@ -219,7 +231,8 @@ class vulnWhisperer(object):
                             scan_name, scan_id, norm_time, file_name, time.time(), csv_in.shape[0], 'nessus', uuid, 1)
                             self.record_insert(record_meta)
                             self.vprint(
-                            "[INFO] File {filename} already exist! Updating database".format(filename=relative_path_name))
+                            "{info} File {filename} already exist! Updating database".format(info=bcolors.INFO, filename=relative_path_name))
+                            self.conn.commit()
                     else:
                         file_req = self.nessus.download_scan(scan_id=scan_id, history=history_id, export_format='csv')
                         clean_csv = pd.read_csv(io.StringIO(file_req.decode('utf-8')))
@@ -238,18 +251,18 @@ class vulnWhisperer(object):
                             1)
                             self.record_insert(record_meta)
                             self.vprint("{info} {filename} records written to {path} ".format(info=bcolors.INFO, filename=clean_csv.shape[0], path=file_name))
+                            self.conn.commit()
                         else:
                             record_meta = (
                             scan_name, scan_id, norm_time, file_name, time.time(), clean_csv.shape[0], 'nessus', uuid,
                             1)
                             self.record_insert(record_meta)
                             self.vprint(file_name + ' has no host available... Updating database and skipping!')
-            self.conn.commit()
+                            self.conn.commit()
+            #self.conn.commit()
             self.conn.close()
+            "{success} Scan aggregation complete!".format(success=bcolors.SUCCESS)
+
 
         else:
             self.vprint('{fail} Failed to use scanner at {host}'.format(fail=bcolors.FAIL, host=self.nessus_hostname+':'+self.nessus_port))
-
-
-#vw = vulnWhisperer(config='../configs/frameworks.ini', purge=False)
-#vw.whisper_nessus()
