@@ -2,15 +2,11 @@ import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-import pandas as pd
-from pandas.io.json import json_normalize
 import pytz
 from datetime import datetime
 import json
 import sys
-import os
 import time
-import io
 
 
 class NessusAPI(object):
