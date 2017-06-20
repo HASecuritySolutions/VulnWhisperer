@@ -32,7 +32,6 @@ Configuration
 -----
 
 There are a few configuration steps to setting up VulnWhisperer:
-*   Alexa, Umbrella, and Majestic Million (coming soon)
 *   Configure Ini file
 *   Setup Logstash File
 *   Import ElasticSearch Templates
