@@ -32,10 +32,11 @@ Configuration
 -----
 
 There are a few configuration steps to setting up VulnWhisperer:
-    * Configure Ini file
-    * Setup Logstash File
-    * Import ElasticSearch Templates
-    * Import Kibana Dashboards
+*   Alexa, Umbrella, and Majestic Million (coming soon)
+*   Configure Ini file
+*   Setup Logstash File
+*   Import ElasticSearch Templates
+*   Import Kibana Dashboards
 
 
 Credit
