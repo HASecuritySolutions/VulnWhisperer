@@ -1,6 +1,6 @@
 # VulnWhisperer
 
-_Create actionable data from your Vulnerability Scans_
+_Create actionable data from your vulnerability scans_
 
 <p align="center" style="width:400px"><img src="https://github.com/austin-taylor/vulnwhisperer/blob/master/docs/source/vulnwhisp_dashboard.jpg" style="width:400px"></p>
 
