@@ -166,6 +166,7 @@ class vulnWhisperer(object):
     def record_insert(self, record):
         self.cur.execute("insert into scan_history({table_columns}) values (?,?,?,?,?,?,?,?,?)".format(
             table_columns=', '.join(self.table_columns)), record)
+        self.conn.commit()
 
     def retrieve_uuids(self):
         """
@@ -185,10 +186,14 @@ class vulnWhisperer(object):
             scans = scan_data['scans']
             all_scans = self.scan_count(scans)
             if self.uuids:
-                scan_list = [scan for scan in all_scans if scan['uuid'] not in self.uuids]
+                scan_list = [scan for scan in all_scans if (scan['uuid'] not in self.uuids and scan['status']=='completed')]
             else:
                 scan_list = all_scans
             self.vprint("{info} Identified {new} scans to be processed".format(info=bcolors.INFO, new=len(scan_list)))
+
+            if not scan_list:
+                self.vprint("{info} No new scans to process. Exiting...".format(info=bcolors.INFO))
+                exit(0)
 
             # Create scan subfolders
             for f in folders:
@@ -207,7 +212,6 @@ class vulnWhisperer(object):
             # TODO Rewrite this part to go through the scans that have aleady been processed
             for s in scan_list:
                 scan_count += 1
-                #self.vprint('%s/%s' % (scan_count, len(scan_list)))
                 scan_name, scan_id, history_id,\
                 norm_time, status, uuid = s['scan_name'], s['scan_id'], s['history_id'],\
                                           s['norm_time'], s['status'], s['uuid']
@@ -231,7 +235,6 @@ class vulnWhisperer(object):
                             self.record_insert(record_meta)
                             self.vprint(
                             "{info} File {filename} already exist! Updating database".format(info=bcolors.INFO, filename=relative_path_name))
-                            self.conn.commit()
                     else:
                         file_req = self.nessus.download_scan(scan_id=scan_id, history=history_id, export_format='csv')
                         clean_csv = pd.read_csv(io.StringIO(file_req.decode('utf-8')))
@@ -250,14 +253,12 @@ class vulnWhisperer(object):
                             1)
                             self.record_insert(record_meta)
                             self.vprint("{info} {filename} records written to {path} ".format(info=bcolors.INFO, filename=clean_csv.shape[0], path=file_name))
-                            self.conn.commit()
                         else:
                             record_meta = (
                             scan_name, scan_id, norm_time, file_name, time.time(), clean_csv.shape[0], 'nessus', uuid,
                             1)
                             self.record_insert(record_meta)
                             self.vprint(file_name + ' has no host available... Updating database and skipping!')
-                            self.conn.commit()
             self.conn.close()
             "{success} Scan aggregation complete! Connection to database closed.".format(success=bcolors.SUCCESS)
 
