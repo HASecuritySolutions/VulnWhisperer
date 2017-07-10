@@ -5,7 +5,7 @@
 <p align="center" style="width:400px"><img src="https://github.com/austin-taylor/vulnwhisperer/blob/master/docs/source/vulnwhisp_dashboard.jpg" style="width:400px"></p>
 
 
-VulnWhisperer is a vulnerability report aggregator for nessus (more scanners to come). VulnWHisperer will pull all the reports
+VulnWhisperer is a vulnerability report aggregator for nessus (more scanners to come). VulnWhisperer will pull all the reports
  and create a file with a unique filename which is then fed into logstash. Logstash extracts data from the filename and tags all of the information inside the report (see logstash_vulnwhisp.conf file). Data is then shipped to elasticsearch to be indexed.
 
 
@@ -18,6 +18,14 @@ Currently supports python 2.7
 sudo pip install -r requirements.txt
 python setup.py install
 ```
+
+Requirements
+-------------
+####
+*   ElasticStack
+*   Python 2.7
+*   Vulnerability Scanner - (Nessus)
+*   Optional: Message broker such as Kafka or RabbitMQ 
 
 Currently Supports
 -------------
