@@ -1,8 +1,9 @@
 # VulnWhisperer
 
-<p align="center"><img src="https://github.com/austin-taylor/vulnwhisperer/blob/master/docs/source/vuln_whisperer_logo_s.png" width="400px">
-_Create actionable data from your vulnerability scans_
-</p>
+<p align="center"><img src="https://github.com/austin-taylor/vulnwhisperer/blob/master/docs/source/vuln_whisperer_logo_s.png" width="400px"></p>
+
+<center> <i>Create <u><b>actionable data</b></u> from your vulnerability scans </i></center>
+
 <p align="center" style="width:400px"><img src="https://github.com/austin-taylor/vulnwhisperer/blob/master/docs/source/vulnwhisp_dashboard.jpg" style="width:400px"></p>
 
 
