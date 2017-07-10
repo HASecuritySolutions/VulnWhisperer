@@ -1,0 +1,26 @@
+[
+  {
+    "_id": "72051530-448e-11e7-a818-f5f80dfc3590",
+    "_type": "dashboard",
+    "_source": {
+      "title": "Nessus - Reporting",
+      "hits": 0,
+      "description": "",
+      "panelsJSON": "[{\"col\":1,\"id\":\"2f979030-44b9-11e7-a818-f5f80dfc3590\",\"panelIndex\":5,\"row\":7,\"size_x\":6,\"size_y\":4,\"type\":\"visualization\"},{\"size_x\":6,\"size_y\":4,\"panelIndex\":12,\"type\":\"visualization\",\"id\":\"8d9592d0-44ec-11e7-a05f-d9719b331a27\",\"col\":1,\"row\":3},{\"size_x\":6,\"size_y\":4,\"panelIndex\":14,\"type\":\"visualization\",\"id\":\"67d432e0-44ec-11e7-a05f-d9719b331a27\",\"col\":7,\"row\":3},{\"size_x\":3,\"size_y\":4,\"panelIndex\":15,\"type\":\"visualization\",\"id\":\"297df800-3f7e-11e7-bd24-6903e3283192\",\"col\":10,\"row\":7},{\"size_x\":3,\"size_y\":2,\"panelIndex\":16,\"type\":\"visualization\",\"id\":\"b4474f30-4489-11e7-b27d-bb1b79a0c6f6\",\"col\":10,\"row\":1},{\"size_x\":3,\"size_y\":2,\"panelIndex\":17,\"type\":\"visualization\",\"id\":\"93e7cda0-4489-11e7-b27d-bb1b79a0c6f6\",\"col\":7,\"row\":1},{\"size_x\":3,\"size_y\":2,\"panelIndex\":18,\"type\":\"visualization\",\"id\":\"c85f9a90-4484-11e7-b936-eb7d06aad726\",\"col\":1,\"row\":1},{\"size_x\":3,\"size_y\":2,\"panelIndex\":19,\"type\":\"visualization\",\"id\":\"30aab610-4486-11e7-b7a7-19baec0783ed\",\"col\":4,\"row\":1},{\"size_x\":3,\"size_y\":2,\"panelIndex\":20,\"type\":\"visualization\",\"id\":\"471a3580-3f6b-11e7-88e7-df1abe6547fb\",\"col\":7,\"row\":9},{\"size_x\":3,\"size_y\":2,\"panelIndex\":21,\"type\":\"visualization\",\"id\":\"ecbb99c0-3f84-11e7-97f9-3777d794626d\",\"col\":7,\"row\":7},{\"size_x\":3,\"size_y\":2,\"panelIndex\":22,\"type\":\"visualization\",\"id\":\"995e2280-3df3-11e7-a44e-c79ca8efb780\",\"col\":10,\"row\":11}]",
+      "optionsJSON": "{\"darkTheme\":false}",
+      "uiStateJSON": "{\"P-5\":{\"vis\":{\"legendOpen\":false}},\"P-15\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}},\"P-20\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}},\"P-22\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}}}",
+      "version": 1,
+      "timeRestore": true,
+      "timeTo": "now",
+      "timeFrom": "now-30d",
+      "refreshInterval": {
+        "display": "Off",
+        "pause": false,
+        "value": 0
+      },
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"filter\":[{\"query\":{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"*\"}}}]}"
+      }
+    }
+  }
+]
