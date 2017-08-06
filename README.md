@@ -9,16 +9,6 @@ VulnWhisperer is a vulnerability report aggregator for nessus (more scanners to 
  and create a file with a unique filename which is then fed into logstash. Logstash extracts data from the filename and tags all of the information inside the report (see logstash_vulnwhisp.conf file). Data is then shipped to elasticsearch to be indexed.
 
 
-Getting Started
----------------
-
-Currently supports python 2.7
-
-```python
-sudo pip install -r requirements.txt
-python setup.py install
-```
-
 Requirements
 -------------
 ####
@@ -30,11 +20,28 @@ Requirements
 Currently Supports
 -------------
 ####
+*   Elasticsearch 2.x
+*   Python 2.7
 *   Nessus
 
 
 Setup
 ===============
+
+```python
+Install pip:
+sudo <pkg-manager> install python-pip
+sudo pip install --upgrade pip
+
+Manually install requirements:
+sudo pip install pytz
+sudo pip install pandas
+
+Using requirements file:
+sudo pip install -r /path/to/VulnWhisperer/requirements.txt
+
+python /path/to/VulnWhisperer/setup.py install
+```
 
 
 Configuration
