@@ -1,0 +1,4 @@
+pandas==0.20.3
+setuptools==0.9.8
+pytz==2017.2
+Requests==2.18.3
