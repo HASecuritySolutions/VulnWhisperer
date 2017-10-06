@@ -1,0 +1,548 @@
+[
+  {
+    "_id": "7e7fbc90-3df2-11e7-a44e-c79ca8efb780",
+    "_type": "visualization",
+    "_source": {
+      "title": "Nessus-PluginID",
+      "visState": "{\"title\":\"Nessus-PluginID\",\"type\":\"table\",\"params\":{\"perPage\":10,\"showMeticsAtAllLevels\":false,\"showPartialRows\":false,\"showTotal\":false,\"sort\":{\"columnIndex\":null,\"direction\":null},\"totalFunc\":\"sum\"},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"count\",\"schema\":\"metric\",\"params\":{}},{\"id\":\"2\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"bucket\",\"params\":{\"field\":\"plugin_id.raw\",\"size\":50,\"order\":\"desc\",\"orderBy\":\"1\"}}],\"listeners\":{}}",
+      "uiStateJSON": "{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"logstash-nessus-*\",\"query\":{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"*\"}},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "c786bc20-3df4-11e7-a3dd-33f478b7be91",
+    "_type": "visualization",
+    "_source": {
+      "title": "Nessus-RiskPie",
+      "visState": "{\"aggs\":[{\"enabled\":true,\"id\":\"1\",\"params\":{},\"schema\":\"metric\",\"type\":\"count\"},{\"enabled\":true,\"id\":\"2\",\"params\":{\"field\":\"risk.raw\",\"order\":\"desc\",\"orderBy\":\"1\",\"size\":50},\"schema\":\"segment\",\"type\":\"terms\"},{\"enabled\":true,\"id\":\"3\",\"params\":{\"field\":\"name.raw\",\"order\":\"desc\",\"orderBy\":\"1\",\"size\":50},\"schema\":\"segment\",\"type\":\"terms\"},{\"enabled\":true,\"id\":\"4\",\"params\":{\"field\":\"synopsis.raw\",\"order\":\"desc\",\"orderBy\":\"1\",\"size\":50},\"schema\":\"segment\",\"type\":\"terms\"},{\"enabled\":true,\"id\":\"5\",\"params\":{\"field\":\"host\",\"order\":\"desc\",\"orderBy\":\"1\",\"size\":50},\"schema\":\"segment\",\"type\":\"terms\"}],\"listeners\":{},\"params\":{\"addLegend\":true,\"addTooltip\":true,\"isDonut\":true,\"legendPosition\":\"right\"},\"title\":\"Nessus-RiskPie\",\"type\":\"pie\"}",
+      "uiStateJSON": "{}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"logstash-nessus-*\",\"query\":{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"!(None)\"}},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "5a3c0340-3eb3-11e7-a192-93f36fbd9d05",
+    "_type": "visualization",
+    "_source": {
+      "title": "Nessus-CVSSHeatmap",
+      "visState": "{\"title\":\"Nessus-CVSSHeatmap\",\"type\":\"heatmap\",\"params\":{\"addTooltip\":true,\"addLegend\":true,\"enableHover\":false,\"legendPosition\":\"right\",\"times\":[],\"colorsNumber\":4,\"colorSchema\":\"Yellow to Red\",\"setColorRange\":false,\"colorsRange\":[],\"invertColors\":false,\"percentageMode\":false,\"valueAxes\":[{\"show\":false,\"id\":\"ValueAxis-1\",\"type\":\"value\",\"scale\":{\"type\":\"linear\",\"defaultYExtents\":false},\"labels\":{\"show\":false,\"rotate\":0,\"color\":\"#555\"}}]},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"count\",\"schema\":\"metric\",\"params\":{}},{\"id\":\"2\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"segment\",\"params\":{\"field\":\"host\",\"size\":50,\"order\":\"desc\",\"orderBy\":\"1\"}},{\"id\":\"3\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"group\",\"params\":{\"field\":\"cvss\",\"size\":50,\"order\":\"desc\",\"orderBy\":\"_term\"}}],\"listeners\":{}}",
+      "uiStateJSON": "{\"vis\":{\"defaultColors\":{\"0 - 3500\":\"rgb(255,255,204)\",\"3500 - 7000\":\"rgb(254,217,118)\",\"7000 - 10500\":\"rgb(253,141,60)\",\"10500 - 14000\":\"rgb(227,27,28)\"}}}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"logstash-nessus-*\",\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "60418690-3eb1-11e7-90cb-918f9cb01e3d",
+    "_type": "visualization",
+    "_source": {
+      "title": "Nessus-TopPorts",
+      "visState": "{\"title\":\"Nessus-TopPorts\",\"type\":\"table\",\"params\":{\"perPage\":10,\"showPartialRows\":false,\"showMeticsAtAllLevels\":false,\"sort\":{\"columnIndex\":null,\"direction\":null},\"showTotal\":false,\"totalFunc\":\"sum\"},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"count\",\"schema\":\"metric\",\"params\":{}},{\"id\":\"2\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"bucket\",\"params\":{\"field\":\"port\",\"size\":20,\"order\":\"desc\",\"orderBy\":\"1\"}}],\"listeners\":{}}",
+      "uiStateJSON": "{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"logstash-nessus-*\",\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "983687e0-3df2-11e7-a44e-c79ca8efb780",
+    "_type": "visualization",
+    "_source": {
+      "title": "Nessus-Protocol",
+      "visState": "{\"title\":\"Nessus-Protocol\",\"type\":\"table\",\"params\":{\"perPage\":10,\"showMeticsAtAllLevels\":false,\"showPartialRows\":false,\"showTotal\":false,\"sort\":{\"columnIndex\":null,\"direction\":null},\"totalFunc\":\"sum\"},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"count\",\"schema\":\"metric\",\"params\":{}},{\"id\":\"2\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"bucket\",\"params\":{\"field\":\"protocol.raw\",\"size\":50,\"order\":\"desc\",\"orderBy\":\"1\",\"customLabel\":\"Protocol\"}}],\"listeners\":{}}",
+      "uiStateJSON": "{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"logstash-nessus-*\",\"query\":{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"*\"}},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "995e2280-3df3-11e7-a44e-c79ca8efb780",
+    "_type": "visualization",
+    "_source": {
+      "title": "Nessus-Host",
+      "visState": "{\"title\":\"Nessus-Host\",\"type\":\"table\",\"params\":{\"perPage\":10,\"showMeticsAtAllLevels\":false,\"showPartialRows\":false,\"showTotal\":false,\"sort\":{\"columnIndex\":null,\"direction\":null},\"totalFunc\":\"sum\"},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"count\",\"schema\":\"metric\",\"params\":{}},{\"id\":\"2\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"bucket\",\"params\":{\"field\":\"host\",\"size\":50,\"order\":\"desc\",\"orderBy\":\"1\",\"customLabel\":\"Host IP\"}}],\"listeners\":{}}",
+      "uiStateJSON": "{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"logstash-nessus-*\",\"query\":{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"*\"}},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "87338510-3df2-11e7-a44e-c79ca8efb780",
+    "_type": "visualization",
+    "_source": {
+      "title": "Nessus-PluginOutput",
+      "visState": "{\"title\":\"Nessus-PluginOutput\",\"type\":\"table\",\"params\":{\"perPage\":10,\"showMeticsAtAllLevels\":false,\"showPartialRows\":false,\"showTotal\":false,\"sort\":{\"columnIndex\":null,\"direction\":null},\"totalFunc\":\"sum\"},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"count\",\"schema\":\"metric\",\"params\":{}},{\"id\":\"2\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"bucket\",\"params\":{\"field\":\"plugin_output.raw\",\"size\":50,\"order\":\"desc\",\"orderBy\":\"1\",\"customLabel\":\"Plugin Output\"}}],\"listeners\":{}}",
+      "uiStateJSON": "{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"logstash-nessus-*\",\"query\":{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"*\"}},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "068d4bc0-3df3-11e7-a44e-c79ca8efb780",
+    "_type": "visualization",
+    "_source": {
+      "title": "Nessus-SeeAlso",
+      "visState": "{\"title\":\"Nessus-SeeAlso\",\"type\":\"table\",\"params\":{\"perPage\":10,\"showMeticsAtAllLevels\":false,\"showPartialRows\":false,\"showTotal\":false,\"sort\":{\"columnIndex\":null,\"direction\":null},\"totalFunc\":\"sum\"},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"count\",\"schema\":\"metric\",\"params\":{}},{\"id\":\"2\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"bucket\",\"params\":{\"field\":\"see_also.raw\",\"size\":50,\"order\":\"desc\",\"orderBy\":\"1\",\"customLabel\":\"See Also\"}}],\"listeners\":{}}",
+      "uiStateJSON": "{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"logstash-nessus-*\",\"query\":{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"*\"}},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "1de9e550-3df1-11e7-a44e-c79ca8efb780",
+    "_type": "visualization",
+    "_source": {
+      "title": "Nessus-Description",
+      "visState": "{\"title\":\"Nessus-Description\",\"type\":\"table\",\"params\":{\"perPage\":10,\"showPartialRows\":false,\"showMeticsAtAllLevels\":false,\"sort\":{\"columnIndex\":null,\"direction\":null},\"showTotal\":false,\"totalFunc\":\"sum\"},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"count\",\"schema\":\"metric\",\"params\":{}},{\"id\":\"2\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"bucket\",\"params\":{\"field\":\"description.raw\",\"size\":50,\"order\":\"desc\",\"orderBy\":\"1\",\"customLabel\":\"Description\"}}],\"listeners\":{}}",
+      "uiStateJSON": "{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"logstash-nessus-*\",\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "1e59fa50-3df3-11e7-a44e-c79ca8efb780",
+    "_type": "visualization",
+    "_source": {
+      "title": "Nessus-Synopsis",
+      "visState": "{\"title\":\"Nessus-Synopsis\",\"type\":\"table\",\"params\":{\"perPage\":10,\"showMeticsAtAllLevels\":false,\"showPartialRows\":false,\"showTotal\":false,\"sort\":{\"columnIndex\":null,\"direction\":null},\"totalFunc\":\"sum\"},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"count\",\"schema\":\"metric\",\"params\":{}},{\"id\":\"2\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"bucket\",\"params\":{\"field\":\"synopsis.raw\",\"size\":50,\"order\":\"desc\",\"orderBy\":\"1\",\"customLabel\":\"Synopsis\"}}],\"listeners\":{}}",
+      "uiStateJSON": "{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"logstash-nessus-*\",\"query\":{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"*\"}},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "13c7d4e0-3df3-11e7-a44e-c79ca8efb780",
+    "_type": "visualization",
+    "_source": {
+      "title": "Nessus-Solution",
+      "visState": "{\"title\":\"Nessus-Solution\",\"type\":\"table\",\"params\":{\"perPage\":10,\"showMeticsAtAllLevels\":false,\"showPartialRows\":false,\"showTotal\":false,\"sort\":{\"columnIndex\":null,\"direction\":null},\"totalFunc\":\"sum\"},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"count\",\"schema\":\"metric\",\"params\":{}},{\"id\":\"2\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"bucket\",\"params\":{\"field\":\"solution.raw\",\"size\":50,\"order\":\"desc\",\"orderBy\":\"1\",\"customLabel\":\"Solution\"}}],\"listeners\":{}}",
+      "uiStateJSON": "{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"logstash-nessus-*\",\"query\":{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"*\"}},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "69765d50-3f5e-11e7-98cc-d924fd28047d",
+    "_type": "visualization",
+    "_source": {
+      "title": "Nessus-CVE",
+      "visState": "{\"title\":\"Nessus-CVE\",\"type\":\"table\",\"params\":{\"perPage\":10,\"showPartialRows\":false,\"showMeticsAtAllLevels\":false,\"sort\":{\"columnIndex\":null,\"direction\":null},\"showTotal\":false,\"totalFunc\":\"sum\"},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"count\",\"schema\":\"metric\",\"params\":{}},{\"id\":\"2\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"bucket\",\"params\":{\"field\":\"cve.raw\",\"size\":10,\"order\":\"desc\",\"orderBy\":\"1\",\"customLabel\":\"CVE ID\"}}],\"listeners\":{}}",
+      "uiStateJSON": "{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"logstash-nessus-*\",\"query\":{\"query_string\":{\"query\":\"!(nan)\",\"analyze_wildcard\":true}},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "852816e0-3eb1-11e7-90cb-918f9cb01e3d",
+    "_type": "visualization",
+    "_source": {
+      "title": "Nessus-CVSS",
+      "visState": "{\"title\":\"Nessus-CVSS\",\"type\":\"table\",\"params\":{\"perPage\":10,\"showPartialRows\":false,\"showMeticsAtAllLevels\":false,\"sort\":{\"columnIndex\":null,\"direction\":null},\"showTotal\":false,\"totalFunc\":\"sum\"},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"count\",\"schema\":\"metric\",\"params\":{}},{\"id\":\"2\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"bucket\",\"params\":{\"field\":\"cvss\",\"size\":20,\"order\":\"desc\",\"orderBy\":\"1\",\"customLabel\":\"CVSS Score\"}},{\"id\":\"4\",\"enabled\":true,\"type\":\"cardinality\",\"schema\":\"metric\",\"params\":{\"field\":\"host\",\"customLabel\":\"# of Hosts\"}}],\"listeners\":{}}",
+      "uiStateJSON": "{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":0,\"direction\":\"desc\"}}}}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"logstash-nessus-*\",\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "099a3820-3f68-11e7-a6bd-e764d950e506",
+    "_type": "visualization",
+    "_source": {
+      "title": "Timelion Nessus Example",
+      "visState": "{\"type\":\"timelion\",\"title\":\"Timelion Nessus Example\",\"params\":{\"expression\":\".es(index=logstash-nessus-*,q=risk:high).label(\\\"Current High Risk\\\"),.es(index=logstash-nessus-*,q=risk:high,offset=-1y).label(\\\"Last 1 Year High Risk\\\"),.es(index=logstash-nessus-*,q=risk:medium).label(\\\"Current Medium Risk\\\"),.es(index=logstash-nessus-*,q=risk:medium,offset=-1y).label(\\\"Last 1 Year Medium Risk\\\")\",\"interval\":\"auto\"}}",
+      "uiStateJSON": "{}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{}"
+      }
+    }
+  },
+  {
+    "_id": "297df800-3f7e-11e7-bd24-6903e3283192",
+    "_type": "visualization",
+    "_source": {
+      "title": "Nessus - Plugin Name",
+      "visState": "{\"title\":\"Nessus - Plugin Name\",\"type\":\"table\",\"params\":{\"perPage\":10,\"showPartialRows\":false,\"showMeticsAtAllLevels\":false,\"sort\":{\"columnIndex\":null,\"direction\":null},\"showTotal\":false,\"totalFunc\":\"sum\"},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"count\",\"schema\":\"metric\",\"params\":{}},{\"id\":\"2\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"bucket\",\"params\":{\"field\":\"plugin_name.raw\",\"size\":10,\"order\":\"desc\",\"orderBy\":\"1\",\"customLabel\":\"Plugin Name\"}}],\"listeners\":{}}",
+      "uiStateJSON": "{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"logstash-nessus-*\",\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "de1a5f40-3f85-11e7-97f9-3777d794626d",
+    "_type": "visualization",
+    "_source": {
+      "title": "Nessus - ScanName",
+      "visState": "{\"title\":\"Nessus - ScanName\",\"type\":\"table\",\"params\":{\"perPage\":10,\"showPartialRows\":false,\"showMeticsAtAllLevels\":false,\"sort\":{\"columnIndex\":null,\"direction\":null},\"showTotal\":false,\"totalFunc\":\"sum\"},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"count\",\"schema\":\"metric\",\"params\":{}},{\"id\":\"2\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"bucket\",\"params\":{\"field\":\"scan_name.raw\",\"size\":20,\"order\":\"desc\",\"orderBy\":\"1\",\"customLabel\":\"Scan Name\"}}],\"listeners\":{}}",
+      "uiStateJSON": "{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"logstash-nessus-*\",\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "ecbb99c0-3f84-11e7-97f9-3777d794626d",
+    "_type": "visualization",
+    "_source": {
+      "title": "Nessus - Total",
+      "visState": "{\"title\":\"Nessus - Total\",\"type\":\"metric\",\"params\":{\"handleNoResults\":true,\"fontSize\":60},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"count\",\"schema\":\"metric\",\"params\":{\"customLabel\":\"Total\"}}],\"listeners\":{}}",
+      "uiStateJSON": "{}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"logstash-nessus-*\",\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "471a3580-3f6b-11e7-88e7-df1abe6547fb",
+    "_type": "visualization",
+    "_source": {
+      "title": "Nessus - Vulnerabilities by Tag",
+      "visState": "{\"title\":\"Nessus - Vulnerabilities by Tag\",\"type\":\"table\",\"params\":{\"perPage\":3,\"showMeticsAtAllLevels\":false,\"showPartialRows\":false,\"showTotal\":false,\"sort\":{\"columnIndex\":null,\"direction\":null},\"totalFunc\":\"sum\"},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"count\",\"schema\":\"metric\",\"params\":{}},{\"id\":\"3\",\"enabled\":true,\"type\":\"filters\",\"schema\":\"bucket\",\"params\":{\"filters\":[{\"input\":{\"query\":{\"query_string\":{\"query\":\"tags:has_hipaa_data\",\"analyze_wildcard\":true}}},\"label\":\"Systems with HIPAA data\"},{\"input\":{\"query\":{\"query_string\":{\"query\":\"tags:pci_asset\",\"analyze_wildcard\":true}}},\"label\":\"PCI Systems\"},{\"input\":{\"query\":{\"query_string\":{\"query\":\"tags:hipaa_asset\",\"analyze_wildcard\":true}}},\"label\":\"HIPAA Systems\"}]}}],\"listeners\":{}}",
+      "uiStateJSON": "{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"logstash-nessus-*\",\"query\":{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"*\"}},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "35b6d320-3f7f-11e7-bd24-6903e3283192",
+    "_type": "visualization",
+    "_source": {
+      "title": "Nessus - Residual Risk",
+      "visState": "{\"title\":\"Nessus - Residual Risk\",\"type\":\"table\",\"params\":{\"perPage\":15,\"showPartialRows\":false,\"showMeticsAtAllLevels\":false,\"sort\":{\"columnIndex\":0,\"direction\":\"desc\"},\"showTotal\":false,\"totalFunc\":\"sum\"},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"count\",\"schema\":\"metric\",\"params\":{}},{\"id\":\"2\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"bucket\",\"params\":{\"field\":\"risk_score\",\"size\":50,\"order\":\"desc\",\"orderBy\":\"1\",\"customLabel\":\"Risk Number\"}}],\"listeners\":{}}",
+      "uiStateJSON": "{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":0,\"direction\":\"desc\"}}}}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"logstash-nessus-*\",\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "a9225930-3df2-11e7-a44e-c79ca8efb780",
+    "_type": "visualization",
+    "_source": {
+      "title": "Nessus-Risk",
+      "visState": "{\"title\":\"Nessus-Risk\",\"type\":\"table\",\"params\":{\"perPage\":4,\"showMeticsAtAllLevels\":false,\"showPartialRows\":false,\"showTotal\":false,\"sort\":{\"columnIndex\":null,\"direction\":null},\"totalFunc\":\"sum\"},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"count\",\"schema\":\"metric\",\"params\":{}},{\"id\":\"2\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"bucket\",\"params\":{\"field\":\"risk\",\"size\":10,\"order\":\"desc\",\"orderBy\":\"1\",\"customLabel\":\"Risk Severity\"}}],\"listeners\":{}}",
+      "uiStateJSON": "{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"logstash-nessus-*\",\"query\":{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"*\"}},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "2f979030-44b9-11e7-a818-f5f80dfc3590",
+    "_type": "visualization",
+    "_source": {
+      "title": "Nessus - ScanBarChart",
+      "visState": "{\"aggs\":[{\"enabled\":true,\"id\":\"1\",\"params\":{},\"schema\":\"metric\",\"type\":\"count\"},{\"enabled\":true,\"id\":\"2\",\"params\":{\"customLabel\":\"Scan Name\",\"field\":\"scan_name.raw\",\"order\":\"desc\",\"orderBy\":\"1\",\"size\":10},\"schema\":\"segment\",\"type\":\"terms\"}],\"listeners\":{},\"params\":{\"addLegend\":true,\"addTimeMarker\":false,\"addTooltip\":true,\"defaultYExtents\":false,\"legendPosition\":\"right\",\"mode\":\"stacked\",\"scale\":\"linear\",\"setYExtents\":false,\"times\":[]},\"title\":\"Nessus - ScanBarChart\",\"type\":\"histogram\"}",
+      "uiStateJSON": "{}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"logstash-nessus-*\",\"query\":{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"*\"}},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "67d432e0-44ec-11e7-a05f-d9719b331a27",
+    "_type": "visualization",
+    "_source": {
+      "title": "Nessus - TL-Critical Risk",
+      "visState": "{\"title\":\"Nessus - TL-Critical Risk\",\"type\":\"timelion\",\"params\":{\"expression\":\".es(index='logstash-nessus-*',q='(risk_score:>=9 AND risk_score:<=10)').label(\\\"Original\\\"),.es(index='logstash-nessus-*',q='(risk_score:>=9 AND risk_score:<=10)',offset=-1w).label(\\\"One week offset\\\"),.es(index='logstash-nessus-*',q='(risk_score:>=9 AND risk_score:<=10)').subtract(.es(index='logstash-nessus-*',q='(risk_score:>=9 AND risk_score:<=10)',offset=-1w)).label(\\\"Difference\\\").lines(steps=3,fill=2,width=1)\",\"interval\":\"auto\"},\"aggs\":[],\"listeners\":{}}",
+      "uiStateJSON": "{}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "a91b9fe0-44ec-11e7-a05f-d9719b331a27",
+    "_type": "visualization",
+    "_source": {
+      "title": "Nessus - TL-Medium Risk",
+      "visState": "{\"title\":\"Nessus - TL-Medium Risk\",\"type\":\"timelion\",\"params\":{\"expression\":\".es(index='logstash-nessus-*',q='(risk_score:>=4 AND risk_score:<7)').label(\\\"Original\\\"),.es(index='logstash-nessus-*',q='(risk_score:>=4 AND risk_score:<7)',offset=-1w).label(\\\"One week offset\\\"),.es(index='logstash-nessus-*',q='(risk_score:>=4 AND risk_score:<7)').subtract(.es(index='logstash-nessus-*',q='(risk_score:>=4 AND risk_score:<7)',offset=-1w)).label(\\\"Difference\\\").lines(steps=3,fill=2,width=1)\",\"interval\":\"auto\"},\"aggs\":[],\"listeners\":{}}",
+      "uiStateJSON": "{}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "8d9592d0-44ec-11e7-a05f-d9719b331a27",
+    "_type": "visualization",
+    "_source": {
+      "title": "Nessus - TL-High Risk",
+      "visState": "{\"title\":\"Nessus - TL-High Risk\",\"type\":\"timelion\",\"params\":{\"expression\":\".es(index='logstash-nessus-*',q='(risk_score:>=7 AND risk_score:<9)').label(\\\"Original\\\"),.es(index='logstash-nessus-*',q='(risk_score:>=7 AND risk_score:<9)',offset=-1w).label(\\\"One week offset\\\"),.es(index='logstash-nessus-*',q='(risk_score:>=7 AND risk_score:<9)').subtract(.es(index='logstash-nessus-*',q='(risk_score:>=7 AND risk_score:<9)',offset=-1w)).label(\\\"Difference\\\").lines(steps=3,fill=2,width=1)\",\"interval\":\"auto\"},\"aggs\":[],\"listeners\":{}}",
+      "uiStateJSON": "{}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "a2d66660-44ec-11e7-a05f-d9719b331a27",
+    "_type": "visualization",
+    "_source": {
+      "title": "Nessus - TL-Low Risk",
+      "visState": "{\"title\":\"Nessus - TL-Low Risk\",\"type\":\"timelion\",\"params\":{\"expression\":\".es(index='logstash-nessus-*',q='(risk_score:>0 AND risk_score:<4)').label(\\\"Original\\\"),.es(index='logstash-nessus-*',q='(risk_score:>0 AND risk_score:<4)',offset=-1w).label(\\\"One week offset\\\"),.es(index='logstash-nessus-*',q='(risk_score:>0 AND risk_score:<4)').subtract(.es(index='logstash-nessus-*',q='(risk_score:>0 AND risk_score:<4)',offset=-1w)).label(\\\"Difference\\\").lines(steps=3,fill=2,width=1)\",\"interval\":\"auto\"},\"aggs\":[],\"listeners\":{}}",
+      "uiStateJSON": "{}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "fb6eb020-49ab-11e7-8f8c-57ad64ec48a6",
+    "_type": "visualization",
+    "_source": {
+      "title": "Nessus - Critical Risk Score for Tagged Assets",
+      "visState": "{\"title\":\"Nessus - Critical Risk Score for Tagged Assets\",\"type\":\"timelion\",\"params\":{\"expression\":\".es(index=logstash-nessus-*,q='risk_score:>9 AND tags:hipaa_asset').label(\\\"HIPAA Assets\\\"),.es(index=logstash-nessus-*,q='risk_score:>9 AND tags:pci_asset').label(\\\"PCI Systems\\\"),.es(index=logstash-nessus-*,q='risk_score:>9 AND tags:has_hipaa_data').label(\\\"Has HIPAA Data\\\")\",\"interval\":\"auto\"},\"aggs\":[],\"listeners\":{}}",
+      "uiStateJSON": "{}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "80158c90-57c1-11e7-b484-a970fc9d150a",
+    "_type": "visualization",
+    "_source": {
+      "title": "Nessus - HIPAA TL",
+      "visState": "{\"type\":\"timelion\",\"title\":\"Nessus - HIPAA TL\",\"params\":{\"expression\":\".es(index=logstash-nessus-*,q='risk_score:>9 AND tags:pci_asset').label(\\\"PCI Assets\\\"),.es(index=logstash-nessus-*,q='risk_score:>9 AND tags:has_hipaa_data').label(\\\"Has HIPAA Data\\\"),.es(index=logstash-nessus-*,q='risk_score:>9 AND tags:hipaa_asset').label(\\\"HIPAA Assets\\\")\",\"interval\":\"auto\"}}",
+      "uiStateJSON": "{}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{}"
+      }
+    }
+  },
+  {
+    "_id": "a6508640-897a-11e7-bbc0-33592ce0be1e",
+    "_type": "visualization",
+    "_source": {
+      "title": "Nessus - Critical Assets Aggregated",
+      "visState": "{\"title\":\"Nessus - Critical Assets Aggregated\",\"type\":\"heatmap\",\"params\":{\"addTooltip\":true,\"addLegend\":true,\"enableHover\":true,\"legendPosition\":\"right\",\"times\":[],\"colorsNumber\":4,\"colorSchema\":\"Green to Red\",\"setColorRange\":true,\"colorsRange\":[{\"from\":0,\"to\":3},{\"from\":3,\"to\":7},{\"from\":7,\"to\":9},{\"from\":9,\"to\":11}],\"invertColors\":false,\"percentageMode\":false,\"valueAxes\":[{\"show\":false,\"id\":\"ValueAxis-1\",\"type\":\"value\",\"scale\":{\"type\":\"linear\",\"defaultYExtents\":false},\"labels\":{\"show\":true,\"rotate\":0,\"color\":\"white\"}}]},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"risk_score\",\"customLabel\":\"Residual Risk Score\"}},{\"id\":\"3\",\"enabled\":true,\"type\":\"date_histogram\",\"schema\":\"segment\",\"params\":{\"field\":\"@timestamp\",\"interval\":\"auto\",\"customInterval\":\"2h\",\"min_doc_count\":1,\"extended_bounds\":{},\"customLabel\":\"Date\"}},{\"id\":\"4\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"group\",\"params\":{\"field\":\"host\",\"size\":10,\"order\":\"desc\",\"orderBy\":\"1\",\"customLabel\":\"Critical Asset IP\"}},{\"id\":\"5\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"split\",\"params\":{\"field\":\"plugin_name.raw\",\"size\":5,\"order\":\"desc\",\"orderBy\":\"1\",\"row\":true}}],\"listeners\":{}}",
+      "uiStateJSON": "{\"vis\":{\"colors\":{\"0 - 3\":\"#7EB26D\",\"3 - 7\":\"#EAB839\",\"7 - 9\":\"#EF843C\",\"8 - 10\":\"#BF1B00\",\"9 - 11\":\"#BF1B00\"},\"defaultColors\":{\"0 - 3\":\"rgb(0,104,55)\",\"3 - 7\":\"rgb(135,203,103)\",\"7 - 9\":\"rgb(255,255,190)\",\"9 - 11\":\"rgb(249,142,82)\"},\"legendOpen\":false}}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"logstash-nessus-*\",\"query\":{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"*\"}},\"filter\":[{\"$state\":{\"store\":\"appState\"},\"meta\":{\"alias\":\"Critical Asset\",\"disabled\":false,\"index\":\"logstash-nessus-*\",\"key\":\"tags\",\"negate\":false,\"type\":\"phrase\",\"value\":\"critical_asset\"},\"query\":{\"match\":{\"tags\":{\"query\":\"critical_asset\",\"type\":\"phrase\"}}}}]}"
+      }
+    }
+  },
+  {
+    "_id": "465c5820-8977-11e7-857e-e1d56b17746d",
+    "_type": "visualization",
+    "_source": {
+      "title": "Nessus - Critical Assets",
+      "visState": "{\"title\":\"Nessus - Critical Assets\",\"type\":\"heatmap\",\"params\":{\"addTooltip\":true,\"addLegend\":true,\"enableHover\":true,\"legendPosition\":\"right\",\"times\":[],\"colorsNumber\":4,\"colorSchema\":\"Green to Red\",\"setColorRange\":true,\"colorsRange\":[{\"from\":0,\"to\":3},{\"from\":3,\"to\":7},{\"from\":7,\"to\":9},{\"from\":9,\"to\":11}],\"invertColors\":false,\"percentageMode\":false,\"valueAxes\":[{\"show\":false,\"id\":\"ValueAxis-1\",\"type\":\"value\",\"scale\":{\"type\":\"linear\",\"defaultYExtents\":false},\"labels\":{\"show\":true,\"rotate\":0,\"color\":\"white\"}}]},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"risk_score\",\"customLabel\":\"Residual Risk Score\"}},{\"id\":\"2\",\"enabled\":false,\"type\":\"terms\",\"schema\":\"split\",\"params\":{\"field\":\"host\",\"size\":5,\"order\":\"desc\",\"orderBy\":\"1\",\"row\":true}},{\"id\":\"3\",\"enabled\":true,\"type\":\"date_histogram\",\"schema\":\"segment\",\"params\":{\"field\":\"@timestamp\",\"interval\":\"auto\",\"customInterval\":\"2h\",\"min_doc_count\":1,\"extended_bounds\":{},\"customLabel\":\"Date\"}},{\"id\":\"4\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"group\",\"params\":{\"field\":\"host\",\"size\":5,\"order\":\"desc\",\"orderBy\":\"1\",\"customLabel\":\"Critical Asset IP\"}}],\"listeners\":{}}",
+      "uiStateJSON": "{\"vis\":{\"defaultColors\":{\"0 - 3\":\"rgb(0,104,55)\",\"3 - 7\":\"rgb(135,203,103)\",\"7 - 9\":\"rgb(255,255,190)\",\"9 - 11\":\"rgb(249,142,82)\"},\"colors\":{\"8 - 10\":\"#BF1B00\",\"9 - 11\":\"#BF1B00\",\"7 - 9\":\"#EF843C\",\"3 - 7\":\"#EAB839\",\"0 - 3\":\"#7EB26D\"},\"legendOpen\":false}}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"logstash-nessus-*\",\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}},\"filter\":[{\"meta\":{\"index\":\"logstash-nessus-*\",\"negate\":false,\"disabled\":false,\"alias\":\"Critical Asset\",\"type\":\"phrase\",\"key\":\"tags\",\"value\":\"critical_asset\"},\"query\":{\"match\":{\"tags\":{\"query\":\"critical_asset\",\"type\":\"phrase\"}}},\"$state\":{\"store\":\"appState\"}}]}"
+      }
+    }
+  },
+  {
+    "_id": "56f0f5f0-3ebe-11e7-a192-93f36fbd9d05",
+    "_type": "visualization",
+    "_source": {
+      "title": "Nessus-RiskOverTime",
+      "visState": "{\"aggs\":[{\"enabled\":true,\"id\":\"1\",\"params\":{},\"schema\":\"metric\",\"type\":\"count\"},{\"enabled\":true,\"id\":\"2\",\"params\":{\"customInterval\":\"2h\",\"extended_bounds\":{},\"field\":\"@timestamp\",\"interval\":\"auto\",\"min_doc_count\":1},\"schema\":\"segment\",\"type\":\"date_histogram\"},{\"enabled\":true,\"id\":\"3\",\"params\":{\"field\":\"risk\",\"order\":\"desc\",\"orderBy\":\"1\",\"size\":5},\"schema\":\"group\",\"type\":\"terms\"}],\"listeners\":{},\"params\":{\"addLegend\":true,\"addTimeMarker\":false,\"addTooltip\":true,\"categoryAxes\":[{\"id\":\"CategoryAxis-1\",\"labels\":{\"show\":true,\"truncate\":100},\"position\":\"bottom\",\"scale\":{\"type\":\"linear\"},\"show\":true,\"style\":{},\"title\":{},\"type\":\"category\"}],\"defaultYExtents\":false,\"drawLinesBetweenPoints\":true,\"grid\":{\"categoryLines\":false,\"style\":{\"color\":\"#eee\"},\"valueAxis\":\"ValueAxis-1\"},\"interpolate\":\"linear\",\"legendPosition\":\"right\",\"orderBucketsBySum\":false,\"radiusRatio\":9,\"scale\":\"linear\",\"seriesParams\":[{\"data\":{\"id\":\"1\",\"label\":\"Count\"},\"drawLinesBetweenPoints\":true,\"interpolate\":\"linear\",\"mode\":\"normal\",\"show\":\"true\",\"showCircles\":true,\"type\":\"line\",\"valueAxis\":\"ValueAxis-1\"}],\"setYExtents\":false,\"showCircles\":true,\"times\":[],\"valueAxes\":[{\"id\":\"ValueAxis-1\",\"labels\":{\"filter\":false,\"rotate\":0,\"show\":true,\"truncate\":100},\"name\":\"LeftAxis-1\",\"position\":\"left\",\"scale\":{\"mode\":\"normal\",\"type\":\"linear\"},\"show\":true,\"style\":{},\"title\":{\"text\":\"Count\"},\"type\":\"value\"}]},\"title\":\"Nessus-RiskOverTime\",\"type\":\"line\"}",
+      "uiStateJSON": "{\"vis\":{\"colors\":{\"Critical\":\"#E24D42\",\"High\":\"#E0752D\",\"Low\":\"#7EB26D\",\"Medium\":\"#F2C96D\"}}}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"logstash-nessus-*\",\"query\":{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"*\"}},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "479deab0-8a39-11e7-a58a-9bfcb3761a3d",
+    "_type": "visualization",
+    "_source": {
+      "title": "Nessus - TL - TaggedAssetsPluginNames",
+      "visState": "{\"title\":\"Nessus - TL - TaggedAssetsPluginNames\",\"type\":\"timelion\",\"params\":{\"expression\":\".es(index='logstash-nessus-*', q='tags:critical_asset OR tags:hipaa_asset OR tags:pci_asset', split=\\\"plugin_name.raw:10\\\").bars(width=4).label(regex=\\\".*:(.+)>.*\\\",label=\\\"$1\\\")\",\"interval\":\"auto\"},\"aggs\":[],\"listeners\":{}}",
+      "uiStateJSON": "{}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "84f5c370-8a38-11e7-a58a-9bfcb3761a3d",
+    "_type": "visualization",
+    "_source": {
+      "title": "Nessus - TL - CriticalAssetsPluginNames",
+      "visState": "{\"title\":\"Nessus - TL - CriticalAssetsPluginNames\",\"type\":\"timelion\",\"params\":{\"expression\":\".es(index='logstash-nessus-*', q='tags:critical_asset', split=\\\"plugin_name.raw:10\\\").bars(width=4).label(regex=\\\".*:(.+)>.*\\\",label=\\\"$1\\\")\",\"interval\":\"auto\"},\"aggs\":[],\"listeners\":{}}",
+      "uiStateJSON": "{}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "307cdae0-8a38-11e7-a58a-9bfcb3761a3d",
+    "_type": "visualization",
+    "_source": {
+      "title": "Nessus - TL - PluginNames",
+      "visState": "{\"title\":\"Nessus - TL - PluginNames\",\"type\":\"timelion\",\"params\":{\"expression\":\".es(index='logstash-nessus-*', split=\\\"plugin_name.raw:25\\\").bars(width=4).label(regex=\\\".*:(.+)>.*\\\",label=\\\"$1\\\")\",\"interval\":\"auto\"},\"aggs\":[],\"listeners\":{}}",
+      "uiStateJSON": "{}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "d048c220-80b3-11e7-8790-73b60225f736",
+    "_type": "visualization",
+    "_source": {
+      "title": "Nessus  - Risk: High",
+      "visState": "{\"title\":\"Nessus  - Risk: High\",\"type\":\"goal\",\"params\":{\"addTooltip\":true,\"addLegend\":true,\"type\":\"gauge\",\"gauge\":{\"verticalSplit\":false,\"autoExtend\":false,\"percentageMode\":false,\"gaugeType\":\"Metric\",\"gaugeStyle\":\"Full\",\"backStyle\":\"Full\",\"orientation\":\"vertical\",\"useRanges\":false,\"colorSchema\":\"Green to Red\",\"gaugeColorMode\":\"Background\",\"colorsRange\":[{\"from\":0,\"to\":1000}],\"invertColors\":false,\"labels\":{\"show\":false,\"color\":\"black\"},\"scale\":{\"show\":true,\"labels\":false,\"color\":\"#333\",\"width\":2},\"type\":\"simple\",\"style\":{\"bgFill\":\"white\",\"bgColor\":true,\"labelColor\":false,\"subText\":\"\",\"fontSize\":\"34\"},\"extendRange\":true}},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"count\",\"schema\":\"metric\",\"params\":{\"customLabel\":\"High Risk\"}},{\"id\":\"2\",\"enabled\":true,\"type\":\"filters\",\"schema\":\"group\",\"params\":{\"filters\":[{\"input\":{\"query\":{\"query_string\":{\"query\":\"risk:High\",\"analyze_wildcard\":true}}},\"label\":\"\"}]}}],\"listeners\":{}}",
+      "uiStateJSON": "{\"vis\":{\"defaultColors\":{\"0 - 1000\":\"rgb(0,104,55)\"},\"legendOpen\":true,\"colors\":{\"0 - 10000\":\"#EF843C\",\"0 - 1000\":\"#E0752D\"}}}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"logstash-nessus-*\",\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "c1361da0-80b3-11e7-8790-73b60225f736",
+    "_type": "visualization",
+    "_source": {
+      "title": "Nessus  - Risk: Medium",
+      "visState": "{\"title\":\"Nessus  - Risk: Medium\",\"type\":\"goal\",\"params\":{\"addTooltip\":true,\"addLegend\":true,\"type\":\"gauge\",\"gauge\":{\"verticalSplit\":false,\"autoExtend\":false,\"percentageMode\":false,\"gaugeType\":\"Metric\",\"gaugeStyle\":\"Full\",\"backStyle\":\"Full\",\"orientation\":\"vertical\",\"useRanges\":false,\"colorSchema\":\"Green to Red\",\"gaugeColorMode\":\"Background\",\"colorsRange\":[{\"from\":0,\"to\":10000}],\"invertColors\":false,\"labels\":{\"show\":false,\"color\":\"black\"},\"scale\":{\"show\":true,\"labels\":false,\"color\":\"#333\",\"width\":2},\"type\":\"simple\",\"style\":{\"bgFill\":\"white\",\"bgColor\":true,\"labelColor\":false,\"subText\":\"\",\"fontSize\":\"34\"},\"extendRange\":false}},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"count\",\"schema\":\"metric\",\"params\":{\"customLabel\":\"Medium Risk\"}},{\"id\":\"2\",\"enabled\":true,\"type\":\"filters\",\"schema\":\"group\",\"params\":{\"filters\":[{\"input\":{\"query\":{\"query_string\":{\"query\":\"risk:Medium\",\"analyze_wildcard\":true}}},\"label\":\"Medium Risk\"}]}}],\"listeners\":{}}",
+      "uiStateJSON": "{\"vis\":{\"defaultColors\":{\"0 - 10000\":\"rgb(0,104,55)\"},\"legendOpen\":true,\"colors\":{\"0 - 10000\":\"#EAB839\"}}}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"logstash-nessus-*\",\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "e46ff7f0-897d-11e7-934b-67cec0a7da65",
+    "_type": "visualization",
+    "_source": {
+      "title": "Nessus  - Risk: Low",
+      "visState": "{\"title\":\"Nessus  - Risk: Low\",\"type\":\"goal\",\"params\":{\"addTooltip\":true,\"addLegend\":true,\"type\":\"gauge\",\"gauge\":{\"verticalSplit\":false,\"autoExtend\":false,\"percentageMode\":false,\"gaugeType\":\"Metric\",\"gaugeStyle\":\"Full\",\"backStyle\":\"Full\",\"orientation\":\"vertical\",\"useRanges\":false,\"colorSchema\":\"Green to Red\",\"gaugeColorMode\":\"Background\",\"colorsRange\":[{\"from\":0,\"to\":10000}],\"invertColors\":false,\"labels\":{\"show\":false,\"color\":\"black\"},\"scale\":{\"show\":true,\"labels\":false,\"color\":\"#333\",\"width\":2},\"type\":\"simple\",\"style\":{\"bgFill\":\"white\",\"bgColor\":true,\"labelColor\":false,\"subText\":\"\",\"fontSize\":\"34\"},\"extendRange\":false}},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"count\",\"schema\":\"metric\",\"params\":{\"customLabel\":\"Low Risk\"}},{\"id\":\"2\",\"enabled\":true,\"type\":\"filters\",\"schema\":\"group\",\"params\":{\"filters\":[{\"input\":{\"query\":{\"query_string\":{\"query\":\"risk:Low\",\"analyze_wildcard\":true}}},\"label\":\"Low Risk\"}]}}],\"listeners\":{}}",
+      "uiStateJSON": "{\"vis\":{\"defaultColors\":{\"0 - 10000\":\"rgb(0,104,55)\"},\"legendOpen\":true,\"colors\":{\"0 - 10000\":\"#629E51\"}}}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"logstash-nessus-*\",\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "db55bce0-80b3-11e7-8790-73b60225f736",
+    "_type": "visualization",
+    "_source": {
+      "title": "Nessus  - Risk: Critical",
+      "visState": "{\"title\":\"Nessus  - Risk: Critical\",\"type\":\"goal\",\"params\":{\"addLegend\":true,\"addTooltip\":true,\"gauge\":{\"autoExtend\":false,\"backStyle\":\"Full\",\"colorSchema\":\"Green to Red\",\"colorsRange\":[{\"from\":0,\"to\":10000}],\"gaugeColorMode\":\"Background\",\"gaugeStyle\":\"Full\",\"gaugeType\":\"Metric\",\"invertColors\":false,\"labels\":{\"color\":\"black\",\"show\":false},\"orientation\":\"vertical\",\"percentageMode\":false,\"scale\":{\"color\":\"#333\",\"labels\":false,\"show\":true,\"width\":2},\"style\":{\"bgColor\":true,\"bgFill\":\"white\",\"fontSize\":\"34\",\"labelColor\":false,\"subText\":\"Risk\"},\"type\":\"simple\",\"useRanges\":false,\"verticalSplit\":false},\"type\":\"gauge\"},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"count\",\"schema\":\"metric\",\"params\":{\"customLabel\":\"Critical Risk\"}},{\"id\":\"2\",\"enabled\":true,\"type\":\"filters\",\"schema\":\"group\",\"params\":{\"filters\":[{\"input\":{\"query\":{\"query_string\":{\"query\":\"risk:Critical\",\"analyze_wildcard\":true}}},\"label\":\"Critical\"}]}}],\"listeners\":{}}",
+      "uiStateJSON": "{\"vis\":{\"colors\":{\"0 - 10000\":\"#BF1B00\"},\"defaultColors\":{\"0 - 10000\":\"rgb(0,104,55)\"},\"legendOpen\":false}}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"logstash-nessus-*\",\"query\":{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"*\"}},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "b2f2adb0-897f-11e7-a2d2-c57bca21b3aa",
+    "_type": "visualization",
+    "_source": {
+      "title": "Nessus  - Risk: Total",
+      "visState": "{\"title\":\"Nessus  - Risk: Total\",\"type\":\"goal\",\"params\":{\"addLegend\":true,\"addTooltip\":true,\"gauge\":{\"autoExtend\":false,\"backStyle\":\"Full\",\"colorSchema\":\"Green to Red\",\"colorsRange\":[{\"from\":0,\"to\":10000}],\"gaugeColorMode\":\"Background\",\"gaugeStyle\":\"Full\",\"gaugeType\":\"Metric\",\"invertColors\":false,\"labels\":{\"color\":\"black\",\"show\":false},\"orientation\":\"vertical\",\"percentageMode\":false,\"scale\":{\"color\":\"#333\",\"labels\":false,\"show\":true,\"width\":2},\"style\":{\"bgColor\":true,\"bgFill\":\"white\",\"fontSize\":\"34\",\"labelColor\":false,\"subText\":\"Risk\"},\"type\":\"simple\",\"useRanges\":false,\"verticalSplit\":false},\"type\":\"gauge\"},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"count\",\"schema\":\"metric\",\"params\":{\"customLabel\":\"Total\"}},{\"id\":\"2\",\"enabled\":true,\"type\":\"filters\",\"schema\":\"group\",\"params\":{\"filters\":[{\"input\":{\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}}},\"label\":\"Critical\"}]}}],\"listeners\":{}}",
+      "uiStateJSON": "{\"vis\":{\"colors\":{\"0 - 10000\":\"#64B0C8\"},\"defaultColors\":{\"0 - 10000\":\"rgb(0,104,55)\"},\"legendOpen\":false}}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"logstash-nessus-*\",\"query\":{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"*\"}},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "5093c620-44e9-11e7-8014-ede06a7e69f8",
+    "_type": "visualization",
+    "_source": {
+      "title": "Nessus - Mitigation Readme",
+      "visState": "{\"title\":\"Nessus - Mitigation Readme\",\"type\":\"markdown\",\"params\":{\"markdown\":\"** Legend **\\n\\n* [Common Vulnerability Scoring System (CVSS)](https://nvd.nist.gov/vuln-metrics/cvss) is the NIST vulnerability scoring system\\n* Risk Number is residual risk score calculated from CVSS, which is adjusted to be specific to Heartland which accounts for services not in use such as Java and Flash\\n* Vulnerabilities by Tag are systems tagged with HIPAA and PCI identification.\\n\\n\\n** Workflow **\\n* Select 10.0 under Risk Number to identify Critical Vulnerabilities. \\n* For more information about a CVE, scroll down and click the CVE link.\\n* To filter by tags, use one of the following filters:\\n** tags:has_hipaa_data, tags:pci_asset, tags:hipaa_asset, tags:critical_asset**\"},\"aggs\":[],\"listeners\":{}}",
+      "uiStateJSON": "{}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}},\"filter\":[]}"
+      }
+    }
+  }
+]
