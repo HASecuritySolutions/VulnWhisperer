@@ -16,12 +16,13 @@ import logging
 
 class vulnWhisperer(object):
 
-    def __init__(self, config=None, db_name='report_tracker.db', purge=False, verbose=None, debug=False):
+    def __init__(self, config=None, db_name='report_tracker.db', purge=False, verbose=None, debug=False, username=None, password=None):
 
         self.verbose = verbose
         self.nessus_connect = False
         self.develop = True
         self.purge = purge
+
 
         if config is not None:
             try:
@@ -31,8 +32,18 @@ class vulnWhisperer(object):
                 if self.nessus_enabled:
                     self.nessus_hostname = self.config.get('nessus', 'hostname')
                     self.nessus_port = self.config.get('nessus', 'port')
-                    self.nessus_username = self.config.get('nessus', 'username')
-                    self.nessus_password = self.config.get('nessus', 'password')
+
+                    if password:
+                        self.nessus_password = password
+                    else:
+                        self.nessus_password = self.config.get('nessus', 'password')
+                    
+
+                    if username:
+                        self.nessus_username = username
+                    else:
+                        self.nessus_username = self.config.get('nessus', 'username')
+                    
                     self.nessus_writepath = self.config.get('nessus', 'write_path')
                     self.nessus_dbpath = self.config.get('nessus', 'db_path')
                     self.nessus_trash = self.config.getbool('nessus', 'trash')
