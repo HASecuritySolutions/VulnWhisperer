@@ -18,12 +18,16 @@ def main():
                         help='Path of config file')
     parser.add_argument('-v', '--verbose', dest='verbose', action='store_true', default=True,
                         help='Prints status out to screen (defaults to True)')
+    parser.add_argument('-u', '--username', dest='username', required=False, default=None, help='The NESSUS username')
+    parser.add_argument('-p', '--password', dest='password', required=False, default=None, help='The NESSUS password')
     args = parser.parse_args()
 
     try:
 
         vw = vulnWhisperer(config=args.config,
-                           verbose=args.verbose)
+                           verbose=args.verbose,
+                           username=args.username,
+                           password=args.password)
 
         vw.whisper_nessus()
         sys.exit(1)
