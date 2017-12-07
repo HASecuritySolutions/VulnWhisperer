@@ -166,7 +166,7 @@ class vulnWhisperer(object):
 
 
                 except Exception as e:
-                    print(e)
+                    #print(e)
                     pass
 
         if completed:
