@@ -53,6 +53,15 @@ There are a few configuration steps to setting up VulnWhisperer:
 *   Import ElasticSearch Templates
 *   Import Kibana Dashboards
 
+Run
+-----
+```python
+
+vuln_whisperer -c configs/example.ini
+
+```
+
+_For windows, you may need to type the full path of the binary in vulnWhisperer located in the bin directory._
 
 Credit
 ------
