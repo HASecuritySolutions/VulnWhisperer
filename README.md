@@ -40,7 +40,8 @@ sudo pip install pandas
 Using requirements file:
 sudo pip install -r /path/to/VulnWhisperer/requirements.txt
 
-python /path/to/VulnWhisperer/setup.py install
+cd /path/to/VulnWhisperer
+sudo python setup.py install
 ```
 
 
