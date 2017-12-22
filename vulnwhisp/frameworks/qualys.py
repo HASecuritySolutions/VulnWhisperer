@@ -155,7 +155,6 @@ class qualysWebAppReport:
         with open(report, 'rb') as csvfile:
             q_report = csv.reader(csvfile, delimiter=',', quotechar='"')
             for x in q_report:
-                # if ('Web Application Name' and 'VULNERABILITY') in x:
                 if 'Web Application Name' in x[0]:
                     host = q_report.next()[0]
         return host
