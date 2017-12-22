@@ -6,20 +6,26 @@
 
 from vulnwhisp.vulnwhisp import vulnWhisperer
 from vulnwhisp.utils.cli import bcolors
-
+import os
 import argparse
 import sys
+
+def isFileValid(parser, arg):
+    if not os.path.exists(arg):
+        parser.error("The file %s does not exist!" % arg)
+    else:
+        return arg
 
 def main():
 
     parser = argparse.ArgumentParser(description=""" VulnWhisperer is designed to create actionable data from\
      your vulnerability scans through aggregation of historical scans.""")
     parser.add_argument('-c', '--config', dest='config', required=False, default='frameworks.ini',
-                        help='Path of config file')
+                        help='Path of config file', type=lambda x: isFileValid(parser, x.strip()))
     parser.add_argument('-v', '--verbose', dest='verbose', action='store_true', default=True,
                         help='Prints status out to screen (defaults to True)')
-    parser.add_argument('-u', '--username', dest='username', required=False, default=None, help='The NESSUS username')
-    parser.add_argument('-p', '--password', dest='password', required=False, default=None, help='The NESSUS password')
+    parser.add_argument('-u', '--username', dest='username', required=False, default=None, type=lambda x: x.strip(), help='The NESSUS username')
+    parser.add_argument('-p', '--password', dest='password', required=False, default=None, type=lambda x: x.strip(), help='The NESSUS password')
     args = parser.parse_args()
 
     try:
