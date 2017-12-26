@@ -187,41 +187,9 @@ class qualysWebAppReport:
         'Evidence #1',
     ]
 
-    WEB_APP_VULN_HEADER = [
-        'Web Application Name',
-        'Vulnerability Category',
-        'ID',
-        'QID',
-        'Url',
-        'Param',
-        'Function',
-        'Form Entry Point',
-        'Access Path',
-        'Authentication',
-        'Ajax Request',
-        'Ajax Request ID',
-        'Status',
-        'Ignored',
-        'Ignore Reason',
-        'Ignore Date',
-        'Ignore User',
-        'Ignore Comments',
-        'First Time Detected',
-        'Last Time Detected',
-        'Last Time Tested',
-        'Times Detected',
-        'Payload #1',
-        'Request Method #1',
-        'Request URL #1',
-        'Request Headers #1',
-        'Response #1',
-        'Evidence #1',
-        'Content',
-    ]
-
+    WEB_APP_VULN_HEADER = list(WEB_APP_VULN_BLOCK)
     WEB_APP_VULN_HEADER[WEB_APP_VULN_BLOCK.index(CATEGORIES[0])] = \
         'Vulnerability Category'
-
 
     WEB_APP_SENSITIVE_HEADER = list(WEB_APP_VULN_HEADER)
     WEB_APP_SENSITIVE_HEADER.insert(WEB_APP_SENSITIVE_HEADER.index('Url'
