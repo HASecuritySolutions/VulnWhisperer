@@ -40,7 +40,8 @@ sudo pip install pandas
 Using requirements file:
 sudo pip install -r /path/to/VulnWhisperer/requirements.txt
 
-python /path/to/VulnWhisperer/setup.py install
+cd /path/to/VulnWhisperer
+sudo python setup.py install
 ```
 
 
@@ -53,6 +54,15 @@ There are a few configuration steps to setting up VulnWhisperer:
 *   Import ElasticSearch Templates
 *   Import Kibana Dashboards
 
+Run
+-----
+```python
+
+vuln_whisperer -c configs/example.ini
+
+```
+
+_For windows, you may need to type the full path of the binary in vulnWhisperer located in the bin directory._
 
 Credit
 ------
