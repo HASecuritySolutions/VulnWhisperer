@@ -252,7 +252,7 @@ class QGConnector(api_actions.QGActions):
         url = self.url_api_version(api_version)
         #
         # Set up headers.
-        headers = {"X-Requested-With": "Parag Baxi QualysAPI (python) v%s" % (qualysapi.version.__version__,)}
+        headers = {"X-Requested-With": "QualysAPI (python) v%s - VulnWhisperer" % (qualysapi.version.__version__,)}
         logger.debug('headers =\n%s' % (str(headers)))
         # Portal API takes in XML text, requiring custom header.
         if api_version in ('am', 'was', 'am2'):

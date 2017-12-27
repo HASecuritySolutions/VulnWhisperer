@@ -1,0 +1,3 @@
+[submodule "qualysapi"]
+	path = deps/qualysapi
+	url = git@github.com:austin-taylor/qualysapi.git

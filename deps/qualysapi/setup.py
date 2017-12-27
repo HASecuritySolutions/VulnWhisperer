@@ -2,14 +2,15 @@
 
 from __future__ import absolute_import
 import os
+import setuptools
 import sys
 try:
     from setuptools import setup
 except ImportError:
     from distutils.core import setup
 
-__author__ = 'Parag Baxi <parag.baxi@gmail.com>'
-__copyright__ = 'Copyright 2011-2013, Parag Baxi'
+__author__ = 'Austin Taylor <vulnWhisperer@austintaylor.io>'
+__copyright__ = 'Copyright 2017, Austin Taylor'
 __license__ = 'BSD-new'
 # Make pyflakes happy.
 __pkgname__ = None
@@ -27,14 +28,14 @@ def read(fname):
 
 setup(name=__pkgname__,
       version=__version__,
-      author='Parag Baxi',
-      author_email='parag.baxi@gmail.com',
-      description='QualysGuard(R) Qualys API Package',
+      author='Austin Taylor',
+      author_email='vulnWhisperer@austintaylor.io',
+      description='QualysGuard(R) Qualys API Package modified for VulnWhisperer',
       license='BSD-new',
       keywords='Qualys QualysGuard API helper network security',
-      url='https://github.com/paragbaxi/qualysapi',
+      url='https://github.com/austin-taylor/qualysapi',
       package_dir={'': '.'},
-      packages=['qualysapi', ],
+      packages=setuptools.find_packages(),,
       # package_data={'qualysapi':['LICENSE']},
       # scripts=['src/scripts/qhostinfo.py', 'src/scripts/qscanhist.py', 'src/scripts/qreports.py'],
       long_description=read('README.md'),

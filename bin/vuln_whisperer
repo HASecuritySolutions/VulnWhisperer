@@ -1,8 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+__author__ = 'Austin Taylor'
 
-
-#Written by Austin Taylor
-#www.austintaylor.io
 
 from vulnwhisp.vulnwhisp import vulnWhisperer
 from vulnwhisp.utils.cli import bcolors

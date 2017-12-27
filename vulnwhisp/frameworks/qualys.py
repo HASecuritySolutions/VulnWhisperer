@@ -311,9 +311,7 @@ class qualysWebAppReport:
 
     def grab_sections(self, report):
         all_dataframes = []
-        category_list = []
         with open(report, 'rb') as csvfile:
-            q_report = csv.reader(csvfile, delimiter=',', quotechar='"')
             all_dataframes.append(pd.DataFrame(self.grab_section(report,
                                                                  self.WEB_APP_VULN_BLOCK,
                                                                  end=[self.WEB_APP_SENSITIVE_BLOCK,
@@ -365,7 +363,7 @@ class qualysWebAppReport:
 
         merged_df = pd.concat([dataframes[0], dataframes[1],
                                dataframes[2]], axis=0,
-                              ignore_index=False).fillna('N/A')
+                              ignore_index=False).fillna('')
         merged_df = pd.merge(merged_df, dataframes[3], left_on='QID',
                              right_on='Id')
 
@@ -434,9 +432,10 @@ class qualysWebAppReport:
         report_id: App ID
         updated_date: Last time scan was ran for app_id
         """
+        vuln_ready = None
 
         try:
-            vuln_ready = None
+
             if 'Z' in updated_date:
                 updated_date = self.iso_to_epoch(updated_date)
             report_name = 'qualys_web_' + str(report_id) \
@@ -457,7 +456,7 @@ class qualysWebAppReport:
                           % generated_report_id)
                     vuln_ready = self.process_data(generated_report_id)
 
-                    vuln_ready.to_csv(report_name, index=False)  # add when timestamp occured
+                    vuln_ready.to_csv(report_name, index=False, header=True)  # add when timestamp occured
                     print('[SUCCESS] - Report written to %s' \
                           % report_name)
                     print('[ACTION] - Removing report %s' \
@@ -472,6 +471,5 @@ class qualysWebAppReport:
         except Exception as e:
             print('[ERROR] - Could not process %s - %s' % (report_id, e))
         return vuln_ready
-
 
 
