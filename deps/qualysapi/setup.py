@@ -1,9 +1,8 @@
 #!/usr/bin/env python
-
 from __future__ import absolute_import
 import os
 import setuptools
-import sys
+
 try:
     from setuptools import setup
 except ImportError:
@@ -35,7 +34,8 @@ setup(name=__pkgname__,
       keywords='Qualys QualysGuard API helper network security',
       url='https://github.com/austin-taylor/qualysapi',
       package_dir={'': '.'},
-      packages=setuptools.find_packages(),,
+      #packages=setuptools.find_packages(),
+      packages=['qualysapi',],
       # package_data={'qualysapi':['LICENSE']},
       # scripts=['src/scripts/qhostinfo.py', 'src/scripts/qscanhist.py', 'src/scripts/qreports.py'],
       long_description=read('README.md'),

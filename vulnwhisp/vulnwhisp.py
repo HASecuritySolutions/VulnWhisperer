@@ -4,8 +4,10 @@ __author__ = 'Austin Taylor'
 
 from base.config import vwConfig
 from frameworks.nessus import NessusAPI
+from frameworks.qualys import qualysWebAppReport
 from utils.cli import bcolors
 import pandas as pd
+from lxml import objectify
 import sys
 import os
 import io
@@ -18,6 +20,9 @@ import logging
 
 
 class vulnWhispererBase(object):
+
+    CONFIG_SECTION = None
+
     def __init__(
             self,
             config=None,
@@ -27,84 +32,31 @@ class vulnWhispererBase(object):
             debug=False,
             username=None,
             password=None,
-    ):
-        pass
+            section=None,
+        ):
 
-class vulnWhisperer(object):
-    def __init__(
-            self,
-            config=None,
-            db_name='report_tracker.db',
-            purge=False,
-            verbose=None,
-            debug=False,
-            username=None,
-            password=None,
-    ):
 
-        self.verbose = verbose
-        self.nessus_connect = False
-        self.develop = True
+        if self.CONFIG_SECTION is None:
+                raise Exception('Implementing class must define CONFIG_SECTION')
+
+        self.db_name = db_name
         self.purge = purge
 
         if config is not None:
-            try:
-                self.config = vwConfig(config_in=config)
-                self.nessus_enabled = self.config.getbool('nessus',
-                                                          'enabled')
+            self.config = vwConfig(config_in=config)
+            self.enabled = self.config.get(self.CONFIG_SECTION, 'enabled')
+            self.hostname = self.config.get(self.CONFIG_SECTION, 'hostname')
+            self.username = self.config.get(self.CONFIG_SECTION, 'username')
+            self.password = self.config.get(self.CONFIG_SECTION, 'password')
+            self.write_path = self.config.get(self.CONFIG_SECTION, 'write_path')
+            self.db_path = self.config.get(self.CONFIG_SECTION, 'db_path')
+            self.verbose = self.config.getbool(self.CONFIG_SECTION, 'verbose')
 
-                if self.nessus_enabled:
-                    self.nessus_hostname = self.config.get('nessus',
-                                                           'hostname')
-                    self.nessus_port = self.config.get('nessus', 'port')
 
-                    if password:
-                        self.nessus_password = password
-                    else:
-                        self.nessus_password = self.config.get('nessus'
-                                                               , 'password')
 
-                    if username:
-                        self.nessus_username = username
-                    else:
-                        self.nessus_username = self.config.get('nessus'
-                                                               , 'username')
-
-                    self.nessus_writepath = self.config.get('nessus',
-                                                            'write_path')
-                    self.nessus_dbpath = self.config.get('nessus',
-                                                         'db_path')
-                    self.nessus_trash = self.config.getbool('nessus',
-                                                            'trash')
-                    self.verbose = self.config.getbool('nessus',
-                                                       'verbose')
-
-                    try:
-                        self.vprint('{info} Attempting to connect to nessus...'.format(info=bcolors.INFO))
-                        self.nessus = \
-                            NessusAPI(hostname=self.nessus_hostname,
-                                      port=self.nessus_port,
-                                      username=self.nessus_username,
-                                      password=self.nessus_password)
-                        self.nessus_connect = True
-                        self.vprint('{success} Connected to nessus on {host}:{port}'.format(success=bcolors.SUCCESS,
-                                                                                            host=self.nessus_hostname,
-                                                                                            port=str(self.nessus_port)))
-                    except Exception as e:
-                        self.vprint(e)
-                        raise Exception(
-                            '{fail} Could not connect to nessus -- Please verify your settings in {config} are correct and try again.\nReason: {e}'.format(
-                                config=self.config,
-                                fail=bcolors.FAIL, e=e))
-            except Exception as e:
-
-                self.vprint('{fail} Could not properly load your config!\nReason: {e}'.format(fail=bcolors.FAIL,
-                                                                                              e=e))
-                sys.exit(0)
-
-        if db_name is not None:
-            if self.nessus_dbpath:
-                self.database = os.path.join(self.nessus_dbpath,
+        if self.db_name is not None:
+            if self.db_path:
+                self.database = os.path.join(self.db_path,
                                              db_name)
             else:
                 self.database = \
@@ -137,6 +89,7 @@ class vulnWhisperer(object):
             'uuid',
             'processed',
         ]
+
         self.init()
         self.uuids = self.retrieve_uuids()
         self.processed = 0
@@ -145,11 +98,14 @@ class vulnWhisperer(object):
 
     def vprint(self, msg):
         if self.verbose:
-            print msg
+            print(msg)
 
     def create_table(self):
         self.cur.execute(
-            'CREATE TABLE IF NOT EXISTS scan_history (id INTEGER PRIMARY KEY, scan_name TEXT, scan_id INTEGER, last_modified DATE, filename TEXT, download_time DATE, record_count INTEGER, source TEXT, uuid TEXT, processed INTEGER)'
+            'CREATE TABLE IF NOT EXISTS scan_history (id INTEGER PRIMARY KEY,'
+            ' scan_name TEXT, scan_id INTEGER, last_modified DATE, filename TEXT,'
+            ' download_time DATE, record_count INTEGER, source TEXT,'
+            ' uuid TEXT, processed INTEGER)'
             )
         self.conn.commit()
 
@@ -168,9 +124,82 @@ class vulnWhisperer(object):
         return data
 
     def path_check(self, _data):
-        if self.nessus_writepath:
-            data = self.nessus_writepath + '/' + _data
+        if self.write_path:
+            data = self.write_path + '/' + _data
         return data
+
+    def record_insert(self, record):
+        self.cur.execute('insert into scan_history({table_columns}) values (?,?,?,?,?,?,?,?,?)'.format(
+            table_columns=', '.join(self.table_columns)),
+                         record)
+        self.conn.commit()
+
+    def retrieve_uuids(self):
+        """
+        Retrieves UUIDs from database and checks list to determine which files need to be processed.
+        :return:
+        """
+        try:
+            self.conn.text_factory = str
+            self.cur.execute('SELECT uuid FROM scan_history where source = {config_section}'.format(config_section=self.CONFIG_SECTION))
+            results = frozenset([r[0] for r in self.cur.fetchall()])
+        except:
+            results = []
+        return results
+
+class vulnWhispererNessus(vulnWhispererBase):
+
+    CONFIG_SECTION = 'nessus'
+
+    def __init__(
+            self,
+            config=None,
+            db_name='report_tracker.db',
+            purge=False,
+            verbose=None,
+            debug=False,
+            username=None,
+            password=None,
+    ):
+        super(vulnWhispererNessus, self).__init__(config=config)
+
+        self.port = int(self.config.get(self.CONFIG_NAME, 'port'))
+
+        self.develop = True
+        self.purge = purge
+
+        if config is not None:
+            try:
+                #if self.enabled:
+                self.nessus_port = self.config.get(self.CONFIG_SECTION, 'port')
+
+                self.nessus_trash = self.config.getbool(self.CONFIG_SECTION,
+                                                        'trash')
+
+                try:
+                    self.vprint('{info} Attempting to connect to nessus...'.format(info=bcolors.INFO))
+                    self.nessus = \
+                        NessusAPI(hostname=self.hostname,
+                                  port=self.nessus_port,
+                                  username=self.username,
+                                  password=self.password)
+                    self.nessus_connect = True
+                    self.vprint('{success} Connected to nessus on {host}:{port}'.format(success=bcolors.SUCCESS,
+                                                                                        host=self.hostname,
+                                                                                        port=str(self.nessus_port)))
+                except Exception as e:
+                    self.vprint(e)
+                    raise Exception(
+                        '{fail} Could not connect to nessus -- Please verify your settings in {config} are correct and try again.\nReason: {e}'.format(
+                            config=self.config,
+                            fail=bcolors.FAIL, e=e))
+            except Exception as e:
+
+                self.vprint('{fail} Could not properly load your config!\nReason: {e}'.format(fail=bcolors.FAIL,
+                                                                                              e=e))
+                sys.exit(0)
+
+
 
     def scan_count(self, scans, completed=False):
         """
@@ -206,32 +235,15 @@ class vulnWhisperer(object):
                                                                                         ]))
                         scan_records.append(record.copy())
                 except Exception as e:
-
+                    # Generates error each time nonetype is encountered.
                     # print(e)
 
                     pass
 
         if completed:
-            scan_records = [s for s in scan_records if s['status']
-                            == 'completed']
+            scan_records = [s for s in scan_records if s['status'] == 'completed']
         return scan_records
 
-    def record_insert(self, record):
-        self.cur.execute('insert into scan_history({table_columns}) values (?,?,?,?,?,?,?,?,?)'.format(
-            table_columns=', '.join(self.table_columns)),
-                         record)
-        self.conn.commit()
-
-    def retrieve_uuids(self):
-        """
-        Retrieves UUIDs from database and checks list to determine which files need to be processed.
-        :return:
-        """
-
-        self.conn.text_factory = str
-        self.cur.execute('SELECT uuid FROM scan_history')
-        results = frozenset([r[0] for r in self.cur.fetchall()])
-        return results
 
     def whisper_nessus(self):
         if self.nessus_connect:
@@ -299,12 +311,9 @@ class vulnWhisperer(object):
                 if status == 'completed':
                     file_name = '%s_%s_%s_%s.%s' % (scan_name, scan_id,
                                                     history_id, norm_time, 'csv')
-                    repls = (('\\', '_'), ('/', '_'), ('/', '_'), (' ',
-                                                                   '_'))
-                    file_name = reduce(lambda a, kv: a.replace(*kv),
-                                       repls, file_name)
-                    relative_path_name = self.path_check(folder_name
-                                                         + '/' + file_name)
+                    repls = (('\\', '_'), ('/', '_'), ('/', '_'), (' ', '_'))
+                    file_name = reduce(lambda a, kv: a.replace(*kv), repls, file_name)
+                    relative_path_name = self.path_check(folder_name + '/' + file_name)
 
                     if os.path.isfile(relative_path_name):
                         if self.develop:
@@ -335,22 +344,13 @@ class vulnWhisperer(object):
                             self.vprint('Processing %s/%s for scan: %s'
                                         % (scan_count, len(scan_history),
                                            scan_name))
-                            clean_csv['CVSS'] = clean_csv['CVSS'
-                            ].astype(str).apply(self.cleanser)
-                            clean_csv['CVE'] = clean_csv['CVE'
-                            ].astype(str).apply(self.cleanser)
-                            clean_csv['Description'] = \
-                                clean_csv['Description'
-                                ].astype(str).apply(self.cleanser)
+                            columns_to_cleanse = ['CVSS','CVE','Description','Synopsis','Solution','See Also','Plugin Output']
+
+                            for col in columns_to_cleanse:
+                                clean_csv[col] = clean_csv[col].astype(str).apply(self.cleanser)
+
                             clean_csv['Synopsis'] = \
                                 clean_csv['Description'
-                                ].astype(str).apply(self.cleanser)
-                            clean_csv['Solution'] = clean_csv['Solution'
-                            ].astype(str).apply(self.cleanser)
-                            clean_csv['See Also'] = clean_csv['See Also'
-                            ].astype(str).apply(self.cleanser)
-                            clean_csv['Plugin Output'] = \
-                                clean_csv['Plugin Output'
                                 ].astype(str).apply(self.cleanser)
                             clean_csv.to_csv(relative_path_name,
                                              index=False)
@@ -391,8 +391,129 @@ class vulnWhisperer(object):
         else:
 
             self.vprint('{fail} Failed to use scanner at {host}'.format(fail=bcolors.FAIL,
-                                                                        host=self.nessus_hostname + ':'
+                                                                        host=self.hostname + ':'
                                                                              + self.nessus_port))
 
 
+class vulnWhispererQualys(vulnWhispererBase):
 
+    CONFIG_SECTION = 'qualys'
+
+    def __init__(
+            self,
+            config=None,
+            db_name='report_tracker.db',
+            purge=False,
+            verbose=None,
+            debug=False,
+            username=None,
+            password=None,
+    ):
+        super(vulnWhispererQualys, self).__init__(config=config, )
+
+        self.qualys_web = qualysWebAppReport(config=config)
+        self.latest_scans = self.qualys_web.qw.get_web_app_list()
+
+
+    def whisper_webapp(self, report_id, updated_date):
+        """
+        report_id: App ID
+        updated_date: Last time scan was ran for app_id
+        """
+        vuln_ready = None
+
+        try:
+            if 'Z' in updated_date:
+                updated_date = self.qualys_web.iso_to_epoch(updated_date)
+            report_name = 'qualys_web_' + str(report_id) \
+                          + '_{last_updated}'.format(last_updated=updated_date) \
+                          + '.csv'
+            if os.path.isfile(report_name):
+                print('{action} - File already exist! Skipping...'.format(action=bcolors.ACTION))
+                pass
+            else:
+                print('{action} - Generating report for %s'.format(action=bcolors.ACTION) % report_id)
+                status = self.qualys_web.qw.create_report(report_id)
+                root = objectify.fromstring(status)
+                if root.responseCode == 'SUCCESS':
+                    print('{info} - Successfully generated report for webapp: %s'.format(info=bcolors.INFO) \
+                          % report_id)
+                    generated_report_id = root.data.Report.id
+                    print('{info} - New Report ID: %s'.format(info=bcolors.INFO) \
+                          % generated_report_id)
+                    vuln_ready = self.qualys_web.process_data(generated_report_id)
+
+                    vuln_ready.to_csv(report_name, index=False, header=True)  # add when timestamp occured
+                    print('{success} - Report written to %s'.format(success=bcolors.SUCCESS) \
+                          % report_name)
+                    print('{action} - Removing report %s'.format(action=bcolors.ACTION) \
+                          % generated_report_id)
+                    cleaning_up = \
+                        self.qualys_web.qw.delete_report(generated_report_id)
+                    os.remove(str(generated_report_id) + '.csv')
+                    print('{action} - Deleted report: %s'.format(action=bcolors.ACTION) \
+                          % generated_report_id)
+                else:
+                    print('{error} Could not process report ID: %s'.format(error=bcolors.FAIL) % status)
+        except Exception as e:
+            print('{error} - Could not process %s - %s'.format(error=bcolors.FAIL) % (report_id, e))
+        return vuln_ready
+
+    def process_web_assets(self):
+        counter = 0
+        for app in self.latest_scans.iterrows():
+            counter += 1
+            print('Processing %s/%s' % (counter, len(self.latest_scans)))
+            self.whisper_webapp(app[1]['id'], app[1]['createdDate'])
+
+
+
+
+
+class vulnWhisperer(object):
+
+    def __init__(self,
+                 profile=None,
+                 verbose=None,
+                 username=None,
+                 password=None,
+                 config=None):
+
+        self.profile = profile
+        self.config = config
+        self.username = username
+        self.password = password
+        self.verbose = verbose
+
+
+    def whisper_vulnerabilities(self):
+
+        if self.profile == 'nessus':
+            vw = vulnWhispererNessus(config=self.config, username=self.username, password=self.password, verbose=self.verbose)
+            vw.whisper_nessus()
+
+        elif self.profile == 'qualys':
+            vw = vulnWhispererQualys(config=self.config)
+            vw.process_web_assets()
+
+
+
+
+
+
+
+
+'''
+    for f in folders:
+        if not os.path.exists(self.path_check(f['name'])):
+            if f['name'] == 'Trash' and self.nessus_trash:
+                os.makedirs(self.path_check(f['name']))
+            elif f['name'] != 'Trash':
+                os.makedirs(self.path_check(f['name']))
+        else:
+            os.path.exists(self.path_check(f['name']))
+            self.vprint('{info} Directory already exist for {scan} - Skipping creation'.format(
+                scan=self.path_check(f['name'
+                                     ]), info=bcolors.INFO))
+                                     
+'''

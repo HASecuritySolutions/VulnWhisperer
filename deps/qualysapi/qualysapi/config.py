@@ -94,8 +94,8 @@ class QualysConnectConfig:
                 logger.error('Report Template ID Must be set and be an integer')
                 print('Value template ID must be an integer.')
                 exit(1)
-            self._cfgparse.set('qualys', 'template_id', str(self.max_retries))
-        self.max_retries = int(self.max_retries)
+            self._cfgparse.set('qualys', 'template_id', str(self.report_template_id))
+        self.report_template_id = int(self.report_template_id)
 
         # Proxy support
         proxy_config = proxy_url = proxy_protocol = proxy_port = proxy_username = proxy_password = None
@@ -216,3 +216,6 @@ class QualysConnectConfig:
     def get_hostname(self):
         ''' Returns hostname. '''
         return self._cfgparse.get('qualys', 'hostname')
+
+    def get_template_id(self):
+        return self._cfgparse.get('qualys','template_id')

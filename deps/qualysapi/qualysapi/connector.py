@@ -9,7 +9,12 @@ and requesting data from it.
 """
 import logging
 import time
-import urllib.parse
+
+try:
+    from urllib.parse import urlparse
+except ImportError:
+    from urlparse import urlparse
+
 from collections import defaultdict
 
 import requests
@@ -154,7 +159,7 @@ class QGConnector(api_actions.QGActions):
             if api_call_endpoint in self.api_methods['was get']:
                 return 'get'
             # Post calls with no payload will result in HTTPError: 415 Client Error: Unsupported Media Type.
-            if not data:
+            if data is None:
                 # No post data. Some calls change to GET with no post data.
                 if api_call_endpoint in self.api_methods['was no data get']:
                     return 'get'
@@ -215,7 +220,8 @@ class QGConnector(api_actions.QGActions):
                 data = data.lstrip('?')
                 data = data.rstrip('&')
                 # Convert to dictionary.
-                data = urllib.parse.parse_qs(data)
+                #data = urllib.parse.parse_qs(data)
+                data = urlparse(data)
                 logger.debug('Converted:\n%s' % str(data))
         elif api_version in ('am', 'was', 'am2'):
             if type(data) == etree._Element:

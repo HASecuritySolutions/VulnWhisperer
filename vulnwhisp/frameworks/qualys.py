@@ -6,6 +6,7 @@ from lxml import objectify
 from lxml.builder import E
 import xml.etree.ElementTree as ET
 import pandas as pd
+import qualysapi
 import qualysapi.config as qcconf
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
@@ -46,6 +47,7 @@ class qualysWhisper(object):
             self.template_id = self.config_parse.get_template_id()
         except:
             print 'ERROR - Could not retrieve template ID'
+            sys.exit(2)
 
     def request(
             self,
@@ -370,28 +372,15 @@ class qualysWebAppReport:
         if 'Content' not in merged_df:
             merged_df['Content'] = ''
 
-        merged_df['Payload #1'] = merged_df['Payload #1'
-        ].apply(self.cleanser)
-        merged_df['Request Method #1'] = merged_df['Request Method #1'
-        ].apply(self.cleanser)
-        merged_df['Request URL #1'] = merged_df['Request URL #1'
-        ].apply(self.cleanser)
-        merged_df['Request Headers #1'] = merged_df['Request Headers #1'
-        ].apply(self.cleanser)
-        merged_df['Response #1'] = merged_df['Response #1'
-        ].apply(self.cleanser)
-        merged_df['Evidence #1'] = merged_df['Evidence #1'
-        ].apply(self.cleanser)
+        columns_to_cleanse = ['Payload #1','Request Method #1','Request URL #1',
+                              'Request Headers #1','Response #1','Evidence #1',
+                              'Description','Impact','Solution','Url','Content']
 
-        merged_df['Description'] = merged_df['Description'
-        ].apply(self.cleanser)
-        merged_df['Impact'] = merged_df['Impact'].apply(self.cleanser)
-        merged_df['Solution'] = merged_df['Solution'
-        ].apply(self.cleanser)
-        merged_df['Url'] = merged_df['Url'].apply(self.cleanser)
-        merged_df['Content'] = merged_df['Content'].apply(self.cleanser)
+        for col in columns_to_cleanse:
+            merged_df[col] = merged_df[col].apply(self.cleanser)
+
+
         merged_df = merged_df.drop(['QID_y', 'QID_x'], axis=1)
-
         merged_df = merged_df.rename(columns={'Id': 'QID'})
 
         try:
@@ -427,49 +416,15 @@ class qualysWebAppReport:
 
         return merged_data
 
-    def whisper_webapp(self, report_id, updated_date):
-        """
-        report_id: App ID
-        updated_date: Last time scan was ran for app_id
-        """
-        vuln_ready = None
-
-        try:
-
-            if 'Z' in updated_date:
-                updated_date = self.iso_to_epoch(updated_date)
-            report_name = 'qualys_web_' + str(report_id) \
-                          + '_{last_updated}'.format(last_updated=updated_date) \
-                          + '.csv'
-            if os.path.isfile(report_name):
-                print('[ACTION] - File already exist! Skipping...')
-                pass
-            else:
-                print('[ACTION] - Generating report for %s' % report_id)
-                status = self.qw.create_report(report_id)
-                root = objectify.fromstring(status)
-                if root.responseCode == 'SUCCESS':
-                    print('[INFO] - Successfully generated report for webapp: %s' \
-                          % report_id)
-                    generated_report_id = root.data.Report.id
-                    print ('[INFO] - New Report ID: %s' \
-                          % generated_report_id)
-                    vuln_ready = self.process_data(generated_report_id)
-
-                    vuln_ready.to_csv(report_name, index=False, header=True)  # add when timestamp occured
-                    print('[SUCCESS] - Report written to %s' \
-                          % report_name)
-                    print('[ACTION] - Removing report %s' \
-                          % generated_report_id)
-                    cleaning_up = \
-                        self.qw.delete_report(generated_report_id)
-                    os.remove(str(generated_report_id) + '.csv')
-                    print('[ACTION] - Deleted report: %s' \
-                          % generated_report_id)
-                else:
-                    print('Could not process report ID: %s' % status)
-        except Exception as e:
-            print('[ERROR] - Could not process %s - %s' % (report_id, e))
-        return vuln_ready
 
 
+maxInt = sys.maxsize
+decrement = True
+
+while decrement:
+    decrement = False
+    try:
+        csv.field_size_limit(maxInt)
+    except OverflowError:
+        maxInt = int(maxInt/10)
+        decrement = True

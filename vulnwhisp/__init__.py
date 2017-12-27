@@ -1,1 +1,1 @@
-from utils.cli import *
+from utils.cli import bcolors
