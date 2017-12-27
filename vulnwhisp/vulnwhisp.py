@@ -496,24 +496,3 @@ class vulnWhisperer(object):
             vw = vulnWhispererQualys(config=self.config)
             vw.process_web_assets()
 
-
-
-
-
-
-
-
-'''
-    for f in folders:
-        if not os.path.exists(self.path_check(f['name'])):
-            if f['name'] == 'Trash' and self.nessus_trash:
-                os.makedirs(self.path_check(f['name']))
-            elif f['name'] != 'Trash':
-                os.makedirs(self.path_check(f['name']))
-        else:
-            os.path.exists(self.path_check(f['name']))
-            self.vprint('{info} Directory already exist for {scan} - Skipping creation'.format(
-                scan=self.path_check(f['name'
-                                     ]), info=bcolors.INFO))
-                                     
-'''
