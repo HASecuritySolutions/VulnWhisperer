@@ -75,4 +75,4 @@ Big thank you to <a href="https://github.com/SMAPPER">Justin Henderson</a> for h
 
 AS SEEN ON TV
 -------------
-<p align="center" style="width:400px"><img src="https://github.com/austin-taylor/vulnwhisperer/blob/master/docs/source/as_seen_on_tv.png" style="width:400px"></p>
+<p align="center" style="width:400px"><a href="https://twitter.com/MalwareJake/status/935654519471353856"><img src="https://github.com/austin-taylor/vulnwhisperer/blob/master/docs/source/as_seen_on_tv.png" style="width:400px"></a></p>
