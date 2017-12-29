@@ -408,7 +408,7 @@ class vulnWhispererQualys(vulnWhispererBase):
             debug=False,
             username=None,
             password=None,
-    ):
+        ):
         super(vulnWhispererQualys, self).__init__(config=config, )
 
         self.qualys_scan = qualysScanReport(config=config)
@@ -466,7 +466,8 @@ class vulnWhispererQualys(vulnWhispererBase):
                     generated_report_id = root.data.Report.id
                     print('{info} - New Report ID: %s'.format(info=bcolors.INFO) \
                           % generated_report_id)
-                    vuln_ready = self.qualys_scan.process_data(generated_report_id)
+
+                    vuln_ready = self.qualys_scan.process_data(path=self.write_path, file_id=generated_report_id)
 
                     vuln_ready.to_csv(self.path_check(report_name), index=False, header=True)  # add when timestamp occured
                     print('{success} - Report written to %s'.format(success=bcolors.SUCCESS) \

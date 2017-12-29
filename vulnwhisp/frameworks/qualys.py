@@ -321,7 +321,7 @@ class qualysReportFields:
     GROUP_HEADER = ['GROUP', 'Name', 'Category']
     OWASP_HEADER = ['OWASP', 'Code', 'Name']
     WASC_HEADER = ['WASC', 'Code', 'Name']
-    SCAN_META = ['Web Application Name', 'URL', 'Owner', 'Operating System', 'Scope']
+    SCAN_META = ['Web Application Name', 'URL', 'Owner', 'Scope', 'Operating System']
     CATEGORY_HEADER = ['Category', 'Severity', 'Level', 'Description']
 
 
@@ -742,6 +742,8 @@ class qualysScanReport:
         merged_df = pd.merge(merged_df, df_dict['CATEGORY_HEADER'], how='left', left_on=['Category', 'Severity Level'],
                              right_on=['Category', 'Severity'], suffixes=('Severity', 'CatSev'))
 
+        merged_df = merged_df.fillna('')
+
         try:
             merged_df = \
                 merged_df[~merged_df.Title.str.contains('Links Crawled|External Links Discovered'
@@ -750,9 +752,9 @@ class qualysScanReport:
             print(e)
         return merged_df
 
-    def download_file(self, file_id):
+    def download_file(self, path='', file_id=None):
         report = self.qw.download_report(file_id)
-        filename = str(file_id) + '.csv'
+        filename = path + str(file_id) + '.csv'
         file_out = open(filename, 'w')
         for line in report.splitlines():
             file_out.write(line + '\n')
@@ -763,10 +765,10 @@ class qualysScanReport:
     def remove_file(self, filename):
         os.remove(filename)
 
-    def process_data(self, file_id, cleanup=True):
+    def process_data(self, path='', file_id=None, cleanup=True):
         """Downloads a file from qualys and normalizes it"""
 
-        download_file = self.download_file(file_id)
+        download_file = self.download_file(path=path, file_id=file_id)
         print('[ACTION] - Downloading file ID: %s' % file_id)
         report_data = self.grab_sections(download_file)
         merged_data = self.data_normalizer(report_data)
