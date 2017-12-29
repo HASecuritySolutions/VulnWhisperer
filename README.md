@@ -5,7 +5,7 @@
 <p align="center" style="width:400px"><img src="https://github.com/austin-taylor/vulnwhisperer/blob/master/docs/source/vulnwhisp_dashboard.jpg" style="width:400px"></p>
 
 
-VulnWhisperer is a vulnerability report aggregator for nessus (more scanners to come). VulnWhisperer will pull all the reports
+VulnWhisperer is a vulnerability report aggregator. VulnWhisperer will pull all the reports
  and create a file with a unique filename which is then fed into logstash. Logstash extracts data from the filename and tags all of the information inside the report (see logstash_vulnwhisp.conf file). Data is then shipped to elasticsearch to be indexed.
 
 
@@ -14,7 +14,7 @@ Requirements
 ####
 *   ElasticStack
 *   Python 2.7
-*   Vulnerability Scanner - (Nessus)
+*   Vulnerability Scanner
 *   Optional: Message broker such as Kafka or RabbitMQ 
 
 Currently Supports
@@ -23,6 +23,7 @@ Currently Supports
 *   Elasticsearch 2.x
 *   Python 2.7
 *   Nessus
+* . Qualys - Web Application Scanner
 
 
 Setup
@@ -56,11 +57,15 @@ There are a few configuration steps to setting up VulnWhisperer:
 
 Run
 -----
+To run, fill out the configuration file with your vulnerability scanner settings. Then you can execute from the command line.
 ```python
 
-vuln_whisperer -c configs/example.ini
+vuln_whisperer -c configs/example.ini -s nessus
+or
+vuln_whisperer -c configs/example.ini -s qualys
 
 ```
+Next you'll need to import the visualizations into Kibana and setup your logstash config. A more thorough README is underway with setup instructions.
 
 _For windows, you may need to type the full path of the binary in vulnWhisperer located in the bin directory._
 
