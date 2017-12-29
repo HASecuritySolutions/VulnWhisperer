@@ -72,3 +72,7 @@ _For windows, you may need to type the full path of the binary in vulnWhisperer 
 Credit
 ------
 Big thank you to <a href="https://github.com/SMAPPER">Justin Henderson</a> for his contributions to vulnWhisperer!
+
+AS SEEN ON TV
+-------------
+<p align="center" style="width:400px"><img src="https://github.com/austin-taylor/vulnwhisperer/blob/master/docs/source/as_seen_on_tv.png" style="width:400px"></p>
