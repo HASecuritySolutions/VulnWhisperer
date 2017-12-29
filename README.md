@@ -23,7 +23,7 @@ Currently Supports
 *   Elasticsearch 2.x
 *   Python 2.7
 *   Nessus
-* . Qualys - Web Application Scanner
+*   Qualys - Web Application Scanner
 
 
 Setup
