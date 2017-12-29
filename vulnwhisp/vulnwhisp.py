@@ -461,7 +461,7 @@ class vulnWhispererQualys(vulnWhispererBase):
                 status = self.qualys_scan.qw.create_report(report_id)
                 root = objectify.fromstring(status)
                 if root.responseCode == 'SUCCESS':
-                    print('{info} - Successfully generated report for webapp: %s'.format(info=bcolors.INFO) \
+                    print('{info} - Successfully generated report! ID: %s'.format(info=bcolors.INFO) \
                           % report_id)
                     generated_report_id = root.data.Report.id
                     print('{info} - New Report ID: %s'.format(info=bcolors.INFO) \

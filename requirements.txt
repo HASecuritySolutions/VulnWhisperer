@@ -3,3 +3,4 @@ setuptools==0.9.8
 pytz==2017.2
 Requests==2.18.3
 qualysapi==4.1.0
+lxml==4.1.1
