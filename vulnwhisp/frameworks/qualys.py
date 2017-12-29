@@ -361,7 +361,7 @@ class qualysUtils:
         repls = (('\n', '|||'), ('\r', '|||'), (',', ';'), ('\t', '|||'
                                                             ))
         if _data:
-            _data = reduce(lambda a, kv: a.replace(*kv), repls, _data)
+            _data = reduce(lambda a, kv: a.replace(*kv), repls, str(_data))
         return _data
 
 
@@ -498,7 +498,7 @@ class qualysWebAppReport:
 
         merged_df = pd.concat([dataframes[0], dataframes[1],
                                dataframes[2]], axis=0,
-                              ignore_index=False).fillna('')
+                              ignore_index=False)
         merged_df = pd.merge(merged_df, dataframes[3], left_on='QID',
                              right_on='Id')
 
@@ -510,10 +510,11 @@ class qualysWebAppReport:
                               'Description', 'Impact', 'Solution', 'Url', 'Content']
 
         for col in columns_to_cleanse:
-            merged_df[col] = merged_df[col].apply(self.utils.cleanser)
+            merged_df[col] = merged_df[col].astype(str).apply(self.utils.cleanser)
 
         merged_df = merged_df.drop(['QID_y', 'QID_x'], axis=1)
         merged_df = merged_df.rename(columns={'Id': 'QID'})
+        merged_df = merged_df.replace('N/A','').fillna('')
 
         try:
             merged_df = \
@@ -721,7 +722,7 @@ class qualysScanReport:
         df_dict = dataframes[0]
         merged_df = pd.concat([df_dict['WEB_SCAN_VULN_BLOCK'], df_dict['WEB_SCAN_SENSITIVE_BLOCK'],
                                df_dict['WEB_SCAN_INFO_BLOCK']], axis=0,
-                              ignore_index=False).fillna('')
+                              ignore_index=False)
         merged_df = pd.merge(merged_df, df_dict['QID_HEADER'], left_on='QID',
                              right_on='Id')
 
@@ -742,7 +743,7 @@ class qualysScanReport:
         merged_df = pd.merge(merged_df, df_dict['CATEGORY_HEADER'], how='left', left_on=['Category', 'Severity Level'],
                              right_on=['Category', 'Severity'], suffixes=('Severity', 'CatSev'))
 
-        merged_df = merged_df.fillna('')
+        merged_df = merged_df.replace('N/A', '').fillna('')
 
         try:
             merged_df = \
