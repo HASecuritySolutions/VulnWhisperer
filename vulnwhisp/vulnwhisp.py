@@ -4,7 +4,7 @@ __author__ = 'Austin Taylor'
 
 from base.config import vwConfig
 from frameworks.nessus import NessusAPI
-from frameworks.qualys import qualysWebAppReport
+from frameworks.qualys import qualysScanReport
 from utils.cli import bcolors
 import pandas as pd
 from lxml import objectify
@@ -411,11 +411,22 @@ class vulnWhispererQualys(vulnWhispererBase):
     ):
         super(vulnWhispererQualys, self).__init__(config=config, )
 
-        self.qualys_web = qualysWebAppReport(config=config)
-        self.latest_scans = self.qualys_web.qw.get_web_app_list()
+        self.qualys_scan = qualysScanReport(config=config)
+        self.latest_scans = self.qualys_scan.qw.get_all_scans()
+        self.directory_check()
 
 
-    def whisper_webapp(self, report_id, updated_date):
+    def directory_check(self):
+        if not os.path.exists(self.write_path):
+            os.makedirs(self.write_path)
+            self.vprint('{info} Directory created at {scan} - Skipping creation'.format(
+                scan=self.write_path, info=bcolors.INFO))
+        else:
+            os.path.exists(self.write_path)
+            self.vprint('{info} Directory already exist for {scan} - Skipping creation'.format(
+                scan=self.write_path, info=bcolors.INFO))
+
+    def whisper_reports(self, report_id, updated_date, cleanup=True):
         """
         report_id: App ID
         updated_date: Last time scan was ran for app_id
@@ -424,16 +435,30 @@ class vulnWhispererQualys(vulnWhispererBase):
 
         try:
             if 'Z' in updated_date:
-                updated_date = self.qualys_web.iso_to_epoch(updated_date)
+                updated_date = self.qualys_scan.utils.iso_to_epoch(updated_date)
             report_name = 'qualys_web_' + str(report_id) \
                           + '_{last_updated}'.format(last_updated=updated_date) \
                           + '.csv'
-            if os.path.isfile(report_name):
+            """
+            record_meta = (
+                scan_name,
+                app_id,
+                norm_time,
+                report_name,
+                time.time(),
+                clean_csv.shape[0],
+                'qualys',
+                uuid,
+                1,
+            )
+            """
+            #self.record_insert(record_meta)
+            if os.path.isfile(self.path_check(report_name)):
                 print('{action} - File already exist! Skipping...'.format(action=bcolors.ACTION))
                 pass
             else:
                 print('{action} - Generating report for %s'.format(action=bcolors.ACTION) % report_id)
-                status = self.qualys_web.qw.create_report(report_id)
+                status = self.qualys_scan.qw.create_report(report_id)
                 root = objectify.fromstring(status)
                 if root.responseCode == 'SUCCESS':
                     print('{info} - Successfully generated report for webapp: %s'.format(info=bcolors.INFO) \
@@ -441,18 +466,19 @@ class vulnWhispererQualys(vulnWhispererBase):
                     generated_report_id = root.data.Report.id
                     print('{info} - New Report ID: %s'.format(info=bcolors.INFO) \
                           % generated_report_id)
-                    vuln_ready = self.qualys_web.process_data(generated_report_id)
+                    vuln_ready = self.qualys_scan.process_data(generated_report_id)
 
-                    vuln_ready.to_csv(report_name, index=False, header=True)  # add when timestamp occured
+                    vuln_ready.to_csv(self.path_check(report_name), index=False, header=True)  # add when timestamp occured
                     print('{success} - Report written to %s'.format(success=bcolors.SUCCESS) \
                           % report_name)
                     print('{action} - Removing report %s'.format(action=bcolors.ACTION) \
                           % generated_report_id)
-                    cleaning_up = \
-                        self.qualys_web.qw.delete_report(generated_report_id)
-                    os.remove(str(generated_report_id) + '.csv')
-                    print('{action} - Deleted report: %s'.format(action=bcolors.ACTION) \
-                          % generated_report_id)
+                    if cleanup:
+                        cleaning_up = \
+                            self.qualys_scan.qw.delete_report(generated_report_id)
+                        os.remove(self.path_check(str(generated_report_id) + '.csv'))
+                        print('{action} - Deleted report: %s'.format(action=bcolors.ACTION) \
+                              % generated_report_id)
                 else:
                     print('{error} Could not process report ID: %s'.format(error=bcolors.FAIL) % status)
         except Exception as e:
@@ -464,7 +490,7 @@ class vulnWhispererQualys(vulnWhispererBase):
         for app in self.latest_scans.iterrows():
             counter += 1
             print('Processing %s/%s' % (counter, len(self.latest_scans)))
-            self.whisper_webapp(app[1]['id'], app[1]['createdDate'])
+            self.whisper_reports(app[1]['id'], app[1]['launchedDate'])
 
 
 
@@ -489,10 +515,14 @@ class vulnWhisperer(object):
     def whisper_vulnerabilities(self):
 
         if self.profile == 'nessus':
-            vw = vulnWhispererNessus(config=self.config, username=self.username, password=self.password, verbose=self.verbose)
+            vw = vulnWhispererNessus(config=self.config,
+                                     username=self.username,
+                                     password=self.password,
+                                     verbose=self.verbose)
             vw.whisper_nessus()
 
         elif self.profile == 'qualys':
             vw = vulnWhispererQualys(config=self.config)
             vw.process_web_assets()
+
 

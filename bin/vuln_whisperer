@@ -29,7 +29,14 @@ def main():
     parser.add_argument('-p', '--password', dest='password', required=False, default=None, type=lambda x: x.strip(), help='The NESSUS password')
     args = parser.parse_args()
 
+    vw = vulnWhisperer(config=args.config,
+                       profile=args.section,
+                       verbose=args.verbose,
+                       username=args.username,
+                       password=args.password)
 
+    vw.whisper_vulnerabilities()
+    '''
     try:
 
         vw = vulnWhisperer(config=args.config,
@@ -45,7 +52,7 @@ def main():
         if args.verbose:
             print('{red} ERROR: {error}{endc}'.format(red=bcolors.FAIL, error=e, endc=bcolors.ENDC))
         sys.exit(2)
-
+    '''
 
 if __name__ == '__main__':
     main()
