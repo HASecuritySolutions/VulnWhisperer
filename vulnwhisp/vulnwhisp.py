@@ -567,7 +567,7 @@ class vulnWhispererQualys(vulnWhispererBase):
                               % self.path_check(str(generated_report_id)))
                 else:
                     print('{error} Could not process report ID: %s'.format(error=bcolors.FAIL) % status)
-            self.conn.close()
+
         except Exception as e:
             print('{error} - Could not process %s - %s'.format(error=bcolors.FAIL) % (report_id, e))
         return vuln_ready
@@ -597,7 +597,8 @@ class vulnWhispererQualys(vulnWhispererBase):
                                      scan_reference=r['reference'])
         else:
             self.vprint('{info} No new scans to process. Exiting...'.format(info=bcolors.INFO))
-            exit(0)
+        self.conn.close()
+        exit(0)
 
 
 
