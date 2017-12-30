@@ -131,7 +131,7 @@ class qualysWhisperAPI(object):
         dataframes = []
         _records = []
         total = int(self.get_was_scan_count(status=status))
-        print('Processing %s total scans' % total)
+        print('Retrieving information for %s scans' % total)
         for i in range(0, total):
             if i % limit == 0:
                 if (total - i) < limit:

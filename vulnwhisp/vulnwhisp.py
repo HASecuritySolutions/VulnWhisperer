@@ -498,9 +498,9 @@ class vulnWhispererQualys(vulnWhispererBase):
 
             relative_path_name = self.path_check(report_name)
 
-            if os.path.isfile(self.path_check(report_name)):
+            if os.path.isfile(relative_path_name):
                 #TODO Possibly make this optional to sync directories
-                file_length = len(open(report_name).readlines())
+                file_length = len(open(relative_path_name).readlines())
                 record_meta = (
                     scan_name,
                     scan_reference,
@@ -526,9 +526,9 @@ class vulnWhispererQualys(vulnWhispererBase):
                     print('{info} - New Report ID: %s'.format(info=bcolors.INFO) \
                           % generated_report_id)
 
-                    vuln_ready = self.qualys_scan.process_data(path=self.write_path, file_id=generated_report_id)
+                    vuln_ready = self.qualys_scan.process_data(path=self.write_path, file_id=str(generated_report_id))
 
-                    vuln_ready.to_csv(self.path_check(report_name), index=False, header=True)  # add when timestamp occured
+                    vuln_ready.to_csv(relative_path_name, index=False, header=True)  # add when timestamp occured
                     vuln_ready.rename(columns=self.COLUMN_MAPPING, inplace=True)
 
                     record_meta = (
@@ -545,11 +545,11 @@ class vulnWhispererQualys(vulnWhispererBase):
                     self.record_insert(record_meta)
 
                     if output_format == 'json':
-                        with open(self.path_check(report_name), 'w') as f:
+                        with open(relative_path_name, 'w') as f:
                             f.write(vuln_ready.to_json(orient='records', lines=True))
 
                     elif output_format == 'csv':
-                       vuln_ready.to_csv(self.path_check(report_name), index=False, header=True)  # add when timestamp occured
+                       vuln_ready.to_csv(relative_path_name, index=False, header=True)  # add when timestamp occured
 
                     print('{success} - Report written to %s'.format(success=bcolors.SUCCESS) \
                           % report_name)
@@ -559,9 +559,9 @@ class vulnWhispererQualys(vulnWhispererBase):
                               % generated_report_id)
                         cleaning_up = \
                             self.qualys_scan.qw.delete_report(generated_report_id)
-                        os.remove(self.path_check(str(generated_report_id) + '.{extension}'.format(extension=output_format)))
+                        os.remove(self.path_check(str(generated_report_id) + '.csv'))
                         print('{action} - Deleted report from local disk: %s'.format(action=bcolors.ACTION) \
-                              % generated_report_id)
+                              % self.path_check(str(generated_report_id)))
                 else:
                     print('{error} Could not process report ID: %s'.format(error=bcolors.FAIL) % status)
             self.conn.close()
@@ -576,7 +576,7 @@ class vulnWhispererQualys(vulnWhispererBase):
         else:
             self.scans_to_process = self.latest_scans
         self.vprint('{info} Identified {new} scans to be processed'.format(info=bcolors.INFO,
-                                                                           new=len(self.latest_scans)))
+                                                                           new=len(self.scans_to_process)))
 
 
     def process_web_assets(self):
@@ -587,7 +587,7 @@ class vulnWhispererQualys(vulnWhispererBase):
                 counter += 1
                 r = app[1]
 
-                print('Processing %s/%s' % (counter, len(self.latest_scans)))
+                print('Processing %s/%s' % (counter, len(self.scans_to_process)))
                 self.whisper_reports(report_id=r['id'],
                                      launched_date=r['launchedDate'],
                                      scan_name=r['name'],
