@@ -343,7 +343,7 @@ class vulnWhispererNessus(vulnWhispererBase):
                                                                     )))
                         if len(clean_csv) > 2:
                             self.vprint('Processing %s/%s for scan: %s'
-                                        % (scan_count, len(scan_history),
+                                        % (scan_count, len(scan_list),
                                            scan_name))
                             columns_to_cleanse = ['CVSS','CVE','Description','Synopsis','Solution','See Also','Plugin Output']
 
@@ -493,7 +493,7 @@ class vulnWhispererQualys(vulnWhispererBase):
                 launched_date = self.qualys_scan.utils.iso_to_epoch(launched_date)
             report_name = 'qualys_web_' + str(report_id) \
                           + '_{last_updated}'.format(last_updated=launched_date) \
-                          + '.{extension}'.format(output_format)
+                          + '.{extension}'.format(extension=output_format)
 
             relative_path_name = self.path_check(report_name)
 
