@@ -143,7 +143,7 @@ class vulnWhispererBase(object):
         """
         try:
             self.conn.text_factory = str
-            self.cur.execute('SELECT uuid FROM scan_history where source = {config_section}'.format(config_section=self.CONFIG_SECTION))
+            self.cur.execute('SELECT uuid FROM scan_history where source = "{config_section}"'.format(config_section=self.CONFIG_SECTION))
             results = frozenset([r[0] for r in self.cur.fetchall()])
         except:
             results = []
@@ -463,6 +463,7 @@ class vulnWhispererQualys(vulnWhispererBase):
         self.qualys_scan = qualysScanReport(config=config)
         self.latest_scans = self.qualys_scan.qw.get_all_scans()
         self.directory_check()
+        self.scans_to_process = None
 
 
     def directory_check(self):
@@ -563,35 +564,37 @@ class vulnWhispererQualys(vulnWhispererBase):
                               % generated_report_id)
                 else:
                     print('{error} Could not process report ID: %s'.format(error=bcolors.FAIL) % status)
+            self.conn.close()
         except Exception as e:
             print('{error} - Could not process %s - %s'.format(error=bcolors.FAIL) % (report_id, e))
         return vuln_ready
 
 
     def identify_scans_to_process(self):
-        scan_id_list = self.latest_scans.id.tolist()
         if self.uuids:
-            scan_list = [scan for scan in scan_id_list if scan
-                         not in self.uuids]
+            self.scans_to_process = self.latest_scans[~self.latest_scans['id'].isin(self.uuids)]
         else:
-            scan_list = scan_id_list
+            self.scans_to_process = self.latest_scans
         self.vprint('{info} Identified {new} scans to be processed'.format(info=bcolors.INFO,
-                                                                           new=len(scan_list)))
+                                                                           new=len(self.latest_scans)))
 
-        if not scan_list:
-            self.vprint('{info} No new scans to process. Exiting...'.format(info=bcolors.INFO))
-            exit(0)
 
     def process_web_assets(self):
         counter = 0
-        for app in self.latest_scans.iterrows():
-            counter += 1
-            r = app[1]
-            print('Processing %s/%s' % (counter, len(self.latest_scans)))
-            self.whisper_reports(report_id=r['id'],
-                                 launched_date=r['launchedDate'],
-                                 scan_name=r['name'],
-                                 scan_reference=r['reference'])
+        self.identify_scans_to_process()
+        if self.scans_to_process.shape[0]:
+            for app in self.scans_to_process.iterrows():
+                counter += 1
+                r = app[1]
+
+                print('Processing %s/%s' % (counter, len(self.latest_scans)))
+                self.whisper_reports(report_id=r['id'],
+                                     launched_date=r['launchedDate'],
+                                     scan_name=r['name'],
+                                     scan_reference=r['reference'])
+        else:
+            self.vprint('{info} No new scans to process. Exiting...'.format(info=bcolors.INFO))
+            exit(0)
 
 
 
