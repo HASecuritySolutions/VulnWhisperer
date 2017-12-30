@@ -513,9 +513,6 @@ class vulnWhispererQualys(vulnWhispererBase):
                 )
                 self.record_insert(record_meta)
                 self.vprint('{info} File {filename} already exist! Updating database'.format(info=bcolors.INFO, filename=relative_path_name))
-            #else:
-            #    print('{action} - File already exist! Skipping...'.format(action=bcolors.ACTION))
-            #    pass
 
             else:
                 print('{action} - Generating report for %s'.format(action=bcolors.ACTION) % report_id)
@@ -549,7 +546,7 @@ class vulnWhispererQualys(vulnWhispererBase):
                     if output_format == 'json':
                         with open(self.path_check(report_name), 'w') as f:
                             f.write(vuln_ready.to_json(orient='records', lines=True))
-                        #f.write('\n')
+
                     elif output_format == 'csv':
                        vuln_ready.to_csv(self.path_check(report_name), index=False, header=True)  # add when timestamp occured
 
