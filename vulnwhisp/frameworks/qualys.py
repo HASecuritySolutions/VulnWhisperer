@@ -358,7 +358,7 @@ class qualysUtils:
         return dp.parse(dt).strftime('%s')
 
     def cleanser(self, _data):
-        repls = (('\n', '|||'), ('\r', '|||'), (',', ';'), ('\t', '|||'), ('""', "''"))
+        repls = (('\n', '|||'), ('\r', '|||'), (',', ';'), ('\t', '|||'))
         if _data:
             _data = reduce(lambda a, kv: a.replace(*kv), repls, str(_data))
         return _data
@@ -445,46 +445,40 @@ class qualysWebAppReport:
 
     def grab_sections(self, report):
         all_dataframes = []
+        dict_tracker = {}
         with open(report, 'rb') as csvfile:
-            all_dataframes.append(pd.DataFrame(self.utils.grab_section(report,
+            dict_tracker['WEB_APP_VULN_BLOCK'] = pd.DataFrame(self.utils.grab_section(report,
                                                                        self.WEB_APP_VULN_BLOCK,
                                                                        end=[self.WEB_APP_SENSITIVE_BLOCK,
                                                                             self.WEB_APP_INFO_BLOCK],
-                                                                       pop_last=True),
-                                               columns=self.WEB_APP_VULN_HEADER))
-            all_dataframes.append(pd.DataFrame(self.utils.grab_section(report,
+                                                                       pop_last=True), columns=self.WEB_APP_VULN_HEADER)
+            dict_tracker['WEB_APP_SENSITIVE_BLOCK'] = pd.DataFrame(self.utils.grab_section(report,
                                                                        self.WEB_APP_SENSITIVE_BLOCK,
                                                                        end=[self.WEB_APP_INFO_BLOCK,
                                                                             self.WEB_APP_SENSITIVE_BLOCK],
-                                                                       pop_last=True),
-                                               columns=self.WEB_APP_SENSITIVE_HEADER))
-            all_dataframes.append(pd.DataFrame(self.utils.grab_section(report,
+                                                                       pop_last=True), columns=self.WEB_APP_SENSITIVE_HEADER)
+            dict_tracker['WEB_APP_INFO_BLOCK'] = pd.DataFrame(self.utils.grab_section(report,
                                                                        self.WEB_APP_INFO_BLOCK,
                                                                        end=[self.QID_HEADER],
-                                                                       pop_last=True),
-                                               columns=self.WEB_APP_INFO_HEADER))
-            all_dataframes.append(pd.DataFrame(self.utils.grab_section(report,
+                                                                       pop_last=True), columns=self.WEB_APP_INFO_HEADER)
+            dict_tracker['QID_HEADER'] = pd.DataFrame(self.utils.grab_section(report,
                                                                        self.QID_HEADER,
                                                                        end=[self.GROUP_HEADER],
-                                                                       pop_last=True),
-                                               columns=self.QID_HEADER))
-            all_dataframes.append(pd.DataFrame(self.utils.grab_section(report,
+                                                                       pop_last=True), columns=self.QID_HEADER)
+            dict_tracker['GROUP_HEADER'] = pd.DataFrame(self.utils.grab_section(report,
                                                                        self.GROUP_HEADER,
                                                                        end=[self.OWASP_HEADER],
-                                                                       pop_last=True),
-                                               columns=self.GROUP_HEADER))
-            all_dataframes.append(pd.DataFrame(self.utils.grab_section(report,
+                                                                       pop_last=True), columns=self.GROUP_HEADER)
+            dict_tracker['OWASP_HEADER'] = pd.DataFrame(self.utils.grab_section(report,
                                                                        self.OWASP_HEADER,
                                                                        end=[self.WASC_HEADER],
-                                                                       pop_last=True),
-                                               columns=self.OWASP_HEADER))
-            all_dataframes.append(pd.DataFrame(self.utils.grab_section(report,
+                                                                       pop_last=True), columns=self.OWASP_HEADER)
+            dict_tracker['WASC_HEADER'] = pd.DataFrame(self.utils.grab_section(report,
                                                                        self.WASC_HEADER, end=[['APPENDIX']],
-                                                                       pop_last=True),
-                                               columns=self.WASC_HEADER))
-            all_dataframes.append(pd.DataFrame(self.utils.grab_section(report,
-                                                                       self.CATEGORY_HEADER),
-                                               columns=self.CATEGORY_HEADER))
+                                                                       pop_last=True), columns=self.WASC_HEADER)
+            dict_tracker['CATEGORY_HEADER'] =pd.DataFrame(self.utils.grab_section(report,
+                                                                       self.CATEGORY_HEADER), columns=self.CATEGORY_HEADER)
+            all_dataframes.append(dict_tracker)
 
         return all_dataframes
 
@@ -494,6 +488,13 @@ class qualysWebAppReport:
         :param dataframes:
         :return:
         """
+        df_dict = dataframes[0]
+        merged_df = pd.concat([df_dict['WEB_APP_VULN_BLOCK'], df_dict['WEB_APP_SENSITIVE_BLOCK'],
+                               df_dict['WEB_APP_INFO_BLOCK']], axis=0,
+                              ignore_index=False)
+
+        merged_df = pd.merge(merged_df, df_dict['QID_HEADER'], left_on='QID',
+                             right_on='Id')
 
         merged_df = pd.concat([dataframes[0], dataframes[1],
                                dataframes[2]], axis=0,
@@ -508,9 +509,10 @@ class qualysWebAppReport:
                               'Request Headers #1', 'Response #1', 'Evidence #1',
                               'Description', 'Impact', 'Solution', 'Url', 'Content']
 
-        #for col in columns_to_cleanse:
-        #    merged_df[col] = merged_df[col].astype(str).apply(self.utils.cleanser)
+        for col in columns_to_cleanse:
+            merged_df[col] = merged_df[col].astype(str).apply(self.utils.cleanser)
 
+        merged_df = pd.merge(merged_df, df_dict['CATEGORY_HEADER'])
         merged_df = merged_df.drop(['QID_y', 'QID_x'], axis=1)
         merged_df = merged_df.rename(columns={'Id': 'QID'})
         merged_df = merged_df.replace('N/A','').fillna('')
@@ -673,41 +675,41 @@ class qualysScanReport:
                                                                                                 self.WEB_SCAN_INFO_BLOCK,
                                                                                                 self.WEB_SCAN_SENSITIVE_BLOCK],
                                                                                             pop_last=True),
-                                                                    columns=self.WEB_SCAN_SENSITIVE_HEADER)
+                                                                columns=self.WEB_SCAN_SENSITIVE_HEADER)
             dict_tracker['WEB_SCAN_INFO_BLOCK'] = pd.DataFrame(self.utils.grab_section(report,
                                                                                        self.WEB_SCAN_INFO_BLOCK,
                                                                                        end=[self.QID_HEADER],
                                                                                        pop_last=True),
-                                                               columns=self.WEB_SCAN_INFO_HEADER)
+                                                                columns=self.WEB_SCAN_INFO_HEADER)
             dict_tracker['QID_HEADER'] = pd.DataFrame(self.utils.grab_section(report,
                                                                               self.QID_HEADER,
                                                                               end=[self.GROUP_HEADER],
                                                                               pop_last=True),
-                                                      columns=self.QID_HEADER)
+                                                                columns=self.QID_HEADER)
             dict_tracker['GROUP_HEADER'] = pd.DataFrame(self.utils.grab_section(report,
                                                                                 self.GROUP_HEADER,
                                                                                 end=[self.OWASP_HEADER],
                                                                                 pop_last=True),
-                                                        columns=self.GROUP_HEADER)
+                                                                columns=self.GROUP_HEADER)
             dict_tracker['OWASP_HEADER'] = pd.DataFrame(self.utils.grab_section(report,
                                                                                 self.OWASP_HEADER,
                                                                                 end=[self.WASC_HEADER],
                                                                                 pop_last=True),
-                                                        columns=self.OWASP_HEADER)
+                                                                columns=self.OWASP_HEADER)
             dict_tracker['WASC_HEADER'] = pd.DataFrame(self.utils.grab_section(report,
                                                                                self.WASC_HEADER, end=[['APPENDIX']],
                                                                                pop_last=True),
-                                                       columns=self.WASC_HEADER)
+                                                                columns=self.WASC_HEADER)
 
             dict_tracker['SCAN_META'] = pd.DataFrame(self.utils.grab_section(report,
                                                                              self.SCAN_META,
                                                                              end=[self.CATEGORY_HEADER],
                                                                              pop_last=True),
-                                                     columns=self.SCAN_META)
+                                                                columns=self.SCAN_META)
 
             dict_tracker['CATEGORY_HEADER'] = pd.DataFrame(self.utils.grab_section(report,
                                                                                    self.CATEGORY_HEADER),
-                                                           columns=self.CATEGORY_HEADER)
+                                                                columns=self.CATEGORY_HEADER)
             all_dataframes.append(dict_tracker)
 
         return all_dataframes

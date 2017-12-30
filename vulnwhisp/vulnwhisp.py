@@ -33,6 +33,7 @@ class vulnWhispererBase(object):
             username=None,
             password=None,
             section=None,
+            develop=False,
         ):
 
 
@@ -41,6 +42,7 @@ class vulnWhispererBase(object):
 
         self.db_name = db_name
         self.purge = purge
+        self.develop = develop
 
         if config is not None:
             self.config = vwConfig(config_in=config)
@@ -163,14 +165,13 @@ class vulnWhispererNessus(vulnWhispererBase):
     ):
         super(vulnWhispererNessus, self).__init__(config=config)
 
-        self.port = int(self.config.get(self.CONFIG_NAME, 'port'))
+        self.port = int(self.config.get(self.CONFIG_SECTION, 'port'))
 
         self.develop = True
         self.purge = purge
 
         if config is not None:
             try:
-                #if self.enabled:
                 self.nessus_port = self.config.get(self.CONFIG_SECTION, 'port')
 
                 self.nessus_trash = self.config.getbool(self.CONFIG_SECTION,
@@ -325,7 +326,7 @@ class vulnWhispererNessus(vulnWhispererBase):
                                 file_name,
                                 time.time(),
                                 csv_in.shape[0],
-                                'nessus',
+                                self.CONFIG_SECTION,
                                 uuid,
                                 1,
                             )
@@ -361,7 +362,7 @@ class vulnWhispererNessus(vulnWhispererBase):
                                 file_name,
                                 time.time(),
                                 clean_csv.shape[0],
-                                'nessus',
+                                self.CONFIG_SECTION,
                                 uuid,
                                 1,
                             )
@@ -378,7 +379,7 @@ class vulnWhispererNessus(vulnWhispererBase):
                                 file_name,
                                 time.time(),
                                 clean_csv.shape[0],
-                                'nessus',
+                                self.CONFIG_SECTION,
                                 uuid,
                                 1,
                             )
@@ -456,12 +457,12 @@ class vulnWhispererQualys(vulnWhispererBase):
             username=None,
             password=None,
         ):
+
         super(vulnWhispererQualys, self).__init__(config=config, )
 
         self.qualys_scan = qualysScanReport(config=config)
         self.latest_scans = self.qualys_scan.qw.get_all_scans()
         self.directory_check()
-
 
 
     def directory_check(self):
@@ -474,7 +475,13 @@ class vulnWhispererQualys(vulnWhispererBase):
             self.vprint('{info} Directory already exist for {scan} - Skipping creation'.format(
                 scan=self.write_path, info=bcolors.INFO))
 
-    def whisper_reports(self, report_id, updated_date, output_format='json', cleanup=True):
+    def whisper_reports(self,
+                        report_id=None,
+                        launched_date=None,
+                        scan_name=None,
+                        scan_reference=None,
+                        output_format='json',
+                        cleanup=True):
         """
         report_id: App ID
         updated_date: Last time scan was ran for app_id
@@ -482,28 +489,34 @@ class vulnWhispererQualys(vulnWhispererBase):
         vuln_ready = None
 
         try:
-            if 'Z' in updated_date:
-                updated_date = self.qualys_scan.utils.iso_to_epoch(updated_date)
+            if 'Z' in launched_date:
+                launched_date = self.qualys_scan.utils.iso_to_epoch(launched_date)
             report_name = 'qualys_web_' + str(report_id) \
-                          + '_{last_updated}'.format(last_updated=updated_date) \
+                          + '_{last_updated}'.format(last_updated=launched_date) \
                           + '.{extension}'.format(output_format)
-            """
-            record_meta = (
-                scan_name,
-                app_id,
-                norm_time,
-                report_name,
-                time.time(),
-                clean_csv.shape[0],
-                'qualys',
-                uuid,
-                1,
-            )
-            """
-            #self.record_insert(record_meta)
+
+            relative_path_name = self.path_check(report_name)
+
             if os.path.isfile(self.path_check(report_name)):
-                print('{action} - File already exist! Skipping...'.format(action=bcolors.ACTION))
-                pass
+                #TODO Possibly make this optional to sync directories
+                file_length = len(open(report_name).readlines())
+                record_meta = (
+                    scan_name,
+                    scan_reference,
+                    launched_date,
+                    report_name,
+                    time.time(),
+                    file_length,
+                    self.CONFIG_SECTION,
+                    report_id,
+                    1,
+                )
+                self.record_insert(record_meta)
+                self.vprint('{info} File {filename} already exist! Updating database'.format(info=bcolors.INFO, filename=relative_path_name))
+            #else:
+            #    print('{action} - File already exist! Skipping...'.format(action=bcolors.ACTION))
+            #    pass
+
             else:
                 print('{action} - Generating report for %s'.format(action=bcolors.ACTION) % report_id)
                 status = self.qualys_scan.qw.create_report(report_id)
@@ -519,6 +532,20 @@ class vulnWhispererQualys(vulnWhispererBase):
 
                     vuln_ready.to_csv(self.path_check(report_name), index=False, header=True)  # add when timestamp occured
                     vuln_ready.rename(columns=self.COLUMN_MAPPING, inplace=True)
+
+                    record_meta = (
+                        scan_name,
+                        scan_reference,
+                        launched_date,
+                        report_name,
+                        time.time(),
+                        vuln_ready.shape[0],
+                        self.CONFIG_SECTION,
+                        report_id,
+                        1,
+                    )
+                    self.record_insert(record_meta)
+
                     if output_format == 'json':
                         with open(self.path_check(report_name), 'w') as f:
                             f.write(vuln_ready.to_json(orient='records', lines=True))
@@ -543,12 +570,31 @@ class vulnWhispererQualys(vulnWhispererBase):
             print('{error} - Could not process %s - %s'.format(error=bcolors.FAIL) % (report_id, e))
         return vuln_ready
 
+
+    def identify_scans_to_process(self):
+        scan_id_list = self.latest_scans.id.tolist()
+        if self.uuids:
+            scan_list = [scan for scan in scan_id_list if scan
+                         not in self.uuids]
+        else:
+            scan_list = scan_id_list
+        self.vprint('{info} Identified {new} scans to be processed'.format(info=bcolors.INFO,
+                                                                           new=len(scan_list)))
+
+        if not scan_list:
+            self.vprint('{info} No new scans to process. Exiting...'.format(info=bcolors.INFO))
+            exit(0)
+
     def process_web_assets(self):
         counter = 0
         for app in self.latest_scans.iterrows():
             counter += 1
+            r = app[1]
             print('Processing %s/%s' % (counter, len(self.latest_scans)))
-            self.whisper_reports(app[1]['id'], app[1]['launchedDate'])
+            self.whisper_reports(report_id=r['id'],
+                                 launched_date=r['launchedDate'],
+                                 scan_name=r['name'],
+                                 scan_reference=r['reference'])
 
 
 
@@ -582,5 +628,3 @@ class vulnWhisperer(object):
         elif self.profile == 'qualys':
             vw = vulnWhispererQualys(config=self.config)
             vw.process_web_assets()
-
-
