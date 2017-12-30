@@ -127,7 +127,10 @@ class vulnWhispererBase(object):
 
     def path_check(self, _data):
         if self.write_path:
-            data = self.write_path + '/' + _data
+            if '/' or '\\' in _data[-1]:
+                data = self.write_path + _data
+            else:
+                data = self.write_path + '/' + _data
         return data
 
     def record_insert(self, record):
