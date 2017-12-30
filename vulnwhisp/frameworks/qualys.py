@@ -358,8 +358,7 @@ class qualysUtils:
         return dp.parse(dt).strftime('%s')
 
     def cleanser(self, _data):
-        repls = (('\n', '|||'), ('\r', '|||'), (',', ';'), ('\t', '|||'
-                                                            ))
+        repls = (('\n', '|||'), ('\r', '|||'), (',', ';'), ('\t', '|||'), ('""', "''"))
         if _data:
             _data = reduce(lambda a, kv: a.replace(*kv), repls, str(_data))
         return _data
@@ -509,8 +508,8 @@ class qualysWebAppReport:
                               'Request Headers #1', 'Response #1', 'Evidence #1',
                               'Description', 'Impact', 'Solution', 'Url', 'Content']
 
-        for col in columns_to_cleanse:
-            merged_df[col] = merged_df[col].astype(str).apply(self.utils.cleanser)
+        #for col in columns_to_cleanse:
+        #    merged_df[col] = merged_df[col].astype(str).apply(self.utils.cleanser)
 
         merged_df = merged_df.drop(['QID_y', 'QID_x'], axis=1)
         merged_df = merged_df.rename(columns={'Id': 'QID'})
@@ -810,12 +809,12 @@ class qualysScanReport:
                     print('[SUCCESS] - Report written to %s' \
                           % report_name)
                     if cleanup:
-                        print('[ACTION] - Removing report %s' \
+                        print('[ACTION] - Removing report %s from disk' \
                               % generated_report_id)
                         cleaning_up = \
                             self.qw.delete_report(generated_report_id)
                         self.remove_file(str(generated_report_id) + '.csv')
-                        print('[ACTION] - Deleted report: %s' \
+                        print('[ACTION] - Deleted report from Qualys Database: %s' \
                               % generated_report_id)
                 else:
                     print('Could not process report ID: %s' % status)

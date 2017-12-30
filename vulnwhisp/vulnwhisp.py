@@ -398,7 +398,54 @@ class vulnWhispererNessus(vulnWhispererBase):
 class vulnWhispererQualys(vulnWhispererBase):
 
     CONFIG_SECTION = 'qualys'
-
+    COLUMN_MAPPING = {'Access Path': 'access_path',
+                     'Ajax Request': 'ajax_request',
+                     'Ajax Request ID': 'ajax_request_id',
+                     'Authentication': 'authentication',
+                     'CVSS Base': 'cvss',
+                     'CVSS Temporal': 'cvss_temporal',
+                     'CWE': 'cwe',
+                     'Category': 'category',
+                     'Content': 'content',
+                     'DescriptionSeverity': 'severity_description',
+                     'DescriptionCatSev': 'category_description',
+                     'Detection ID': 'detection_id',
+                     'Evidence #1': 'evidence_1',
+                     'First Time Detected': 'first_time_detected',
+                     'Form Entry Point': 'form_entry_point',
+                     'Function': 'function',
+                     'Groups': 'groups',
+                     'ID': 'id',
+                     'Ignore Comments': 'ignore_comments',
+                     'Ignore Date': 'ignore_date',
+                     'Ignore Reason': 'ignore_reason',
+                     'Ignore User': 'ignore_user',
+                     'Ignored': 'ignored',
+                     'Impact': 'impact',
+                     'Last Time Detected': 'last_time_detected',
+                     'Last Time Tested': 'last_time_tested',
+                     'Level': 'level',
+                     'OWASP': 'owasp',
+                     'Operating System': 'operating_system',
+                     'Owner': 'owner',
+                     'Param': 'param',
+                     'Payload #1': 'payload_1',
+                     'QID': 'plugin_id',
+                     'Request Headers #1': 'request_headers_1',
+                     'Request Method #1': 'request_method_1',
+                     'Request URL #1': 'request_url_1',
+                     'Response #1': 'response_1',
+                     'Scope': 'scope',
+                     'Severity': 'risk',
+                     'Severity Level': 'security_level',
+                     'Solution': 'solution',
+                     'Times Detected': 'times_detected',
+                     'Title': 'plugin_name',
+                     'URL': 'url',
+                     'Url': 'uri',
+                     'Vulnerability Category': 'vulnerability_category',
+                     'WASC': 'wasc',
+                     'Web Application Name': 'web_application_name'}
     def __init__(
             self,
             config=None,
@@ -416,6 +463,7 @@ class vulnWhispererQualys(vulnWhispererBase):
         self.directory_check()
 
 
+
     def directory_check(self):
         if not os.path.exists(self.write_path):
             os.makedirs(self.write_path)
@@ -426,7 +474,7 @@ class vulnWhispererQualys(vulnWhispererBase):
             self.vprint('{info} Directory already exist for {scan} - Skipping creation'.format(
                 scan=self.write_path, info=bcolors.INFO))
 
-    def whisper_reports(self, report_id, updated_date, cleanup=True):
+    def whisper_reports(self, report_id, updated_date, output_format='json', cleanup=True):
         """
         report_id: App ID
         updated_date: Last time scan was ran for app_id
@@ -438,7 +486,7 @@ class vulnWhispererQualys(vulnWhispererBase):
                 updated_date = self.qualys_scan.utils.iso_to_epoch(updated_date)
             report_name = 'qualys_web_' + str(report_id) \
                           + '_{last_updated}'.format(last_updated=updated_date) \
-                          + '.csv'
+                          + '.{extension}'.format(output_format)
             """
             record_meta = (
                 scan_name,
@@ -470,15 +518,24 @@ class vulnWhispererQualys(vulnWhispererBase):
                     vuln_ready = self.qualys_scan.process_data(path=self.write_path, file_id=generated_report_id)
 
                     vuln_ready.to_csv(self.path_check(report_name), index=False, header=True)  # add when timestamp occured
+                    vuln_ready.rename(columns=self.COLUMN_MAPPING, inplace=True)
+                    if output_format == 'json':
+                        with open(self.path_check(report_name), 'w') as f:
+                            f.write(vuln_ready.to_json(orient='records', lines=True))
+                        #f.write('\n')
+                    elif output_format == 'csv':
+                       vuln_ready.to_csv(self.path_check(report_name), index=False, header=True)  # add when timestamp occured
+
                     print('{success} - Report written to %s'.format(success=bcolors.SUCCESS) \
                           % report_name)
-                    print('{action} - Removing report %s'.format(action=bcolors.ACTION) \
-                          % generated_report_id)
+
                     if cleanup:
+                        print('{action} - Removing report %s from Qualys Database'.format(action=bcolors.ACTION) \
+                              % generated_report_id)
                         cleaning_up = \
                             self.qualys_scan.qw.delete_report(generated_report_id)
-                        os.remove(self.path_check(str(generated_report_id) + '.csv'))
-                        print('{action} - Deleted report: %s'.format(action=bcolors.ACTION) \
+                        os.remove(self.path_check(str(generated_report_id) + '.{extension}'.format(extension=output_format)))
+                        print('{action} - Deleted report from local disk: %s'.format(action=bcolors.ACTION) \
                               % generated_report_id)
                 else:
                     print('{error} Could not process report ID: %s'.format(error=bcolors.FAIL) % status)
