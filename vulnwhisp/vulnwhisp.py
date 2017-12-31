@@ -589,7 +589,6 @@ class vulnWhispererQualys(vulnWhispererBase):
             for app in self.scans_to_process.iterrows():
                 counter += 1
                 r = app[1]
-
                 print('Processing %s/%s' % (counter, len(self.scans_to_process)))
                 self.whisper_reports(report_id=r['id'],
                                      launched_date=r['launchedDate'],
