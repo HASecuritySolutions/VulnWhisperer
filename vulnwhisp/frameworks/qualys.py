@@ -25,7 +25,6 @@ class qualysWhisperAPI(object):
     DELETE_REPORT = '/delete/was/report/{report_id}'
     GET_WEBAPP_DETAILS = '/get/was/webapp/{was_id}'
     QPS_REST_3 = '/qps/rest/3.0'
-
     REPORT_DETAILS = '/get/was/report/{report_id}'
     REPORT_STATUS = '/status/was/report/{report_id}'
     REPORT_CREATE = '/create/was/report'

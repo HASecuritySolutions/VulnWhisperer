@@ -26,6 +26,7 @@ Currently Supports
 - [X] Qualys Web Applications
 - [ ] Qualys Vulnerability Management (_in progress_)
 - [ ] OpenVAS
+- [ ] Nexpose
 - [ ] NMAP
 - [ ] More to come
 
