@@ -35,7 +35,7 @@ class NessusAPI(object):
             'Origin': self.base,
             'Accept-Encoding': 'gzip, deflate, br',
             'Accept-Language': 'en-US,en;q=0.8',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.96 Safari/537.36',
+            'User-Agent': 'VulnWhisperer for Nessus',
             'Content-Type': 'application/json',
             'Accept': 'application/json, text/javascript, */*; q=0.01',
             'Referer': self.base,

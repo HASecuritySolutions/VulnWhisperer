@@ -1,8 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+__author__ = 'Austin Taylor'
 
-
-#Written by Austin Taylor
-#www.austintaylor.io
 
 from vulnwhisp.vulnwhisp import vulnWhisperer
 from vulnwhisp.utils.cli import bcolors
@@ -22,28 +21,38 @@ def main():
      your vulnerability scans through aggregation of historical scans.""")
     parser.add_argument('-c', '--config', dest='config', required=False, default='frameworks.ini',
                         help='Path of config file', type=lambda x: isFileValid(parser, x.strip()))
+    parser.add_argument('-s', '--section', dest='section', required=False,
+                        help='Section in config')
     parser.add_argument('-v', '--verbose', dest='verbose', action='store_true', default=True,
                         help='Prints status out to screen (defaults to True)')
     parser.add_argument('-u', '--username', dest='username', required=False, default=None, type=lambda x: x.strip(), help='The NESSUS username')
     parser.add_argument('-p', '--password', dest='password', required=False, default=None, type=lambda x: x.strip(), help='The NESSUS password')
     args = parser.parse_args()
 
+    vw = vulnWhisperer(config=args.config,
+                       profile=args.section,
+                       verbose=args.verbose,
+                       username=args.username,
+                       password=args.password)
+
+    vw.whisper_vulnerabilities()
+    '''
     try:
 
         vw = vulnWhisperer(config=args.config,
+                           profile=args.section,
                            verbose=args.verbose,
                            username=args.username,
                            password=args.password)
 
-        vw.whisper_nessus()
+        vw.whisper_vulnerabilities()
         sys.exit(1)
 
     except Exception as e:
         if args.verbose:
             print('{red} ERROR: {error}{endc}'.format(red=bcolors.FAIL, error=e, endc=bcolors.ENDC))
         sys.exit(2)
-
-
+    '''
 
 if __name__ == '__main__':
     main()

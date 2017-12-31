@@ -12,5 +12,6 @@ class bcolors:
     UNDERLINE = '\033[4m'
 
     INFO = '{info}[INFO]{endc}'.format(info=OKBLUE, endc=ENDC)
+    ACTION = '{info}[ACTION]{endc}'.format(info=OKBLUE, endc=ENDC)
     SUCCESS = '{green}[SUCCESS]{endc}'.format(green=OKGREEN, endc=ENDC)
     FAIL = '{red}[FAIL]{endc}'.format(red=FAIL, endc=ENDC)

@@ -58,44 +58,44 @@ class QualysConnectConfig:
             self._cfgparse.read(self._cfgfile)
 
         # if 'info' doesn't exist, create the section.
-        if not self._cfgparse.has_section('info'):
-            self._cfgparse.add_section('info')
+        if not self._cfgparse.has_section('qualys'):
+            self._cfgparse.add_section('qualys')
 
         # Use default hostname (if one isn't provided).
-        if not self._cfgparse.has_option('info', 'hostname'):
+        if not self._cfgparse.has_option('qualys', 'hostname'):
             if self._cfgparse.has_option('DEFAULT', 'hostname'):
                 hostname = self._cfgparse.get('DEFAULT', 'hostname')
-                self._cfgparse.set('info', 'hostname', hostname)
+                self._cfgparse.set('qualys', 'hostname', hostname)
             else:
                 raise Exception("No 'hostname' set. QualysConnect does not know who to connect to.")
 
         # Use default max_retries (if one isn't provided).
-        if not self._cfgparse.has_option('info', 'max_retries'):
+        if not self._cfgparse.has_option('qualys', 'max_retries'):
             self.max_retries = qcs.defaults['max_retries']
         else:
-            self.max_retries = self._cfgparse.get('info', 'max_retries')
+            self.max_retries = self._cfgparse.get('qualys', 'max_retries')
             try:
                 self.max_retries = int(self.max_retries)
             except Exception:
                 logger.error('Value max_retries must be an integer.')
                 print('Value max_retries must be an integer.')
                 exit(1)
-            self._cfgparse.set('info', 'max_retries', str(self.max_retries))
+            self._cfgparse.set('qualys', 'max_retries', str(self.max_retries))
         self.max_retries = int(self.max_retries)
 
         #Get template ID... user will need to set this to pull back CSV reports
-        if not self._cfgparse.has_option('report', 'template_id'):
+        if not self._cfgparse.has_option('qualys', 'template_id'):
             self.report_template_id = qcs.defaults['template_id']
         else:
-            self.report_template_id = self._cfgparse.get('report', 'template_id')
+            self.report_template_id = self._cfgparse.get('qualys', 'template_id')
             try:
                 self.report_template_id = int(self.report_template_id)
             except Exception:
                 logger.error('Report Template ID Must be set and be an integer')
                 print('Value template ID must be an integer.')
                 exit(1)
-            self._cfgparse.set('report', 'template_id', str(self.max_retries))
-        self.max_retries = int(self.max_retries)
+            self._cfgparse.set('qualys', 'template_id', str(self.report_template_id))
+        self.report_template_id = int(self.report_template_id)
 
         # Proxy support
         proxy_config = proxy_url = proxy_protocol = proxy_port = proxy_username = proxy_password = None
@@ -168,18 +168,18 @@ class QualysConnectConfig:
             self.proxies = None
 
         # ask username (if one doesn't exist)
-        if not self._cfgparse.has_option('info', 'username'):
+        if not self._cfgparse.has_option('qualys', 'username'):
             username = input('QualysGuard Username: ')
-            self._cfgparse.set('info', 'username', username)
+            self._cfgparse.set('qualys', 'username', username)
 
         # ask password (if one doesn't exist)
-        if not self._cfgparse.has_option('info', 'password'):
+        if not self._cfgparse.has_option('qualys', 'password'):
             password = getpass.getpass('QualysGuard Password: ')
-            self._cfgparse.set('info', 'password', password)
+            self._cfgparse.set('qualys', 'password', password)
 
 
 
-        logging.debug(self._cfgparse.items('info'))
+        logging.debug(self._cfgparse.items('qualys'))
 
         if remember_me or remember_me_always:
             # Let's create that config file for next time...
@@ -211,8 +211,11 @@ class QualysConnectConfig:
 
     def get_auth(self):
         ''' Returns username from the configfile. '''
-        return (self._cfgparse.get('info', 'username'), self._cfgparse.get('info', 'password'))
+        return (self._cfgparse.get('qualys', 'username'), self._cfgparse.get('qualys', 'password'))
 
     def get_hostname(self):
         ''' Returns hostname. '''
-        return self._cfgparse.get('info', 'hostname')
+        return self._cfgparse.get('qualys', 'hostname')
+
+    def get_template_id(self):
+        return self._cfgparse.get('qualys','template_id')

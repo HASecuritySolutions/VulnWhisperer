@@ -1,6 +1,6 @@
 {
   "order": 0,
-  "template": "logstash-nessus-*",
+  "template": "logstash-vulnwhisperer-*",
   "settings": {
     "index": {
       "routing": {
@@ -217,10 +217,11 @@
           "type": "string"
         },
         "port": {
+          "index": "not_analyzed",
           "type": "integer"
         },
         "host": {
-          "type": "ip"
+          "type": "string"
         },
         "@version": {
           "index": "not_analyzed",
