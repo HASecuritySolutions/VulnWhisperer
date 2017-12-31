@@ -12,18 +12,22 @@ VulnWhisperer is a vulnerability report aggregator. VulnWhisperer will pull all 
 Requirements
 -------------
 ####
-*   ElasticStack
+*   ElasticStack 5.x
 *   Python 2.7
 *   Vulnerability Scanner
 *   Optional: Message broker such as Kafka or RabbitMQ 
 
 Currently Supports
--------------
-####
-*   Elasticsearch 2.x
-*   Python 2.7
-*   Nessus
-*   Qualys - Web Application Scanner
+-----------------
+
+### Vulnerability Frameworks
+
+- [X] Nessus V6
+- [X] Qualys Web Applications
+- [ ] Qualys Vulnerability Management (_in progress_)
+- [ ] OpenVAS
+- [ ] NMAP
+- [ ] More to come
 
 
 Setup
