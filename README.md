@@ -65,6 +65,7 @@ or
 vuln_whisperer -c configs/example.ini -s qualys
 
 ```
+<p align="center" style="width:300px"><img src="https://github.com/austin-taylor/vulnwhisperer/blob/master/docs/source/running_vuln_whisperer.png" style="width:400px"></p>
 Next you'll need to import the visualizations into Kibana and setup your logstash config. A more thorough README is underway with setup instructions.
 
 _For windows, you may need to type the full path of the binary in vulnWhisperer located in the bin directory._
