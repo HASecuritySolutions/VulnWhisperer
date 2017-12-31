@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='VulnWhisperer',
-    version='1.0.1',
+    version='1.2.0',
     packages=find_packages(),
     url='https://github.com/austin-taylor/vulnwhisperer',
     license="""MIT License
