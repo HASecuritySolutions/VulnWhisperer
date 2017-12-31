@@ -531,7 +531,8 @@ class vulnWhispererQualys(vulnWhispererBase):
 
                     vuln_ready = self.qualys_scan.process_data(path=self.write_path, file_id=str(generated_report_id))
 
-                    vuln_ready.to_csv(relative_path_name, index=False, header=True)  # add when timestamp occured
+                    vuln_ready['scan_name'] = scan_name
+                    vuln_ready['scan_reference'] = scan_reference
                     vuln_ready.rename(columns=self.COLUMN_MAPPING, inplace=True)
 
                     record_meta = (
