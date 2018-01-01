@@ -61,7 +61,7 @@ There are a few configuration steps to setting up VulnWhisperer:
 *   Import Kibana Dashboards
 
 <a href="https://github.com/austin-taylor/VulnWhisperer/blob/master/configs/frameworks_example.ini">example.ini file</a>
-<p align="center" style="width:200px"><img src="https://github.com/austin-taylor/vulnwhisperer/blob/master/docs/source/config_example.png" style="width:200px"></p>
+<p align="left" style="width:200px"><img src="https://github.com/austin-taylor/vulnwhisperer/blob/master/docs/source/config_example.png" style="width:200px"></p>
 
 
 Run
