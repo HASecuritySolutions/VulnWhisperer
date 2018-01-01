@@ -5,7 +5,7 @@
 <p align="center" style="width:400px"><img src="https://github.com/austin-taylor/vulnwhisperer/blob/master/docs/source/vulnWhispererWebApplications.png" style="width:400px"></p>
 
 
-VulnWhisperer is a vulnerability report aggregator. VulnWhisperer will pull all the reports
+VulnWhisperer is a vulnerability data and report aggregator. VulnWhisperer will pull all the reports
  and create a file with a unique filename which is then fed into logstash. Logstash extracts data from the filename and tags all of the information inside the report (see logstash_vulnwhisp.conf file). Data is then shipped to elasticsearch to be indexed.
 
 
@@ -59,6 +59,10 @@ There are a few configuration steps to setting up VulnWhisperer:
 *   Setup Logstash File
 *   Import ElasticSearch Templates
 *   Import Kibana Dashboards
+
+<a href="https://github.com/austin-taylor/VulnWhisperer/blob/master/configs/frameworks_example.ini">example.ini file</a>
+<p align="center" style="width:200px"><img src="https://github.com/austin-taylor/vulnwhisperer/blob/master/docs/source/config_example.png" style="width:200px"></p>
+
 
 Run
 -----
