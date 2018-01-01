@@ -27,6 +27,7 @@ Currently Supports
 - [ ] Qualys Vulnerability Management (_in progress_)
 - [ ] OpenVAS
 - [ ] Nexpose
+- [ ] Insight VM
 - [ ] NMAP
 - [ ] More to come
 
