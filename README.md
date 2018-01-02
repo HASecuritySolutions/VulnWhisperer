@@ -2,28 +2,37 @@
 
 <p align="center"> <i>Create <u><b>actionable data</b></u> from your vulnerability scans </i> </p> 
 
-<p align="center" style="width:400px"><img src="https://github.com/austin-taylor/vulnwhisperer/blob/master/docs/source/vulnwhisp_dashboard.jpg" style="width:400px"></p>
+<p align="center" style="width:400px"><img src="https://github.com/austin-taylor/vulnwhisperer/blob/master/docs/source/vulnWhispererWebApplications.png" style="width:400px"></p>
 
 
-VulnWhisperer is a vulnerability report aggregator. VulnWhisperer will pull all the reports
+VulnWhisperer is a vulnerability data and report aggregator. VulnWhisperer will pull all the reports
  and create a file with a unique filename which is then fed into logstash. Logstash extracts data from the filename and tags all of the information inside the report (see logstash_vulnwhisp.conf file). Data is then shipped to elasticsearch to be indexed.
+
+[![Build Status](https://travis-ci.org/austin-taylor/VulnWhisperer.svg?branch=master)](https://travis-ci.org/austin-taylor/VulnWhisperer)
+[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](http://choosealicense.com/licenses/mit/)
 
 
 Requirements
 -------------
 ####
-*   ElasticStack
+*   ElasticStack 5.x
 *   Python 2.7
 *   Vulnerability Scanner
 *   Optional: Message broker such as Kafka or RabbitMQ 
 
 Currently Supports
--------------
-####
-*   Elasticsearch 2.x
-*   Python 2.7
-*   Nessus
-*   Qualys - Web Application Scanner
+-----------------
+
+### Vulnerability Frameworks
+
+- [X] Nessus V6
+- [X] Qualys Web Applications
+- [ ] Qualys Vulnerability Management (_in progress_)
+- [ ] OpenVAS
+- [ ] Nexpose
+- [ ] Insight VM
+- [ ] NMAP
+- [ ] More to come
 
 
 Setup
@@ -55,6 +64,10 @@ There are a few configuration steps to setting up VulnWhisperer:
 *   Import ElasticSearch Templates
 *   Import Kibana Dashboards
 
+<a href="https://github.com/austin-taylor/VulnWhisperer/blob/master/configs/frameworks_example.ini">example.ini file</a>
+<p align="left" style="width:200px"><img src="https://github.com/austin-taylor/vulnwhisperer/blob/master/docs/source/config_example.png" style="width:200px"></p>
+
+
 Run
 -----
 To run, fill out the configuration file with your vulnerability scanner settings. Then you can execute from the command line.
@@ -65,6 +78,7 @@ or
 vuln_whisperer -c configs/example.ini -s qualys
 
 ```
+<p align="center" style="width:300px"><img src="https://github.com/austin-taylor/vulnwhisperer/blob/master/docs/source/running_vuln_whisperer.png" style="width:400px"></p>
 Next you'll need to import the visualizations into Kibana and setup your logstash config. A more thorough README is underway with setup instructions.
 
 _For windows, you may need to type the full path of the binary in vulnWhisperer located in the bin directory._
@@ -72,6 +86,7 @@ _For windows, you may need to type the full path of the binary in vulnWhisperer 
 Credit
 ------
 Big thank you to <a href="https://github.com/SMAPPER">Justin Henderson</a> for his contributions to vulnWhisperer!
+
 
 AS SEEN ON TV
 -------------
