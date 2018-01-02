@@ -34,18 +34,20 @@ Currently Supports
 - [ ] NMAP
 - [ ] More to come
 
-
-Setup
+Getting Started
 ===============
 
-```python
-Install pip:
-sudo <pkg-manager> install python-pip
-sudo pip install --upgrade pip
+1) Follow the [install requirements](#installreq)
+2) Fill out the section you want to process in <a href="https://github.com/austin-taylor/VulnWhisperer/blob/master/configs/frameworks_example.ini">example.ini file</a>
+3) Modify the IP settings in the <a href="https://github.com/austin-taylor/VulnWhisperer/tree/master/logstash">logstash files to accomodate your environment</a> and import them to your logstash conf directory (default is /etc/logstash/conf.d/)
+4) Import the <a href="https://github.com/austin-taylor/VulnWhisperer/tree/master/kibana/vuln_whisp_kibana">kibana visualizations</a>
+5) [Run Vulnwhisperer](#run)
 
-Manually install requirements:
-sudo pip install pytz
-sudo pip install pandas
+<a id="installreq">Install Requirements</a>
+--------------------
+
+
+```python
 
 Using requirements file:
 sudo pip install -r /path/to/VulnWhisperer/requirements.txt
@@ -68,7 +70,7 @@ There are a few configuration steps to setting up VulnWhisperer:
 <p align="left" style="width:200px"><img src="https://github.com/austin-taylor/vulnwhisperer/blob/master/docs/source/config_example.png" style="width:200px"></p>
 
 
-Run
+<a id="run">Run</a>
 -----
 To run, fill out the configuration file with your vulnerability scanner settings. Then you can execute from the command line.
 ```python
