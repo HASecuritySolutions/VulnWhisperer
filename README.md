@@ -12,14 +12,6 @@ VulnWhisperer is a vulnerability data and report aggregator. VulnWhisperer will 
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](http://choosealicense.com/licenses/mit/)
 
 
-Requirements
--------------
-####
-*   ElasticStack 5.x
-*   Python 2.7
-*   Vulnerability Scanner
-*   Optional: Message broker such as Kafka or RabbitMQ 
-
 Currently Supports
 -----------------
 
@@ -42,6 +34,14 @@ Getting Started
 3) Modify the IP settings in the <a href="https://github.com/austin-taylor/VulnWhisperer/tree/master/logstash">logstash files to accomodate your environment</a> and import them to your logstash conf directory (default is /etc/logstash/conf.d/)
 4) Import the <a href="https://github.com/austin-taylor/VulnWhisperer/tree/master/kibana/vuln_whisp_kibana">kibana visualizations</a>
 5) [Run Vulnwhisperer](#run)
+
+Requirements
+-------------
+####
+*   ElasticStack 5.x
+*   Python 2.7
+*   Vulnerability Scanner
+*   Optional: Message broker such as Kafka or RabbitMQ 
 
 <a id="installreq">Install Requirements</a>
 --------------------
