@@ -49,6 +49,10 @@ Requirements
 
 ```python
 
+Install dependant modules
+cd deps/qualysapi
+python setup.py install
+
 Using requirements file:
 sudo pip install -r /path/to/VulnWhisperer/requirements.txt
 
