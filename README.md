@@ -18,6 +18,7 @@ Currently Supports
 ### Vulnerability Frameworks
 
 - [X] Nessus V6
+- [X] Nessus V7
 - [X] Qualys Web Applications
 - [ ] Qualys Vulnerability Management (_in progress_)
 - [ ] OpenVAS
