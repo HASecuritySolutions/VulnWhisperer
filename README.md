@@ -1,5 +1,5 @@
-<p align="center"><img src="https://github.com/austin-taylor/vulnwhisperer/blob/master/docs/source/vuln_whisperer_logo_s.png" width="400px"></p>
-
+<!--<p align="center"><img src="https://github.com/austin-taylor/vulnwhisperer/blob/master/docs/source/vuln_whisperer_logo_s.png" width="400px"></p>-->
+<p align="center"><img src="https://github.com/austin-taylor/vulnwhisperer/blob/master/docs/source/vulnWhispFull.png" width="400px"></p>
 <p align="center"> <i>Create <u><b>actionable data</b></u> from your vulnerability scans </i> </p> 
 
 <p align="center" style="width:400px"><img src="https://github.com/austin-taylor/vulnwhisperer/blob/master/docs/source/vulnWhispererWebApplications.png" style="width:400px"></p>
