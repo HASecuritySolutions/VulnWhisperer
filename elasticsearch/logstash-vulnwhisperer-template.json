@@ -1,0 +1,138 @@
+{
+  "order": 0,
+  "template": "logstash-vulnwhisperer-*",
+  "settings": {
+    "index": {
+      "routing": {
+        "allocation": {
+          "total_shards_per_node": "2"
+        }
+      },
+      "mapping": {
+        "total_fields": {
+          "limit": "3000"
+        }
+      },
+      "refresh_interval": "5s",
+      "number_of_shards": "1",
+      "number_of_replicas": "0"
+    }
+  },
+  "mappings": {
+    "_default_": {
+      "_all": {
+        "enabled": true,
+        "norms": false
+      },
+      "dynamic_templates": [
+        {
+          "message_field": {
+            "path_match": "message",
+            "match_mapping_type": "string",
+            "mapping": {
+              "type": "text",
+              "norms": false
+            }
+          }
+        },
+        {
+          "string_fields": {
+            "match": "*",
+            "match_mapping_type": "string",
+            "mapping": {
+              "type": "text",
+              "norms": false,
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            }
+          }
+        }
+      ],
+      "properties": {
+        "plugin_id": {
+          "type": "integer"
+        },
+        "last_updated": {
+          "type": "date",
+          "doc_values": true
+        },
+        "geoip": {
+          "dynamic": true,
+          "type": "object",
+          "properties": {
+            "ip": {
+              "type": "ip",
+              "doc_values": true
+            },
+            "latitude": {
+              "type": "float",
+              "doc_values": true
+            },
+            "location": {
+              "type": "geo_point",
+              "doc_values": true
+            },
+            "longitude": {
+              "type": "float",
+              "doc_values": true
+            }
+          }
+        },
+        "risk_score": {
+          "type": "float"
+        },
+        "source": {
+          "index": "not_analyzed",
+          "type": "string"
+        },
+        "synopsis": {
+          "index": "not_analyzed",
+          "type": "string"
+        },
+        "see_also": {
+          "index": "not_analyzed",
+          "type": "string"
+        },
+        "@timestamp": {
+          "type": "date",
+          "doc_values": true
+        },
+        "cve": {
+          "index": "not_analyzed",
+          "type": "string"
+        },
+        "solution": {
+          "index": "not_analyzed",
+          "type": "string"
+        },
+        "port": {
+          "index": "not_analyzed",
+          "type": "integer"
+        },
+        "host": {
+          "type": "string"
+        },
+        "@version": {
+          "index": "not_analyzed",
+          "type": "string",
+          "doc_values": true
+        },
+        "risk": {
+          "index": "not_analyzed",
+          "type": "string"
+        },
+        "assign_ip": {
+          "type": "ip"
+        },
+        "cvss": {
+          "type": "float"
+        }
+      }
+    }
+  },
+  "aliases": {}
+}

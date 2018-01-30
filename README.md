@@ -1,5 +1,4 @@
 <p align="center"><img src="https://github.com/austin-taylor/vulnwhisperer/blob/master/docs/source/vuln_whisperer_logo_s.png" width="400px"></p>
-
 <p align="center"> <i>Create <u><b>actionable data</b></u> from your vulnerability scans </i> </p> 
 
 <p align="center" style="width:400px"><img src="https://github.com/austin-taylor/vulnwhisperer/blob/master/docs/source/vulnWhispererWebApplications.png" style="width:400px"></p>
@@ -43,23 +42,26 @@ Requirements
 *   Vulnerability Scanner
 *   Optional: Message broker such as Kafka or RabbitMQ 
 
-<a id="installreq">Install Requirements</a>
+<a id="installreq">Install Requirements (may require sudo)</a>
 --------------------
 
-
+**First, install dependant modules**
 ```python
 
-Install dependant modules
 cd deps/qualysapi
 python setup.py install
-
-Using requirements file:
-sudo pip install -r /path/to/VulnWhisperer/requirements.txt
-
-cd /path/to/VulnWhisperer
-sudo python setup.py install
 ```
 
+
+**Second, install requirements**
+
+```python
+pip install -r /path/to/VulnWhisperer/requirements.txt
+cd /path/to/VulnWhisperer
+python setup.py install
+```
+
+Now you're ready to pull down scans. (see <a href="#run">run section</a>)
 
 Configuration
 -----
