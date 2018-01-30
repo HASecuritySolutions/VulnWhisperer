@@ -19,7 +19,7 @@
         "value": 0
       },
       "kibanaSavedObjectMeta": {
-        "searchSourceJSON": "{\"filter\":[{\"query\":{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"-vulnerability_category:\\\"INFORMATION_GATHERED\\\"\"}}}],\"highlightAll\":true,\"version\":true}"
+        "searchSourceJSON": "{\"filter\":[{\"query\":{\"match_all\":{}}}],\"highlightAll\":true,\"version\":true}"
       }
     }
   },
@@ -34,16 +34,9 @@
       "optionsJSON": "{\"darkTheme\":false}",
       "uiStateJSON": "{\"P-11\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}},\"P-2\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}},\"P-20\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}},\"P-21\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":0,\"direction\":\"desc\"}}}},\"P-27\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}},\"P-28\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":0,\"direction\":\"desc\"}}}},\"P-3\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":0,\"direction\":\"asc\"}}}},\"P-30\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}},\"P-31\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}},\"P-40\":{\"vis\":{\"defaultColors\":{\"0 - 3\":\"rgb(0,104,55)\",\"3 - 7\":\"rgb(135,203,103)\",\"7 - 9\":\"rgb(255,255,190)\",\"9 - 11\":\"rgb(249,142,82)\"}}},\"P-41\":{\"vis\":{\"defaultColors\":{\"0 - 10000\":\"rgb(0,104,55)\"}}},\"P-42\":{\"vis\":{\"defaultColors\":{\"0 - 10000\":\"rgb(0,104,55)\"}}},\"P-43\":{\"vis\":{\"defaultColors\":{\"0 - 1000\":\"rgb(0,104,55)\"}}},\"P-44\":{\"vis\":{\"defaultColors\":{\"0 - 10000\":\"rgb(0,104,55)\"}}},\"P-45\":{\"vis\":{\"defaultColors\":{\"0 - 10000\":\"rgb(0,104,55)\"}}},\"P-46\":{\"vis\":{\"legendOpen\":true}},\"P-47\":{\"vis\":{\"defaultColors\":{\"0 - 10000\":\"rgb(0,104,55)\"},\"legendOpen\":false}},\"P-48\":{\"vis\":{\"defaultColors\":{\"0 - 10000\":\"rgb(0,104,55)\"},\"legendOpen\":false}},\"P-49\":{\"vis\":{\"defaultColors\":{\"0 - 1000\":\"rgb(0,104,55)\"},\"legendOpen\":false}},\"P-5\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}},\"P-50\":{\"vis\":{\"defaultColors\":{\"0 - 10000\":\"rgb(0,104,55)\"}}},\"P-51\":{\"vis\":{\"defaultColors\":{\"0 - 10000\":\"rgb(0,104,55)\"}}},\"P-6\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}},\"P-8\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}}}",
       "version": 1,
-      "timeRestore": true,
-      "timeTo": "now",
-      "timeFrom": "now-30d",
-      "refreshInterval": {
-        "display": "Off",
-        "pause": false,
-        "value": 0
-      },
+      "timeRestore": false,
       "kibanaSavedObjectMeta": {
-        "searchSourceJSON": "{\"filter\":[{\"query\":{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"-vulnerability_category:\\\"INFORMATION_GATHERED\\\"\"}}}],\"highlightAll\":true,\"version\":true}"
+        "searchSourceJSON": "{\"filter\":[{\"query\":{\"match_all\":{}}}],\"highlightAll\":true,\"version\":true}"
       }
     }
   }

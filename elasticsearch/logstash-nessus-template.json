@@ -15,150 +15,43 @@
       },
       "refresh_interval": "5s",
       "number_of_shards": "1",
-      "number_of_replicas": "1"
+      "number_of_replicas": "0"
     }
   },
   "mappings": {
     "_default_": {
+      "_all": {
+        "enabled": true,
+        "norms": false
+      },
       "dynamic_templates": [
         {
           "message_field": {
-            "mapping": {
-              "fielddata": {
-                "format": "disabled"
-              },
-              "index": "analyzed",
-              "omit_norms": true,
-              "type": "string"
-            },
+            "path_match": "message",
             "match_mapping_type": "string",
-            "match": "message"
+            "mapping": {
+              "type": "text",
+              "norms": false
+            }
           }
         },
         {
           "string_fields": {
+            "match": "*",
+            "match_mapping_type": "string",
             "mapping": {
-              "fielddata": {
-                "format": "disabled"
-              },
-              "index": "analyzed",
-              "omit_norms": true,
-              "type": "string",
+              "type": "text",
+              "norms": false,
               "fields": {
-                "raw": {
-                  "ignore_above": 256,
-                  "index": "not_analyzed",
-                  "type": "string",
-                  "doc_values": true
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
                 }
               }
-            },
-            "match_mapping_type": "string",
-            "match": "*"
-          }
-        },
-        {
-          "ip_address_fields": {
-            "mapping": {
-              "type": "ip"
-            },
-            "match": "*_ip"
-          }
-        },
-        {
-          "ipv6_address_fields": {
-            "mapping": {
-              "index": "not_analyzed",
-              "type": "string"
-            },
-            "match": "*_ipv6"
-          }
-        },
-        {
-          "float_fields": {
-            "mapping": {
-              "type": "float",
-              "doc_values": true
-            },
-            "match_mapping_type": "float",
-            "match": "*"
-          }
-        },
-        {
-          "double_fields": {
-            "mapping": {
-              "type": "double",
-              "doc_values": true
-            },
-            "match_mapping_type": "double",
-            "match": "*"
-          }
-        },
-        {
-          "byte_fields": {
-            "mapping": {
-              "type": "byte",
-              "doc_values": true
-            },
-            "match_mapping_type": "byte",
-            "match": "*"
-          }
-        },
-        {
-          "short_fields": {
-            "mapping": {
-              "type": "short",
-              "doc_values": true
-            },
-            "match_mapping_type": "short",
-            "match": "*"
-          }
-        },
-        {
-          "integer_fields": {
-            "mapping": {
-              "type": "integer",
-              "doc_values": true
-            },
-            "match_mapping_type": "integer",
-            "match": "*"
-          }
-        },
-        {
-          "long_fields": {
-            "mapping": {
-              "type": "long",
-              "doc_values": true
-            },
-            "match_mapping_type": "long",
-            "match": "*"
-          }
-        },
-        {
-          "date_fields": {
-            "mapping": {
-              "type": "date",
-              "doc_values": true
-            },
-            "match_mapping_type": "date",
-            "match": "*"
-          }
-        },
-        {
-          "geo_point_fields": {
-            "mapping": {
-              "type": "geo_point",
-              "doc_values": true
-            },
-            "match_mapping_type": "geo_point",
-            "match": "*"
+            }
           }
         }
       ],
-      "_all": {
-        "omit_norms": true,
-        "enabled": true
-      },
       "properties": {
         "plugin_id": {
           "type": "integer"
