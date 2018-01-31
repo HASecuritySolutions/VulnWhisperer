@@ -9,7 +9,7 @@ VulnWhisperer is a vulnerability data and report aggregator. VulnWhisperer will 
 
 [![Build Status](https://travis-ci.org/austin-taylor/VulnWhisperer.svg?branch=master)](https://travis-ci.org/austin-taylor/VulnWhisperer)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](http://choosealicense.com/licenses/mit/)
-[!Twitter](https://img.shields.io/twitter/follow/VulnWhisperer.svg?style=social&label=Follow)
+[![Twitter](https://img.shields.io/twitter/follow/VulnWhisperer.svg?style=social&label=Follow)](https://twitter.com/VulnWhisperer)
 
 
 Currently Supports
