@@ -102,7 +102,7 @@ Setup crontab -e with the following config (modify to your environment) - this w
 
 _For windows, you may need to type the full path of the binary in vulnWhisperer located in the bin directory._
 
-Vide Walkthrough -- Featured on ElasticWebinar
+Video Walkthrough -- Featured on ElasticWebinar
 ----------------------------------------------
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=zrEuTtRUfNw?start=30
 " target="_blank"><img src="https://github.com/austin-taylor/vulnwhisperer/blob/master/docs/source/elastic_webinar.png" 
