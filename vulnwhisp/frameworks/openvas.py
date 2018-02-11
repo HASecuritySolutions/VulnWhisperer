@@ -165,9 +165,3 @@ class OpenVAS_API(object):
         self.processed_reports += 1
         merged_df = pd.merge(report_df, self.open_vas_reports, on='report_ids').drop('index', axis=1)
         return merged_df
-
-
-
-
-
-
