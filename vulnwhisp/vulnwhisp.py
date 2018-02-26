@@ -64,6 +64,14 @@ class vulnWhispererBase(object):
                 self.database = \
                     os.path.abspath(os.path.join(os.path.dirname(__file__),
                                                  'database', db_name))
+            if not os.path.exists(self.db_path):
+                os.makedirs(self.db_path)
+                self.vprint('{info} Creating directory {dir}'.format(info=bcolors.INFO, dir=self.db_path))
+
+            if not os.path.exists(self.database):
+                with open(self.database, 'w'):
+                    self.vprint('{info} Creating file {dir}'.format(info=bcolors.INFO, dir=self.database))
+                    pass
 
             try:
                 self.conn = sqlite3.connect(self.database)
