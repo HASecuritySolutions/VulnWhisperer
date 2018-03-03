@@ -7,7 +7,6 @@ import io
 import json
 import pandas as pd
 import requests
-import requests
 from bs4 import BeautifulSoup
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
@@ -47,7 +46,7 @@ class OpenVAS_API(object):
 
         self.login()
 
-        self.open_vas_reports = self.get_reports()
+        self.openvas_reports = self.get_reports()
 
     def vprint(self, msg):
         if self.verbose:
@@ -113,7 +112,7 @@ class OpenVAS_API(object):
         return token
 
     def get_reports(self, complete=True):
-        print('Retreiving OpenVAS report data...')
+        print('[INFO] Retreiving OpenVAS report data...')
         params = (('cmd', 'get_reports'), ('token', self.token))
         reports = self.request(self.OMP, params=params, method='GET')
         soup = BeautifulSoup(reports.text, 'lxml')
@@ -128,27 +127,28 @@ class OpenVAS_API(object):
             links.extend([a['href'] for a in row.find_all('a', href=True) if 'get_report' in str(a)])
             cols = [ele.text.strip() for ele in cols]
             data.append([ele for ele in cols if ele])
-            report = pd.DataFrame(data, columns=['date', 'status', 'task', 'severity', 'high', 'medium', 'low', 'log',
+            report = pd.DataFrame(data, columns=['date', 'status', 'task', 'scan_severity', 'high', 'medium', 'low', 'log',
                                                  'false_pos'])
 
         if report.shape[0] != 0:
             report['links'] = links
-            report['report_ids'] = report.links.str.extract('.*report_id=([a-z-0-9]*)')
+            report['report_ids'] = report.links.str.extract('.*report_id=([a-z-0-9]*)', expand=False)
             report['epoch'] = (pd.to_datetime(report['date']) - dt.datetime(1970, 1, 1)).dt.total_seconds().astype(int)
         else:
             raise Exception("Could not retrieve OpenVAS Reports - Please check your settings and try again")
 
         report['links'] = links
-        report['report_ids'] = report.links.str.extract('.*report_id=([a-z-0-9]*)')
+        report['report_ids'] = report.links.str.extract('.*report_id=([a-z-0-9]*)', expand=False)
         report['epoch'] = (pd.to_datetime(report['date']) - dt.datetime(1970, 1, 1)).dt.total_seconds().astype(int)
         if complete:
             report = report[report.status == 'Done']
-        severity_extraction = report.severity.str.extract('([0-9.]*) \(([\w]+)\)')
-        severity_extraction.columns = ['severity', 'severity_rate']
+        severity_extraction = report.scan_severity.str.extract('([0-9.]*) \(([\w]+)\)', expand=False)
+        severity_extraction.columns = ['scan_highest_severity', 'severity_rate']
         report_with_severity = pd.concat([report, severity_extraction], axis=1)
         return report_with_severity
 
     def process_report(self, report_id):
+
         params = (
             ('token', self.token),
             ('cmd', 'get_report'),
@@ -163,5 +163,5 @@ class OpenVAS_API(object):
         report_df = pd.read_csv(io.BytesIO(req.text.encode('utf-8')))
         report_df['report_ids'] = report_id
         self.processed_reports += 1
-        merged_df = pd.merge(report_df, self.open_vas_reports, on='report_ids').drop('index', axis=1)
+        merged_df = pd.merge(report_df, self.openvas_reports, on='report_ids').reset_index().drop('index', axis=1)
         return merged_df
