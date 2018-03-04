@@ -119,7 +119,7 @@ class OpenVAS_API(object):
             ('cmd', 'get_report_formats'),
             ('token', self.token)
         )
-        self.vprint('{info} Retrieving available report foramts'.format(info=bcolors.INFO))
+        self.vprint('{info} Retrieving available report formats'.format(info=bcolors.INFO))
         data = self.request(url=self.OMP, method='GET', params=params)
 
         bs = BeautifulSoup(data.content, "lxml")

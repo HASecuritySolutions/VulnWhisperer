@@ -711,6 +711,7 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
                 vuln_ready['scan_reference'] = report_id
                 vuln_ready.rename(columns=self.COLUMN_MAPPING, inplace=True)
                 vuln_ready.port = vuln_ready.port.fillna(0).astype(int)
+                vuln_ready.fillna('', inplace=True)
                 if output_format == 'json':
                     with open(relative_path_name, 'w') as f:
                         f.write(vuln_ready.to_json(orient='records', lines=True))

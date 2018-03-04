@@ -835,7 +835,6 @@ decrement = True
 while decrement:
     decrement = False
     try:
-        print type(maxInt), maxInt
         csv.field_size_limit(maxInt)
     except OverflowError:
         maxInt = int(maxInt/10)
