@@ -20,7 +20,7 @@ Currently Supports
 - [X] Nessus (v6 & **v7**)
 - [X] Qualys Web Applications
 - [ ] Qualys Vulnerability Management (Need license)
-- [ ] OpenVAS (_in progress_)
+- [X] OpenVAS
 - [ ] Nexpose
 - [ ] Insight VM
 - [ ] NMAP
