@@ -824,12 +824,18 @@ class qualysScanReport:
         return vuln_ready
 
 
-maxInt = sys.maxsize
+maxInt = int(4000000)
+maxSize = sys.maxsize
+
+if maxSize > maxInt and type(maxSize) == int:
+    maxInt = maxSize
+
 decrement = True
 
 while decrement:
     decrement = False
     try:
+        print type(maxInt), maxInt
         csv.field_size_limit(maxInt)
     except OverflowError:
         maxInt = int(maxInt/10)

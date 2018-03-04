@@ -653,13 +653,11 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
         super(vulnWhispererOpenVAS, self).__init__(config=config)
 
         self.port = int(self.config.get(self.CONFIG_SECTION, 'port'))
-        self.report_format_id = self.config.get(self.CONFIG_SECTION, 'report_format_id')
         self.develop = True
         self.purge = purge
         self.scans_to_process = None
         self.openvas_api = OpenVAS_API(hostname=self.hostname,
                                        port=self.port,
-                                       report_format_id=self.report_format_id,
                                        username=self.username,
                                        password=self.password)
 
@@ -668,11 +666,8 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
         if report_id:
             print('Processing report ID: %s' % report_id)
 
-            vuln_ready = self.openvas_api.process_report(report_id=report_id)
+
             scan_name = report_id.replace('-', '')
-            vuln_ready['scan_name'] = scan_name
-            vuln_ready['scan_reference'] = report_id
-            vuln_ready.rename(columns=self.COLUMN_MAPPING, inplace=True)
             report_name = 'openvas_scan_{scan_name}_{last_updated}.{extension}'.format(scan_name=scan_name,
                                                                                        last_updated=launched_date,
                                                                                        extension=output_format)
@@ -704,18 +699,23 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
                     launched_date,
                     report_name,
                     time.time(),
-                    vuln_ready.shape[0],
+                    file_length,
                     self.CONFIG_SECTION,
                     report_id,
                     1,
                 )
 
-            vuln_ready.port = vuln_ready.port.fillna(0).astype(int)
-            if output_format == 'json':
-                with open(relative_path_name, 'w') as f:
-                    f.write(vuln_ready.to_json(orient='records', lines=True))
-            print('{success} - Report written to %s'.format(success=bcolors.SUCCESS) \
-                  % report_name)
+            else:
+                vuln_ready = self.openvas_api.process_report(report_id=report_id)
+                vuln_ready['scan_name'] = scan_name
+                vuln_ready['scan_reference'] = report_id
+                vuln_ready.rename(columns=self.COLUMN_MAPPING, inplace=True)
+                vuln_ready.port = vuln_ready.port.fillna(0).astype(int)
+                if output_format == 'json':
+                    with open(relative_path_name, 'w') as f:
+                        f.write(vuln_ready.to_json(orient='records', lines=True))
+                print('{success} - Report written to %s'.format(success=bcolors.SUCCESS) \
+                      % report_name)
 
         return report
 

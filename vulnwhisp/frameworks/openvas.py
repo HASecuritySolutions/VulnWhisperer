@@ -4,11 +4,12 @@ __author__ = 'Austin Taylor'
 
 import datetime as dt
 import io
-import json
+
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
+from ..utils.cli import bcolors
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
@@ -49,6 +50,7 @@ class OpenVAS_API(object):
         self.login()
 
         self.openvas_reports = self.get_reports()
+        self.report_formats = self.get_report_formats()
 
     def vprint(self, msg):
         if self.verbose:
@@ -112,10 +114,35 @@ class OpenVAS_API(object):
         ]
         token = requests.post(self.base + self.OMP, data=data, verify=False)
         return token
+    def get_report_formats(self):
+        params = (
+            ('cmd', 'get_report_formats'),
+            ('token', self.token)
+        )
+        self.vprint('{info} Retrieving available report foramts'.format(info=bcolors.INFO))
+        data = self.request(url=self.OMP, method='GET', params=params)
+
+        bs = BeautifulSoup(data.content, "lxml")
+        table_body = bs.find('tbody')
+        rows = table_body.find_all('tr')
+        format_mapping = {}
+        for row in rows:
+            cols = row.find_all('td')
+            for x in cols:
+                for y in x.find_all('a'):
+                    if y.get_text() != '':
+                        format_mapping[y.get_text()] = \
+                        [h.split('=')[1] for h in y['href'].split('&') if 'report_format_id' in h][0]
+        return format_mapping
 
     def get_reports(self, complete=True):
-        print('[INFO] Retreiving OpenVAS report data...')
-        params = (('cmd', 'get_reports'), ('token', self.token))
+        print('{info} Retreiving OpenVAS report data...'.format(info=bcolors.INFO))
+        params = (('cmd', 'get_reports'),
+                  ('token', self.token),
+                  ('max_results', 1),
+                  ('ignore_pagination', 1),
+                  ('filter', 'apply_overrides=1 min_qod=70 autofp=0 first=1 rows=0 levels=hml sort-reverse=severity'),
+                 )
         reports = self.request(self.OMP, params=params, method='GET')
         soup = BeautifulSoup(reports.text, 'lxml')
         data = []
@@ -155,9 +182,9 @@ class OpenVAS_API(object):
             ('token', self.token),
             ('cmd', 'get_report'),
             ('report_id', report_id),
-            ('filter', 'apply_overrides=0 min_qod=70 autofp=0 levels=hml first=1 rows=50 sort-reverse=severity'),
+            ('filter', 'apply_overrides=0 min_qod=70 autofp=0 levels=hml first=1 rows=0 sort-reverse=severity'),
             ('ignore_pagination', '1'),
-            ('report_format_id', '{report_format_id}'.format(report_format_id=self.report_format_id)),
+            ('report_format_id', '{report_format_id}'.format(report_format_id=self.report_formats['CSV Results'])),
             ('submit', 'Download'),
         )
         print('Retrieving %s' % report_id)
