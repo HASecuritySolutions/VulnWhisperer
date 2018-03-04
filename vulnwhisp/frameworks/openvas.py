@@ -21,6 +21,7 @@ class OpenVAS_API(object):
                  port=None,
                  username=None,
                  password=None,
+                 report_format_id=None,
                  verbose=True):
         if username is None or password is None:
             raise Exception('ERROR: Missing username or password.')
@@ -30,6 +31,7 @@ class OpenVAS_API(object):
         self.base = 'https://{hostname}:{port}'.format(hostname=hostname, port=port)
         self.verbose = verbose
         self.processed_reports = 0
+        self.report_format_id = report_format_id
 
         self.headers = {
             'Origin': self.base,
@@ -155,7 +157,7 @@ class OpenVAS_API(object):
             ('report_id', report_id),
             ('filter', 'apply_overrides=0 min_qod=70 autofp=0 levels=hml first=1 rows=50 sort-reverse=severity'),
             ('ignore_pagination', '1'),
-            ('report_format_id', 'c1645568-627a-11e3-a660-406186ea4fc5'),
+            ('report_format_id', '{report_format_id}'.format(report_format_id=self.report_format_id)),
             ('submit', 'Download'),
         )
         print('Retrieving %s' % report_id)

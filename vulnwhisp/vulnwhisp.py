@@ -653,11 +653,14 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
         super(vulnWhispererOpenVAS, self).__init__(config=config)
 
         self.port = int(self.config.get(self.CONFIG_SECTION, 'port'))
-        self.template_id = self.config.get(self.CONFIG_SECTION, 'report_format_id')
+        self.report_format_id = self.config.get(self.CONFIG_SECTION, 'report_format_id')
         self.develop = True
         self.purge = purge
         self.scans_to_process = None
-        self.openvas_api = OpenVAS_API(hostname=self.hostname, port=self.port, username=self.username,
+        self.openvas_api = OpenVAS_API(hostname=self.hostname,
+                                       port=self.port,
+                                       report_format_id=self.report_format_id,
+                                       username=self.username,
                                        password=self.password)
 
     def whisper_reports(self, output_format='json', launched_date=None, report_id=None, cleanup=True):
