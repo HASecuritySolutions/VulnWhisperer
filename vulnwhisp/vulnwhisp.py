@@ -715,6 +715,7 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
                 if output_format == 'json':
                     with open(relative_path_name, 'w') as f:
                         f.write(vuln_ready.to_json(orient='records', lines=True))
+                        f.write('\n')
                 print('{success} - Report written to %s'.format(success=bcolors.SUCCESS) \
                       % report_name)
 
