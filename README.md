@@ -17,13 +17,13 @@ Currently Supports
 
 ### Vulnerability Frameworks
 
-- [X] Nessus (v6 & **v7**)
-- [X] Qualys Web Applications
-- [ ] Qualys Vulnerability Management (Need license)
-- [X] OpenVAS
-- [ ] Nexpose
-- [ ] Insight VM
-- [ ] NMAP
+- [X] [Nessus (v6 & **v7**)](https://www.tenable.com/products/nessus/nessus-professional)
+- [X] [Qualys Web Applications](https://www.qualys.com/apps/web-app-scanning/)
+- [ ] [Qualys Vulnerability Management (Need license)](https://www.qualys.com/apps/vulnerability-management/)
+- [X] [OpenVAS](http://www.openvas.org/)
+- [ ] [Nexpose](https://www.rapid7.com/products/nexpose/)
+- [ ] [Insight VM](https://www.rapid7.com/products/insightvm/)
+- [ ] [NMAP](https://nmap.org/)
 - [ ] More to come
 
 Getting Started
