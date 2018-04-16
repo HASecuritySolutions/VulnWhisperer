@@ -8,10 +8,7 @@ import io
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from ..utils.cli import bcolors
-
-requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
 class OpenVAS_API(object):
