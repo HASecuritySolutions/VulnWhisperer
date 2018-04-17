@@ -9,10 +9,6 @@ import pandas as pd
 import qualysapi
 import qualysapi.config as qcconf
 import requests
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
-
-requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-
 import sys
 import os
 import csv
