@@ -562,6 +562,7 @@ class vulnWhispererQualys(vulnWhispererBase):
                     if output_format == 'json':
                         with open(relative_path_name, 'w') as f:
                             f.write(vuln_ready.to_json(orient='records', lines=True))
+                            f.write('\n')
 
                     elif output_format == 'csv':
                        vuln_ready.to_csv(relative_path_name, index=False, header=True)  # add when timestamp occured
