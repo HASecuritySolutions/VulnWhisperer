@@ -48,7 +48,7 @@ Requirements
 **First, install requirement dependencies**
 ```shell
 
-sudo apt-get install zlibg1-dev libxml2-dev libxslt1-dev 
+sudo apt-get install  zlib1g-dev libxml2-dev libxslt1-dev 
 ```
 
 **Second, install dependant modules**
