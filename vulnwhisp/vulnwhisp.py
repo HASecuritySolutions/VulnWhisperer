@@ -815,7 +815,7 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
 
             else:
                 print('Processing report ID: %s' % report_id)
-                vuln_ready = self.qualys_scan.process_scan(scan_id=report_id)
+                vuln_ready = self.qualys_scan.process_data(scan_id=report_id)
                 vuln_ready['scan_name'] = scan_name
                 vuln_ready['scan_reference'] = report_id
                 vuln_ready.rename(columns=self.COLUMN_MAPPING, inplace=True)
