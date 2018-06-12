@@ -89,7 +89,7 @@ class vulnWhispererBase(object):
         else:
 
             self.vprint('{fail} Please specify a database to connect to!'.format(fail=bcolors.FAIL))
-            exit(0)
+            exit(1)
 
         self.table_columns = [
             'scan_name',
@@ -227,7 +227,7 @@ class vulnWhispererNessus(vulnWhispererBase):
 
                 self.vprint('{fail} Could not properly load your config!\nReason: {e}'.format(fail=bcolors.FAIL,
                                                                                               e=e))
-                sys.exit(0)
+                sys.exit(1)
 
 
 
