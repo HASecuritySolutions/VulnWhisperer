@@ -217,7 +217,7 @@ class vulnWhispererNessus(vulnWhispererBase):
                     self.vprint(e)
                     raise Exception(
                         '{fail} Could not connect to nessus -- Please verify your settings in {config} are correct and try again.\nReason: {e}'.format(
-                            config=self.config,
+                            config=self.config.config_in,
                             fail=bcolors.FAIL, e=e))
             except Exception as e:
 
