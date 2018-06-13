@@ -69,6 +69,8 @@ class NessusAPI(object):
         while (timeout <= 10) and (not success):
             data = methods[method](url, data=data, headers=self.headers, verify=False)
             if data.status_code == 401:
+                if url == self.base + self.SESSION:
+                    break
                 try:
                     self.login()
                     timeout += 1
