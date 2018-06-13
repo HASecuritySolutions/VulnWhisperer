@@ -102,7 +102,7 @@ class NessusAPI(object):
 
     def get_scan_ids(self):
         scans = self.get_scans()
-        scan_ids = [scan_id['id'] for scan_id in scans['scans']]
+        scan_ids = [scan_id['id'] for scan_id in scans['scans']] if scans['scans'] else []
         return scan_ids
 
     def count_scan(self, scans, folder_id):
