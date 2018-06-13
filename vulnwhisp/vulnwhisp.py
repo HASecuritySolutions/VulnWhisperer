@@ -217,7 +217,7 @@ class vulnWhispererNessus(vulnWhispererBase):
                     self.vprint(e)
                     raise Exception(
                         '{fail} Could not connect to nessus -- Please verify your settings in {config} are correct and try again.\nReason: {e}'.format(
-                            config=self.config,
+                            config=self.config.config_in,
                             fail=bcolors.FAIL, e=e))
             except Exception as e:
 
@@ -275,7 +275,7 @@ class vulnWhispererNessus(vulnWhispererBase):
         if self.nessus_connect:
             scan_data = self.nessus.get_scans()
             folders = scan_data['folders']
-            scans = scan_data['scans']
+            scans = scan_data['scans'] if scan_data['scans'] else []
             all_scans = self.scan_count(scans)
             if self.uuids:
                 scan_list = [scan for scan in all_scans if scan['uuid']
@@ -375,11 +375,7 @@ class vulnWhispererNessus(vulnWhispererBase):
                             for col in columns_to_cleanse:
                                 clean_csv[col] = clean_csv[col].astype(str).apply(self.cleanser)
 
-                            clean_csv['Synopsis'] = \
-                                clean_csv['Description'
-                                ].astype(str).apply(self.cleanser)
-                            clean_csv.to_csv(relative_path_name,
-                                             index=False)
+                            clean_csv.to_csv(relative_path_name, index=False)
                             record_meta = (
                                 scan_name,
                                 scan_id,

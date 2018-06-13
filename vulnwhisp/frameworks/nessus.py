@@ -69,6 +69,8 @@ class NessusAPI(object):
         while (timeout <= 10) and (not success):
             data = methods[method](url, data=data, headers=self.headers, verify=False)
             if data.status_code == 401:
+                if url == self.base + self.SESSION:
+                    break
                 try:
                     self.login()
                     timeout += 1
@@ -102,7 +104,7 @@ class NessusAPI(object):
 
     def get_scan_ids(self):
         scans = self.get_scans()
-        scan_ids = [scan_id['id'] for scan_id in scans['scans']]
+        scan_ids = [scan_id['id'] for scan_id in scans['scans']] if scans['scans'] else []
         return scan_ids
 
     def count_scan(self, scans, folder_id):
