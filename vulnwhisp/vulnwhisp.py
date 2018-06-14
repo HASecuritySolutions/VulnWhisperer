@@ -773,7 +773,7 @@ class vulnWhisperer(object):
             vw = vulnWhispererNessus(config=self.config,
                                      username=self.username,
                                      password=self.password,
-                                     verbose=self.verbose)
+                                     verbose=self.verbose,
                                      profile=self.profile)
             vw.whisper_nessus()
 
