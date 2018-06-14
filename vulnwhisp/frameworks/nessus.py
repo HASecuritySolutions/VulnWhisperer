@@ -17,7 +17,6 @@ class NessusAPI(object):
     EXPORT_TOKEN_DOWNLOAD = '/scans/exports/{token_id}/download'
     EXPORT_FILE_DOWNLOAD = EXPORT + '/{file_id}/download'
     EXPORT_STATUS = EXPORT + '/{file_id}/status'
-    EXPORT_DOWNLOAD = EXPORT + '/{file_id}/download'
     EXPORT_HISTORY = EXPORT + '?history_id={history_id}'
 
     def __init__(self, hostname=None, port=None, username=None, password=None, verbose=True):
@@ -180,7 +179,7 @@ class NessusAPI(object):
 
         print("")
         if profile=='tenable':
-            content = self.request(self.EXPORT_DOWNLOAD.format(scan_id=scan_id, file_id=file_id), method='GET', download=True)
+            content = self.request(self.EXPORT_FILE_DOWNLOAD.format(scan_id=scan_id, file_id=file_id), method='GET', download=True)
         else:
         content = self.request(self.EXPORT_TOKEN_DOWNLOAD.format(token_id=token_id), method='GET', download=True)
         return content
