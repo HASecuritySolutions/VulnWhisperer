@@ -162,7 +162,7 @@ class NessusAPI(object):
         req = self.request(query, data=json.dumps(data), method='POST', json=True)
         try:
             file_id = req['file']
-            token_id = req.get('token', req['temp_token'])
+            token_id = req['token'] if 'token' in req else req['temp_token']
         except Exception as e:
             print("[ERROR] %s" % e)
         print('Download for file id ' + str(file_id) + '.')
