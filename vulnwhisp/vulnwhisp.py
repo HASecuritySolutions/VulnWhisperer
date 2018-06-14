@@ -176,7 +176,7 @@ class vulnWhispererBase(object):
 
 class vulnWhispererNessus(vulnWhispererBase):
 
-    CONFIG_SECTION = 'nessus'
+    CONFIG_SECTION = None
 
     def __init__(
             self,
@@ -187,7 +187,10 @@ class vulnWhispererNessus(vulnWhispererBase):
             debug=False,
             username=None,
             password=None,
+            profile='nessus'
     ):
+        self.CONFIG_SECTION=profile
+
         super(vulnWhispererNessus, self).__init__(config=config)
 
         self.port = int(self.config.get(self.CONFIG_SECTION, 'port'))
@@ -332,8 +335,10 @@ class vulnWhispererNessus(vulnWhispererBase):
 
                 folder_id = s['folder_id']
                 scan_history = self.nessus.get_scan_history(scan_id)
-                folder_name = next(f['name'] for f in folders if f['id'
-                ] == folder_id)
+                if self.CONFIG_SECTION == 'tenable':
+                    folder_name = ''
+                else:
+                    folder_name = next(f['name'] for f in folders if f['id'] == folder_id)
                 if status == 'completed':
                     file_name = '%s_%s_%s_%s.%s' % (scan_name, scan_id,
                                                     history_id, norm_time, 'csv')
@@ -361,8 +366,8 @@ class vulnWhispererNessus(vulnWhispererBase):
                                                                                                  filename=relative_path_name))
                     else:
                         file_req = \
-                            self.nessus.download_scan(scan_id=scan_id,
-                                                      history=history_id, export_format='csv')
+                            self.nessus.download_scan(scan_id=scan_id, history=history_id,
+                                                      export_format='csv', profile=self.CONFIG_SECTION)
                         clean_csv = \
                             pd.read_csv(io.StringIO(file_req.decode('utf-8'
                                                                     )))
@@ -769,6 +774,7 @@ class vulnWhisperer(object):
                                      username=self.username,
                                      password=self.password,
                                      verbose=self.verbose)
+                                     profile=self.profile)
             vw.whisper_nessus()
 
         elif self.profile == 'qualys':
@@ -778,3 +784,11 @@ class vulnWhisperer(object):
         elif self.profile == 'openvas':
             vw_openvas = vulnWhispererOpenVAS(config=self.config)
             vw_openvas.process_openvas_scans()
+
+        elif self.profile == 'tenable':
+            vw = vulnWhispererNessus(config=self.config,
+                                     username=self.username,
+                                     password=self.password,
+                                     verbose=self.verbose,
+                                     profile=self.profile)
+            vw.whisper_nessus()

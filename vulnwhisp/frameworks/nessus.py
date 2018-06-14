@@ -17,6 +17,7 @@ class NessusAPI(object):
     EXPORT_TOKEN_DOWNLOAD = '/scans/exports/{token_id}/download'
     EXPORT_FILE_DOWNLOAD = EXPORT + '/{file_id}/download'
     EXPORT_STATUS = EXPORT + '/{file_id}/status'
+    EXPORT_DOWNLOAD = EXPORT + '/{file_id}/download'
     EXPORT_HISTORY = EXPORT + '?history_id={history_id}'
 
     def __init__(self, hostname=None, port=None, username=None, password=None, verbose=True):
@@ -149,7 +150,7 @@ class NessusAPI(object):
         req = self.request(query, data=data, method='POST')
         return req
 
-    def download_scan(self, scan_id=None, history=None, export_format="", chapters="", dbpasswd=""):
+    def download_scan(self, scan_id=None, history=None, export_format="", chapters="", dbpasswd="", profile=""):
         running = True
         counter = 0
 
@@ -162,7 +163,7 @@ class NessusAPI(object):
         req = self.request(query, data=json.dumps(data), method='POST', json=True)
         try:
             file_id = req['file']
-            token_id = req['token']
+            token_id = req.get('token', req['temp_token'])
         except Exception as e:
             print("[ERROR] %s" % e)
         print('Download for file id ' + str(file_id) + '.')
@@ -178,6 +179,9 @@ class NessusAPI(object):
                 print("")
 
         print("")
+        if profile=='tenable':
+            content = self.request(self.EXPORT_DOWNLOAD.format(scan_id=scan_id, file_id=file_id), method='GET', download=True)
+        else:
         content = self.request(self.EXPORT_TOKEN_DOWNLOAD.format(token_id=token_id), method='GET', download=True)
         return content
 
