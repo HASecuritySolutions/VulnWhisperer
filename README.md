@@ -21,6 +21,7 @@ Currently Supports
 - [X] [Qualys Web Applications](https://www.qualys.com/apps/web-app-scanning/)
 - [ ] [Qualys Vulnerability Management (Need license)](https://www.qualys.com/apps/vulnerability-management/)
 - [X] [OpenVAS](http://www.openvas.org/)
+- [X] [Tenable.io](https://www.tenable.com/products/tenable-io)
 - [ ] [Nexpose](https://www.rapid7.com/products/nexpose/)
 - [ ] [Insight VM](https://www.rapid7.com/products/insightvm/)
 - [ ] [NMAP](https://nmap.org/)
