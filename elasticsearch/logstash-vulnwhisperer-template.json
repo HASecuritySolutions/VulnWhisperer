@@ -57,73 +57,59 @@
           "type": "integer"
         },
         "last_updated": {
-          "type": "date",
-          "doc_values": true
+          "type": "date"
         },
         "geoip": {
           "dynamic": true,
           "type": "object",
           "properties": {
             "ip": {
-              "type": "ip",
-              "doc_values": true
+              "type": "ip"
             },
             "latitude": {
-              "type": "float",
-              "doc_values": true
+              "type": "float"
             },
             "location": {
-              "type": "geo_point",
-              "doc_values": true
+              "type": "geo_point"
             },
             "longitude": {
-              "type": "float",
-              "doc_values": true
+              "type": "float"
             }
           }
         },
         "risk_score": {
           "type": "float"
         },
-        "source": {
-          "index": "not_analyzed",
-          "type": "string"
+        "source": {          
+          "type": "keyword"
         },
         "synopsis": {
-          "index": "not_analyzed",
-          "type": "string"
+          "type": "keyword"
         },
         "see_also": {
-          "index": "not_analyzed",
-          "type": "string"
+          "type": "keyword"
         },
         "@timestamp": {
-          "type": "date",
-          "doc_values": true
+          "type": "date"
         },
         "cve": {
-          "index": "not_analyzed",
-          "type": "string"
+          "type": "keyword"
         },
         "solution": {
-          "index": "not_analyzed",
-          "type": "string"
+          "type": "keyword"
         },
         "port": {
           "index": "not_analyzed",
           "type": "integer"
         },
         "host": {
-          "type": "string"
+          "type": "text"
         },
         "@version": {
-          "index": "not_analyzed",
-          "type": "string",
-          "doc_values": true
+          "type": "keyword"
         },
         "risk": {
-          "index": "not_analyzed",
-          "type": "string"
+          "type": "keyword"
         },
         "assign_ip": {
           "type": "ip"
