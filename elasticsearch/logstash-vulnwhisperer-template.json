@@ -21,8 +21,7 @@
   "mappings": {
     "_default_": {
       "_all": {
-        "enabled": true,
-        "norms": false
+        "enabled": false
       },
       "dynamic_templates": [
         {
@@ -99,7 +98,6 @@
           "type": "keyword"
         },
         "port": {
-          "index": "not_analyzed",
           "type": "integer"
         },
         "host": {
