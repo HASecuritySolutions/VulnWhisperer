@@ -847,7 +847,9 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
     def identify_scans_to_process(self):
         self.latest_scans = self.qualys_scan.qw.get_all_scans()
         if self.uuids:
-            self.scans_to_process = self.latest_scans[~self.latest_scans['id'].isin(self.uuids)]
+            self.scans_to_process = self.latest_scans.loc[
+                (~self.latest_scans['id'].isin(self.uuids))
+                & (self.latest_scans['status'] == 'Finished')]
         else:
             self.scans_to_process = self.latest_scans
         self.vprint('{info} Identified {new} scans to be processed'.format(info=bcolors.INFO,
