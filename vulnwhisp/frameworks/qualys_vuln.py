@@ -29,8 +29,6 @@ class qualysWhisperAPI(object):
         all_records = []
         root = ET.XML(xml)
         for child in root.find('.//SCAN_LIST'):
-            if child.find('.//STATE').text != 'Finished':
-                continue
             all_records.append({
                 'name': child.find('TITLE').text,
                 'id': child.find('REF').text,
@@ -41,7 +39,7 @@ class qualysWhisperAPI(object):
             })
         return pd.DataFrame(all_records)
 
-    def get_all_scans(self, status='finished'):
+    def get_all_scans(self):
         parameters = {
             'action': 'list',
             'echo_request': 0,
