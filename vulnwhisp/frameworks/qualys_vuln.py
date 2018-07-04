@@ -60,7 +60,9 @@ class qualysWhisperAPI(object):
         scan_json = self.qgc.request(self.SCANS, parameters)
         
         # First two columns are metadata we already have
-        return pd.read_json(scan_json).iloc[2:]
+        # Last column corresponds to "target_distribution_across_scanner_appliances" element
+	# which doesn't follow the schema and breaks the pandas data manipulation
+	return pd.read_json(scan_json).iloc[2:-1]
 
 class qualysUtils:
     def __init__(self):
