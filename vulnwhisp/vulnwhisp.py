@@ -5,6 +5,7 @@ __author__ = 'Austin Taylor'
 from base.config import vwConfig
 from frameworks.nessus import NessusAPI
 from frameworks.qualys import qualysScanReport
+from frameworks.qualys_vuln import qualysVulnScan
 from frameworks.openvas import OpenVAS_API
 from utils.cli import bcolors
 import pandas as pd
@@ -88,7 +89,7 @@ class vulnWhispererBase(object):
         else:
 
             self.vprint('{fail} Please specify a database to connect to!'.format(fail=bcolors.FAIL))
-            exit(0)
+            exit(1)
 
         self.table_columns = [
             'scan_name',
@@ -176,7 +177,7 @@ class vulnWhispererBase(object):
 
 class vulnWhispererNessus(vulnWhispererBase):
 
-    CONFIG_SECTION = 'nessus'
+    CONFIG_SECTION = None
 
     def __init__(
             self,
@@ -187,7 +188,10 @@ class vulnWhispererNessus(vulnWhispererBase):
             debug=False,
             username=None,
             password=None,
+            profile='nessus'
     ):
+        self.CONFIG_SECTION=profile
+
         super(vulnWhispererNessus, self).__init__(config=config)
 
         self.port = int(self.config.get(self.CONFIG_SECTION, 'port'))
@@ -223,7 +227,7 @@ class vulnWhispererNessus(vulnWhispererBase):
 
                 self.vprint('{fail} Could not properly load your config!\nReason: {e}'.format(fail=bcolors.FAIL,
                                                                                               e=e))
-                sys.exit(0)
+                sys.exit(1)
 
 
 
@@ -332,8 +336,10 @@ class vulnWhispererNessus(vulnWhispererBase):
 
                 folder_id = s['folder_id']
                 scan_history = self.nessus.get_scan_history(scan_id)
-                folder_name = next(f['name'] for f in folders if f['id'
-                ] == folder_id)
+                if self.CONFIG_SECTION == 'tenable':
+                    folder_name = ''
+                else:
+                    folder_name = next(f['name'] for f in folders if f['id'] == folder_id)
                 if status == 'completed':
                     file_name = '%s_%s_%s_%s.%s' % (scan_name, scan_id,
                                                     history_id, norm_time, 'csv')
@@ -361,8 +367,8 @@ class vulnWhispererNessus(vulnWhispererBase):
                                                                                                  filename=relative_path_name))
                     else:
                         file_req = \
-                            self.nessus.download_scan(scan_id=scan_id,
-                                                      history=history_id, export_format='csv')
+                            self.nessus.download_scan(scan_id=scan_id, history=history_id,
+                                                      export_format='csv', profile=self.CONFIG_SECTION)
                         clean_csv = \
                             pd.read_csv(io.StringIO(file_req.decode('utf-8'
                                                                     )))
@@ -745,6 +751,129 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
         exit(0)
 
 
+class vulnWhispererQualysVuln(vulnWhispererBase):
+
+    CONFIG_SECTION = 'qualys'
+    COLUMN_MAPPING = {'cvss_base': 'cvss',
+                     'cvss3_base': 'cvss3',
+                     'cve_id': 'cve',
+                     'os': 'operating_system',
+                     'qid': 'plugin_id',
+                     'severity': 'risk',
+                     'title': 'plugin_name'}
+
+    def __init__(
+            self,
+            config=None,
+            db_name='report_tracker.db',
+            purge=False,
+            verbose=None,
+            debug=False,
+            username=None,
+            password=None,
+        ):
+
+        super(vulnWhispererQualysVuln, self).__init__(config=config)
+
+        self.qualys_scan = qualysVulnScan(config=config)
+        self.directory_check()
+        self.scans_to_process = None
+
+    def whisper_reports(self,
+                        report_id=None,
+                        launched_date=None,
+                        scan_name=None,
+                        scan_reference=None,
+                        output_format='json',
+                        cleanup=True):
+        try:
+            launched_date
+            if 'Z' in launched_date:
+                launched_date = self.qualys_scan.utils.iso_to_epoch(launched_date)
+            report_name = 'qualys_vuln_' + report_id.replace('/','_') \
+                          + '_{last_updated}'.format(last_updated=launched_date) \
+                          + '.json'
+
+            relative_path_name = self.path_check(report_name)
+
+            if os.path.isfile(relative_path_name):
+                #TODO Possibly make this optional to sync directories
+                file_length = len(open(relative_path_name).readlines())
+                record_meta = (
+                    scan_name,
+                    scan_reference,
+                    launched_date,
+                    report_name,
+                    time.time(),
+                    file_length,
+                    self.CONFIG_SECTION,
+                    report_id,
+                    1,
+                )
+                self.record_insert(record_meta)
+                self.vprint('{info} File {filename} already exist! Updating database'.format(info=bcolors.INFO, filename=relative_path_name))
+
+            else:
+                print('Processing report ID: %s' % report_id)
+                vuln_ready = self.qualys_scan.process_data(scan_id=report_id)
+                vuln_ready['scan_name'] = scan_name
+                vuln_ready['scan_reference'] = report_id
+                vuln_ready.rename(columns=self.COLUMN_MAPPING, inplace=True)
+
+                record_meta = (
+                    scan_name,
+                    scan_reference,
+                    launched_date,
+                    report_name,
+                    time.time(),
+                    vuln_ready.shape[0],
+                    self.CONFIG_SECTION,
+                    report_id,
+                    1,
+                )
+                self.record_insert(record_meta)
+
+                if output_format == 'json':
+                    with open(relative_path_name, 'w') as f:
+                        f.write(vuln_ready.to_json(orient='records', lines=True))
+                        f.write('\n')
+
+                print('{success} - Report written to %s'.format(success=bcolors.SUCCESS) \
+                      % report_name)
+
+        except Exception as e:
+            print('{error} - Could not process %s - %s'.format(error=bcolors.FAIL) % (report_id, e))
+
+
+    def identify_scans_to_process(self):
+        self.latest_scans = self.qualys_scan.qw.get_all_scans()
+        if self.uuids:
+            self.scans_to_process = self.latest_scans.loc[
+                (~self.latest_scans['id'].isin(self.uuids))
+                & (self.latest_scans['status'] == 'Finished')]
+        else:
+            self.scans_to_process = self.latest_scans
+        self.vprint('{info} Identified {new} scans to be processed'.format(info=bcolors.INFO,
+                                                                           new=len(self.scans_to_process)))
+
+
+    def process_vuln_scans(self):
+        counter = 0
+        self.identify_scans_to_process()
+        if self.scans_to_process.shape[0]:
+            for app in self.scans_to_process.iterrows():
+                counter += 1
+                r = app[1]
+                print('Processing %s/%s' % (counter, len(self.scans_to_process)))
+                self.whisper_reports(report_id=r['id'],
+                                     launched_date=r['date'],
+                                     scan_name=r['name'],
+                                     scan_reference=r['type'])
+        else:
+            self.vprint('{info} No new scans to process. Exiting...'.format(info=bcolors.INFO))
+        self.conn.close()
+        exit(0)
+
 
 class vulnWhisperer(object):
 
@@ -768,7 +897,8 @@ class vulnWhisperer(object):
             vw = vulnWhispererNessus(config=self.config,
                                      username=self.username,
                                      password=self.password,
-                                     verbose=self.verbose)
+                                     verbose=self.verbose,
+                                     profile=self.profile)
             vw.whisper_nessus()
 
         elif self.profile == 'qualys':
@@ -778,3 +908,15 @@ class vulnWhisperer(object):
         elif self.profile == 'openvas':
             vw_openvas = vulnWhispererOpenVAS(config=self.config)
             vw_openvas.process_openvas_scans()
+
+        elif self.profile == 'tenable':
+            vw = vulnWhispererNessus(config=self.config,
+                                     username=self.username,
+                                     password=self.password,
+                                     verbose=self.verbose,
+                                     profile=self.profile)
+            vw.whisper_nessus()
+
+        elif self.profile == 'qualys_vuln':
+            vw = vulnWhispererQualysVuln(config=self.config)
+            vw.process_vuln_scans()
