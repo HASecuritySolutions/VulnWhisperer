@@ -162,7 +162,7 @@ There are a few configuration steps to setting up VulnWhisperer:
 *   Import ElasticSearch Templates
 *   Import Kibana Dashboards
 
-<a href="https://github.com/austin-taylor/VulnWhisperer/blob/master/configs/frameworks_example.ini">example.ini file</a>
+<a href="https://github.com/austin-taylor/VulnWhisperer/blob/master/configs/frameworks_example.ini">frameworks_example.ini file</a>
 <p align="left" style="width:200px"><img src="https://github.com/austin-taylor/vulnwhisperer/blob/master/docs/source/config_example.png" style="width:200px"></p>
 
 
@@ -171,9 +171,9 @@ There are a few configuration steps to setting up VulnWhisperer:
 To run, fill out the configuration file with your vulnerability scanner settings. Then you can execute from the command line.
 ```python
 
-vuln_whisperer -c configs/example.ini -s nessus
+vuln_whisperer -c configs/frameworks_example.ini -s nessus
 or
-vuln_whisperer -c configs/example.ini -s qualys
+vuln_whisperer -c configs/frameworks_example.ini -s qualys
 
 ```
 <p align="center" style="width:300px"><img src="https://github.com/austin-taylor/vulnwhisperer/blob/master/docs/source/running_vuln_whisperer.png" style="width:400px"></p>
