@@ -5,6 +5,7 @@ __author__ = 'Austin Taylor'
 
 from vulnwhisp.vulnwhisp import vulnWhisperer
 from vulnwhisp.utils.cli import bcolors
+from vulnwhisp.base.config import vwConfig
 import os
 import argparse
 import sys
@@ -31,10 +32,25 @@ def main():
 
     try:
         if args.config and not args.section:
-            print('{red} ERROR: {error}{endc}'.format(red=bcolors.FAIL,
-                                                      error='Please specify a section using -s. \
+	    
+            print('{yellow}WARNING: {warning}{endc}'.format(yellow=bcolors.WARNING,
+                                                      warning='No section was specified, vulnwhisperer will scrape enabled modules from config file. \
+						      \nPlease specify a section using -s. \
                                                       \nExample vuln_whisperer -c config.ini -s nessus',
                                                       endc=bcolors.ENDC))
+	    config = vwConfig(config_in=args.config)
+	    enabled_sections = config.get_enabled()
+		
+	    for section in enabled_sections:
+		vw = vulnWhisperer(config=args.config,
+                               profile=section,
+                               verbose=args.verbose,
+                               username=args.username,
+                               password=args.password)
+
+            	vw.whisper_vulnerabilities()
+	    sys.exit(1)
+
         else:
             vw = vulnWhisperer(config=args.config,
                                profile=args.section,
