@@ -20,3 +20,11 @@ class vwConfig(object):
 
     def getbool(self, section, option):
         return self.config.getboolean(section, option)
+
+    def get_enabled(self):
+	enabled = []
+	check = ["true", "True", "1"]
+	for section in self.config.sections():
+	    if self.get(section, "enabled") in check:
+		enabled.append(section)	
+	return enabled

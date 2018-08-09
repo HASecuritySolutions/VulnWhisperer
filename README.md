@@ -22,6 +22,7 @@ Currently Supports
 - [X] [Qualys Vulnerability Management](https://www.qualys.com/apps/vulnerability-management/)
 - [X] [OpenVAS](http://www.openvas.org/)
 - [X] [Tenable.io](https://www.tenable.com/products/tenable-io)
+- [ ] [Detectify](https://detectify.com/)
 - [ ] [Nexpose](https://www.rapid7.com/products/nexpose/)
 - [ ] [Insight VM](https://www.rapid7.com/products/insightvm/)
 - [ ] [NMAP](https://nmap.org/)
@@ -176,6 +177,8 @@ or
 vuln_whisperer -c configs/frameworks_example.ini -s qualys
 
 ```
+If no section is specified (e.g. -s nessus), vulnwhisperer will check on the config file for the modules that have the property enabled=true and run them sequentially.
+
 <p align="center" style="width:300px"><img src="https://github.com/austin-taylor/vulnwhisperer/blob/master/docs/source/running_vuln_whisperer.png" style="width:400px"></p>
 Next you'll need to import the visualizations into Kibana and setup your logstash config. A more thorough README is underway with setup instructions.
 
