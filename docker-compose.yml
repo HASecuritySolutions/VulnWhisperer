@@ -28,7 +28,6 @@ services:
     environment:
       SERVER_NAME: vulnwhisp-ks1
       ELASTICSEARCH_URL: http://vulnwhisp-es1:9200
-      #- xpack.security.enabled=false
     ports:
       - 5601:5601
     depends_on:
@@ -46,13 +45,10 @@ services:
       - ./docker/3000_openvas.conf:/etc/logstash/conf.d/3000_openvas.conf
       - ./docker/logstash.yml:/etc/logstash/logstash.yml  
       - ./data/:/opt/VulnWhisperer/data
-    #volumes_from:
-      # - vulnwhisp-vulnwhisperer
     environment:
       - xpack.monitoring.enabled=false
     depends_on:
       - vulnwhisp-es1
-      #- vulnwhisp-vulnwhisperer
     networks:
       esnet:
         aliases:
