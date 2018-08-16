@@ -187,9 +187,9 @@ Docker-compose
 -----
 The docker-compose file has been tested and running on a Ubuntu 18.04 environment, with docker-ce v.18.06. The structure's purpose is to store locally the data from the scanners, letting vulnwhisperer update the records and Logstash feed them to ElasticSearch, so it requires a local storage folder.
 
-- It will run out of the box if you create on the root directory of VulnWhisperer a folder named "data", which needs permissions for other users to read/write in order to sync:
+- It will run out of the box if you create on the root directory of VulnWhisperer a folder named "data", which needs permissions for other users to read/write/execute in order to sync:
 ```shell
- mkdir data && chmod 666 data
+ mkdir data && chmod 777 data
 ```
 otherwise the users running inside the docker containers will not be able to work with it properly.
 - You will need to rebuild the vulnwhisperer Dockerfile before launching the docker-compose, as by the way it is created right now it doesn't pull the last version of the VulnWhisperer code from Github, due to docker layering inner workings. To do this, the best way is to:
@@ -213,6 +213,10 @@ You can also make sure that all ELK components are working by doing "curl -i hos
 - If Kibana is not showing the results, check that you are searching on the whole ES range, as by default it shows logs for the last 15 minutes (you can choose up to last 5 years)
 - X-Pack has been disabled by default due to the noise, plus being a trial version. You can enable it modifying the docker-compose.yml and docker/logstash.conf files. Logstash.conf contains the default credentials for the X-Pack enabled ES.
 
+To launch docker-compose, do:
+```shell
+docker-compose -f docker-compose.yml up
+```
 
 Running Nightly
 ---------------

@@ -58,7 +58,7 @@ services:
     container_name: vulnwhisp-vulnwhisperer
     volumes:
       - ./data/:/opt/VulnWhisperer/data
-      - ./configs/king.ini:/opt/VulnWhisperer/frameworks_example.ini
+      - ./configs/frameworks_example.ini:/opt/VulnWhisperer/frameworks_example.ini
     network_mode: host
 volumes:
   esdata1:
