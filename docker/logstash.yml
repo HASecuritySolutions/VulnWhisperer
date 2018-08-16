@@ -1,0 +1,6 @@
+path.data: /var/lib/logstash
+path.config: /etc/logstash/conf.d
+#path.logs: /var/log/logstash
+xpack.monitoring.elasticsearch.url: [ "vulnwhisp-es1.local:9200" ]
+xpack.monitoring.elasticsearch.username: "elastic" 
+xpack.monitoring.elasticsearch.password: "changeme"
