@@ -185,10 +185,14 @@ Next you'll need to import the visualizations into Kibana and setup your logstas
 
 Docker-compose
 -----
-The docker-compose file has been tested and running on a Ubuntu 18.04 environment, with docker-ce v.18.06. The estructure's purpose is to store locally the data from the scanners, letting vulnwhisperer update the records and Logstash feed them to ElasticSearch, so it requires a local storage folder.
+The docker-compose file has been tested and running on a Ubuntu 18.04 environment, with docker-ce v.18.06. The structure's purpose is to store locally the data from the scanners, letting vulnwhisperer update the records and Logstash feed them to ElasticSearch, so it requires a local storage folder.
 
-- It will run out of the box if you create on the root directory of VulnWhisperer a folder named "data", which needs permissions for other users to read/write in order to sync (chmod 666 data), otherwise the users running inside the docker containers will not be able to work with it properly.
-- You will need to rebuild the vulnwhisperer Dockerfile before launching the docker-compose, as by the way it is created right now it doesn't pull the last version of the VulnWhisperer code from github, due to docker layering innerworkings. To do this, the best way is to:
+- It will run out of the box if you create on the root directory of VulnWhisperer a folder named "data", which needs permissions for other users to read/write in order to sync:
+```shell
+ mkdir data && chmod 666 data
+```
+otherwise the users running inside the docker containers will not be able to work with it properly.
+- You will need to rebuild the vulnwhisperer Dockerfile before launching the docker-compose, as by the way it is created right now it doesn't pull the last version of the VulnWhisperer code from Github, due to docker layering inner workings. To do this, the best way is to:
 ```shell
 
 wget https://raw.githubusercontent.com/HASecuritySolutions/docker_vulnwhisperer/master/Dockerfile
@@ -197,7 +201,7 @@ docker build --no-cache -t hasecuritysolutions/docker_vulnwhisperer -f Dockerfil
 ```
 This will create the image hasecuritysolutions/docker_vulnwhisperer:latest from scratch with the latest updates. Will soon fix that with the next VulnWhisperer version.
 - The vulnwhisperer container inside of docker-compose is using network_mode=host instead of the bridge mode by default; this is due to issues encountered when the container is trying to pull data from your scanners from a different VLAN than the one you currently are. The host network mode uses the DNS and interface from the host itself, fixing those issues, but it breaks the network isolation from the container (this is due to docker creating bridge interfaces to route the traffic, blocking both container's and host's network).
-- ElasticSearch requires having the value vm.max_map_count with a minimum of 262144; otherwise, it will probably break at start. Please check https://elk-docker.readthedocs.io/#prerequisites to solve that.
+- ElasticSearch requires having the value vm.max_map_count with a minimum of 262144; otherwise, it will probably break at launch. Please check https://elk-docker.readthedocs.io/#prerequisites to solve that.
 - If you want to change the "data" folder for storing the results, remember to change it from both the docker-compose.yml file and the logstash files that are in the root "docker/" folder.
 - Hostnames do NOT allow _ (underscores) on it, if you change the hostname configuration from the docker-compose file and add underscores, config files from logstash will fail.
 - If you are having issues with the connection between hosts, to troubleshoot them you can spawn a shell in said host doing the following:
