@@ -182,6 +182,44 @@ If no section is specified (e.g. -s nessus), vulnwhisperer will check on the con
 <p align="center" style="width:300px"><img src="https://github.com/austin-taylor/vulnwhisperer/blob/master/docs/source/running_vuln_whisperer.png" style="width:400px"></p>
 Next you'll need to import the visualizations into Kibana and setup your logstash config. A more thorough README is underway with setup instructions.
 
+
+Docker-compose
+-----
+The docker-compose file has been tested and running on a Ubuntu 18.04 environment, with docker-ce v.18.06. The structure's purpose is to store locally the data from the scanners, letting vulnwhisperer update the records and Logstash feed them to ElasticSearch, so it requires a local storage folder.
+
+- It will run out of the box if you create on the root directory of VulnWhisperer a folder named "data", which needs permissions for other users to read/write/execute in order to sync:
+```shell
+ mkdir data && chmod -R 666 data #data/database/report_tracker.db will need 777 to use with local vulnwhisperer
+```
+otherwise the users running inside the docker containers will not be able to work with it properly. If you don't apply chmod recursively, it will still work to sync the data, but only root use in localhost will have access to the created data (if you run local vulnwhisperer with the same data will break).
+- You will need to rebuild the vulnwhisperer Dockerfile before launching the docker-compose, as by the way it is created right now it doesn't pull the last version of the VulnWhisperer code from Github, due to docker layering inner workings. To do this, the best way is to:
+```shell
+
+wget https://raw.githubusercontent.com/qmontal/docker_vulnwhisperer/master/Dockerfile 
+docker build --no-cache -t hasecuritysolutions/docker_vulnwhisperer -f Dockerfile . --network=host
+
+```
+This will create the image hasecuritysolutions/docker_vulnwhisperer:latest from scratch with the latest updates. Will soon fix that with the next VulnWhisperer version.
+- The vulnwhisperer container inside of docker-compose is using network_mode=host instead of the bridge mode by default; this is due to issues encountered when the container is trying to pull data from your scanners from a different VLAN than the one you currently are. The host network mode uses the DNS and interface from the host itself, fixing those issues, but it breaks the network isolation from the container (this is due to docker creating bridge interfaces to route the traffic, blocking both container's and host's network). If you change this to bridge, you might need to add your DNS to the config in order to resolve internal hostnames.
+- ElasticSearch requires having the value vm.max_map_count with a minimum of 262144; otherwise, it will probably break at launch. Please check https://elk-docker.readthedocs.io/#prerequisites to solve that.
+- If you want to change the "data" folder for storing the results, remember to change it from both the docker-compose.yml file and the logstash files that are in the root "docker/" folder.
+- Hostnames do NOT allow _ (underscores) on it, if you change the hostname configuration from the docker-compose file and add underscores, config files from logstash will fail.
+- If you are having issues with the connection between hosts, to troubleshoot them you can spawn a shell in said host doing the following:
+```shell
+docker ps #check the images from the containers
+docker exec -i -t 665b4a1e17b6 /bin/bash #where 665b4a1e17b6 is the container image you want to troubleshoot
+```
+You can also make sure that all ELK components are working by doing "curl -i host:9200 (elastic)/ host:5601 (kibana) /host:9600 (logstash). WARNING! It is possible that logstash is not exposing to the external network the port but it does to its internal docker network "esnet".
+- If Kibana is not showing the results, check that you are searching on the whole ES range, as by default it shows logs for the last 15 minutes (you can choose up to last 5 years)
+- X-Pack has been disabled by default due to the noise, plus being a trial version. You can enable it modifying the docker-compose.yml and docker/logstash.conf files. Logstash.conf contains the default credentials for the X-Pack enabled ES.
+
+To launch docker-compose, do:
+```shell
+docker-compose -f docker-compose.yml up
+```
+
+Known issue: Qualys Vuln Management error -> QualysGuard Username: [ERROR] Could not connect to Qualys - EOF when reading a line (working on vulnwhisperer without docker)
+
 Running Nightly
 ---------------
 If you're running linux, be sure to setup a cronjob to remove old files that get stored in the database. Be sure to change .csv if you're using json.

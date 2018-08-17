@@ -292,7 +292,7 @@ class vulnWhispererNessus(vulnWhispererBase):
 
             if not scan_list:
                 self.vprint('{info} No new scans to process. Exiting...'.format(info=bcolors.INFO))
-                exit(0)
+                return 0
 
             # Create scan subfolders
 
@@ -612,7 +612,7 @@ class vulnWhispererQualys(vulnWhispererBase):
         else:
             self.vprint('{info} No new scans to process. Exiting...'.format(info=bcolors.INFO))
         self.conn.close()
-        exit(0)
+        return 0
 
 
 class vulnWhispererOpenVAS(vulnWhispererBase):
@@ -748,7 +748,7 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
         else:
             self.vprint('{info} No new scans to process. Exiting...'.format(info=bcolors.INFO))
         self.conn.close()
-        exit(0)
+        return 0
 
 
 class vulnWhispererQualysVuln(vulnWhispererBase):
@@ -872,7 +872,7 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
         else:
             self.vprint('{info} No new scans to process. Exiting...'.format(info=bcolors.INFO))
         self.conn.close()
-        exit(0)
+        return 0
 
 
 class vulnWhisperer(object):

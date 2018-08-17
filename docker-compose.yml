@@ -1,8 +1,8 @@
 version: '2'
 services:
-  vulnwhisp_es1:
+  vulnwhisp-es1:
     image: docker.elastic.co/elasticsearch/elasticsearch:5.6.2
-    container_name: vulnwhisp_es1
+    container_name: vulnwhisp-es1
     environment:
       - cluster.name=vulnwhisperer
       - bootstrap.memory_lock=true
@@ -11,27 +11,55 @@ services:
       memlock:
         soft: -1
         hard: -1
-    mem_limit: 1g
+    mem_limit: 8g
     volumes:
       - esdata1:/usr/share/elasticsearch/data
     ports:
-      - 19200:9200
+      - 9200:9200
+    environment:
+      - xpack.security.enabled=false
+    restart: always
     networks:
-      - esnet
-  vulnwhisp_ks1:
+      esnet:
+        aliases:
+          - vulnwhisp-es1.local
+  vulnwhisp-ks1:
     image: docker.elastic.co/kibana/kibana:5.6.2
     environment:
-      SERVER_NAME: vulnwhisp_ks1
-      ELASTICSEARCH_URL: http://vulnwhisp_es1:9200
+      SERVER_NAME: vulnwhisp-ks1
+      ELASTICSEARCH_URL: http://vulnwhisp-es1:9200
     ports:
-      - 15601:5601
+      - 5601:5601
+    depends_on:
+      - vulnwhisp-es1
     networks:
-      - esnet
-  vulnwhisp_ls1:
+      esnet:
+        aliases:
+          - vulnwhisp-ks1.local
+  vulnwhisp-ls1:
     image: docker.elastic.co/logstash/logstash:5.6.2
+    container_name: vulnwhisp-ls1
+    volumes:
+      - ./docker/1000_nessus_process_file.conf:/etc/logstash/conf.d/1000_nessus_process_file.conf
+      - ./docker/2000_qualys_web_scans.conf:/etc/logstash/conf.d/2000_qualys_web_scans.conf
+      - ./docker/3000_openvas.conf:/etc/logstash/conf.d/3000_openvas.conf
+      - ./docker/logstash.yml:/etc/logstash/logstash.yml  
+      - ./data/:/opt/VulnWhisperer/data
+    environment:
+      - xpack.monitoring.enabled=false
+    depends_on:
+      - vulnwhisp-es1
     networks:
-      - esnet
-
+      esnet:
+        aliases:
+          - vulnwhisp-ls1.local
+  vulnwhisp-vulnwhisperer:
+    image: hasecuritysolutions/docker_vulnwhisperer:latest
+    container_name: vulnwhisp-vulnwhisperer
+    volumes:
+      - ./data/:/opt/VulnWhisperer/data
+      - ./configs/frameworks_example.ini:/opt/VulnWhisperer/frameworks_example.ini
+    network_mode: host
 volumes:
   esdata1:
     driver: local
