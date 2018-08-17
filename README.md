@@ -189,9 +189,9 @@ The docker-compose file has been tested and running on a Ubuntu 18.04 environmen
 
 - It will run out of the box if you create on the root directory of VulnWhisperer a folder named "data", which needs permissions for other users to read/write/execute in order to sync:
 ```shell
- mkdir data && chmod 777 data
+ mkdir data && chmod -R 666 data #data/database/report_tracker.db will need 777 to use with local vulnwhisperer
 ```
-otherwise the users running inside the docker containers will not be able to work with it properly.
+otherwise the users running inside the docker containers will not be able to work with it properly. If you don't apply chmod recursively, it will still work to sync the data, but only root use in localhost will have access to the created data (if you run local vulnwhisperer with the same data will break).
 - You will need to rebuild the vulnwhisperer Dockerfile before launching the docker-compose, as by the way it is created right now it doesn't pull the last version of the VulnWhisperer code from Github, due to docker layering inner workings. To do this, the best way is to:
 ```shell
 
@@ -200,7 +200,7 @@ docker build --no-cache -t hasecuritysolutions/docker_vulnwhisperer -f Dockerfil
 
 ```
 This will create the image hasecuritysolutions/docker_vulnwhisperer:latest from scratch with the latest updates. Will soon fix that with the next VulnWhisperer version.
-- The vulnwhisperer container inside of docker-compose is using network_mode=host instead of the bridge mode by default; this is due to issues encountered when the container is trying to pull data from your scanners from a different VLAN than the one you currently are. The host network mode uses the DNS and interface from the host itself, fixing those issues, but it breaks the network isolation from the container (this is due to docker creating bridge interfaces to route the traffic, blocking both container's and host's network).
+- The vulnwhisperer container inside of docker-compose is using network_mode=host instead of the bridge mode by default; this is due to issues encountered when the container is trying to pull data from your scanners from a different VLAN than the one you currently are. The host network mode uses the DNS and interface from the host itself, fixing those issues, but it breaks the network isolation from the container (this is due to docker creating bridge interfaces to route the traffic, blocking both container's and host's network). If you change this to bridge, you might need to add your DNS to the config in order to resolve internal hostnames.
 - ElasticSearch requires having the value vm.max_map_count with a minimum of 262144; otherwise, it will probably break at launch. Please check https://elk-docker.readthedocs.io/#prerequisites to solve that.
 - If you want to change the "data" folder for storing the results, remember to change it from both the docker-compose.yml file and the logstash files that are in the root "docker/" folder.
 - Hostnames do NOT allow _ (underscores) on it, if you change the hostname configuration from the docker-compose file and add underscores, config files from logstash will fail.
@@ -217,6 +217,8 @@ To launch docker-compose, do:
 ```shell
 docker-compose -f docker-compose.yml up
 ```
+
+Known issue: Qualys Vuln Management error -> QualysGuard Username: [ERROR] Could not connect to Qualys - EOF when reading a line (working on vulnwhisperer without docker)
 
 Running Nightly
 ---------------
