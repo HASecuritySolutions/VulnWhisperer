@@ -195,7 +195,7 @@ otherwise the users running inside the docker containers will not be able to wor
 - You will need to rebuild the vulnwhisperer Dockerfile before launching the docker-compose, as by the way it is created right now it doesn't pull the last version of the VulnWhisperer code from Github, due to docker layering inner workings. To do this, the best way is to:
 ```shell
 
-wget https://raw.githubusercontent.com/HASecuritySolutions/docker_vulnwhisperer/master/Dockerfile
+wget https://raw.githubusercontent.com/qmontal/docker_vulnwhisperer/master/Dockerfile 
 docker build --no-cache -t hasecuritysolutions/docker_vulnwhisperer -f Dockerfile . --network=host
 
 ```
