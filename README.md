@@ -36,6 +36,8 @@ Getting Started
 4) Import the <a href="https://github.com/austin-taylor/VulnWhisperer/tree/master/kibana/vuln_whisp_kibana">kibana visualizations</a>
 5) [Run Vulnwhisperer](#run)
 
+Need assistance or just want to chat? Join our [slack channel](https://t.co/xlrqzLb3vY)
+
 Requirements
 -------------
 ####
