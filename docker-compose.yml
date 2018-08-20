@@ -40,10 +40,10 @@ services:
     image: docker.elastic.co/logstash/logstash:5.6.2
     container_name: vulnwhisp-ls1
     volumes:
-      - ./docker/1000_nessus_process_file.conf:/etc/logstash/conf.d/1000_nessus_process_file.conf
-      - ./docker/2000_qualys_web_scans.conf:/etc/logstash/conf.d/2000_qualys_web_scans.conf
-      - ./docker/3000_openvas.conf:/etc/logstash/conf.d/3000_openvas.conf
-      - ./docker/logstash.yml:/etc/logstash/logstash.yml  
+      - ./docker/1000_nessus_process_file.conf:/usr/share/logstash/pipeline/1000_nessus_process_file.conf
+      - ./docker/2000_qualys_web_scans.conf:/usr/share/logstash/pipeline/2000_qualys_web_scans.conf
+      - ./docker/3000_openvas.conf:/usr/share/logstash/pipeline/3000_openvas.conf
+      - ./docker/logstash.yml:/usr/share/logstash/config/logstash.yml
       - ./data/:/opt/VulnWhisperer/data
     environment:
       - xpack.monitoring.enabled=false
