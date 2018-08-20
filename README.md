@@ -11,7 +11,6 @@ VulnWhisperer is a vulnerability data and report aggregator. VulnWhisperer will 
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](http://choosealicense.com/licenses/mit/)
 [![Twitter](https://img.shields.io/twitter/follow/VulnWhisperer.svg?style=social&label=Follow)](https://twitter.com/VulnWhisperer)
 
-
 Currently Supports
 -----------------
 
@@ -36,6 +35,8 @@ Getting Started
 3) Modify the IP settings in the <a href="https://github.com/austin-taylor/VulnWhisperer/tree/master/logstash">logstash files to accomodate your environment</a> and import them to your logstash conf directory (default is /etc/logstash/conf.d/)
 4) Import the <a href="https://github.com/austin-taylor/VulnWhisperer/tree/master/kibana/vuln_whisp_kibana">kibana visualizations</a>
 5) [Run Vulnwhisperer](#run)
+
+Need assistance or just want to chat? Join our [slack channel](https://t.co/xlrqzLb3vY)
 
 Requirements
 -------------
@@ -239,10 +240,14 @@ Video Walkthrough -- Featured on ElasticWebinar
 " target="_blank"><img src="https://github.com/austin-taylor/vulnwhisperer/blob/master/docs/source/elastic_webinar.png" 
 alt="Elastic presentation on VulnWhisperer" border="10" /></a>
 
-Credit
+Authors
 ------
-Big thank you to <a href="https://github.com/SMAPPER">Justin Henderson</a> for his contributions to vulnWhisperer!
-
+   - [Austin Taylor (@HuntOperator)](https://github.com/austin-taylor)
+   - [Justin Henderson (@smapper)](https://github.com/SMAPPER)
+   
+Contributors
+------------
+   - [@qmontal](https://github.com/qmontal)
 
 AS SEEN ON TV
 -------------
