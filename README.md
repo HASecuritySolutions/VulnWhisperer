@@ -193,6 +193,10 @@ The docker-compose file has been tested and running on a Ubuntu 18.04 environmen
  mkdir data && chmod -R 666 data #data/database/report_tracker.db will need 777 to use with local vulnwhisperer
 ```
 otherwise the users running inside the docker containers will not be able to work with it properly. If you don't apply chmod recursively, it will still work to sync the data, but only root use in localhost will have access to the created data (if you run local vulnwhisperer with the same data will break).
+- docker/logstash.yml file will need other read/write permissions in order for logstash container to use the configuration file; youll need to run:
+```shell
+chmod 666 docker/logstash.yml
+```
 - You will need to rebuild the vulnwhisperer Dockerfile before launching the docker-compose, as by the way it is created right now it doesn't pull the last version of the VulnWhisperer code from Github, due to docker layering inner workings. To do this, the best way is to:
 ```shell
 wget https://raw.githubusercontent.com/qmontal/docker_vulnwhisperer/master/Dockerfile 
