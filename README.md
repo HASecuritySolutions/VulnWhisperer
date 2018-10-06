@@ -253,6 +253,7 @@ Authors
    
 Contributors
 ------------
+   - [@pemontto](https://github.com/pemontto)
    - [Quim Montal (@qmontal)](https://github.com/qmontal)
 
 AS SEEN ON TV
