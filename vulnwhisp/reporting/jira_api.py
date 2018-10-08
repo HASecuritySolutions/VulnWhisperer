@@ -11,7 +11,7 @@ class JiraAPI(object): #NamedLogger):
     
     #TODO implement logging
 
-    def __init__(self, hostname=None, username=None, password=None, debug=False):
+    def __init__(self, hostname=None, username=None, password=None, debug=False, clean_obsolete=True, max_time_window=6):
         #self.setup_logger(debug=debug)
         if "https://" not in hostname:
             hostname = "https://{}".format(hostname)
@@ -22,9 +22,10 @@ class JiraAPI(object): #NamedLogger):
         self.all_tickets = []
         self.JIRA_REOPEN_ISSUE = "Reopen Issue"
         self.JIRA_CLOSE_ISSUE = "Close Issue"
-        self.max_time_tracking = 6 #in months
+        self.max_time_tracking = max_time_window #in months
         #<JIRA Resolution: name=u'Obsolete', id=u'11'>
         self.JIRA_RESOLUTION_OBSOLETE = "Obsolete"
+        self.clean_obsolete = clean_obsolete
     
     def create_ticket(self, title, desc, project="IS", components=[], tags=[]):
         labels = ['vulnerability_management']
@@ -76,7 +77,9 @@ class JiraAPI(object): #NamedLogger):
         print "JIRA Sync started"
 
         # [HIGIENE] close tickets older than 6 months as obsolete
-        self.close_obsolete_tickets()
+        # Higiene clean up affects to all tickets created by the module, filters by label 'vulnerability_management'
+        if self.clean_obsolete:
+            self.close_obsolete_tickets()
 
         for vuln in vulnerabilities:
             # JIRA doesn't allow labels with spaces, so making sure that the scan_name doesn't have spaces
@@ -176,10 +179,9 @@ class JiraAPI(object): #NamedLogger):
         if ticket_obj is not None:
             if ticket_obj.raw['fields'].get('resolution') is not None:
                 if ticket_obj.raw['fields'].get('resolution').get('name') != 'Unresolved':
-                    print "Checked ticket {} is resolved".format(ticket_obj)
-                    #logger.info("ticket {} already open".format(ticketid))
+                    #logger.info("ticket {} is closed".format(ticketid))
                     return True
-        #print "Checked ticket {} is already open".format(ticket_obj)
+        print "Checked ticket {} is already open".format(ticket_obj)
         return False
 
 
@@ -244,10 +246,19 @@ class JiraAPI(object): #NamedLogger):
 
     def close_obsolete_tickets(self):
         # Close tickets older than 6 months, vulnerabilities not solved will get created a new ticket 
-        print "Closing obsolete tickets older than 6 months"
+        print "Closing obsolete tickets older than {} months".format(self.max_time_tracking)
         jql = "labels=vulnerability_management AND created <startOfMonth(-{}) and resolution=Unresolved".format(self.max_time_tracking)
         tickets_to_close = self.jira.search_issues(jql, maxResults=0)
         for ticket in tickets_to_close:
                 self.close_ticket(ticket)
         
         return 0
+
+    def project_exists(self, project):
+        try:
+            self.jira.project(project)
+            return True
+        except:
+            return False
+        return False
+
