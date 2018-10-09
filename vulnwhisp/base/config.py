@@ -47,15 +47,20 @@ class vwConfig(object):
         for profile in profiles:
             #IMPORTANT profile scans/results will be normalized to lower and "_" instead of spaces for ini file section
             section_name = self.normalize_section(profile)
-            self.config.add_section(section_name)
-            self.config.set(section_name,'source',profile.split('.')[0])
-            # in case any scan name contains '.' character
-            self.config.set(section_name,'scan_name','.'.join(profile.split('.')[1:]))
-            self.config.set(section_name,'jira_project', "")
-            self.config.set(section_name,'; if multiple components, separate by ","')
-            self.config.set(section_name,'components', "")
-            self.config.set(section_name,'; minimum criticality to report (low, medium, high or critical)')
-            self.config.set(section_name,'min_critical_to_report', 'high')
+            try:
+                self.get(section_name, "source")
+                print "Skipping creating of section '{}'; already exists".format(section_name)
+            except:
+                print "Creating config section for '{}'".format(section_name)
+                self.config.add_section(section_name)
+                self.config.set(section_name,'source',profile.split('.')[0])
+                # in case any scan name contains '.' character
+                self.config.set(section_name,'scan_name','.'.join(profile.split('.')[1:]))
+                self.config.set(section_name,'jira_project', "")
+                self.config.set(section_name,'; if multiple components, separate by ","')
+                self.config.set(section_name,'components', "")
+                self.config.set(section_name,'; minimum criticality to report (low, medium, high or critical)')
+                self.config.set(section_name,'min_critical_to_report', 'high')
         
         # writing changes back to file
         with open(self.config_in, 'w') as configfile:
