@@ -25,6 +25,7 @@ class JiraAPI(object): #NamedLogger):
         self.max_time_tracking = max_time_window #in months
         #<JIRA Resolution: name=u'Obsolete', id=u'11'>
         self.JIRA_RESOLUTION_OBSOLETE = "Obsolete"
+        self.JIRA_RESOLUTION_FIXED = "Fixed"
         self.clean_obsolete = clean_obsolete
         self.template_path = 'vulnwhisp/reporting/resources/ticket.tpl'
     
@@ -109,6 +110,7 @@ class JiraAPI(object): #NamedLogger):
     
             self.create_ticket(title=vuln['title'], desc=tpl, project=project, components=components, tags=[vuln['source'], vuln['scan_name'], 'vulnerability'])
         
+        self.close_fixed_tickets(vulnerabilities)
         # we reinitialize so the next sync redoes the query with their specific variables
         self.all_tickets = []
         return True
@@ -187,11 +189,20 @@ class JiraAPI(object): #NamedLogger):
             print "[ERROR] Error while trying up update ticket {}".format(ticketid)
         return 0
 
-    def close_fixed_tickets(self):
-        #TODO
+    def close_fixed_tickets(self, vulnerabilities):
         # close tickets which vulnerabilities have been resolved and are still open
+        found_vulns = []
+        for vuln in vulnerabilities:
+            found_vulns.append(vuln['title'])
 
+        comment = '''This ticket is being closed as it appears that the vulnerability no longer exists.
+        If the vulnerability reappears, a new ticket will be opened.'''
 
+        for ticket in self.all_tickets:
+            if ticket.raw['fields']['summary'] in found_vulns:
+                continue
+            print "Ticket {} is no longer vulnerable".format(ticket)
+            self.close_ticket(ticket, self.JIRA_RESOLUTION_FIXED, comment) 
         return 0
 
 
@@ -217,6 +228,7 @@ class JiraAPI(object): #NamedLogger):
         if ticket_obj is not None:
             if ticket_obj.raw['fields'].get('resolution') is not None:
                 if ticket_obj.raw['fields'].get('resolution').get('name') != 'Unresolved':
+                    print "Checked ticket {} is already closed".format(ticket_obj)
                     #logger.info("ticket {} is closed".format(ticketid))
                     return True
         print "Checked ticket {} is already open".format(ticket_obj)
@@ -262,16 +274,14 @@ class JiraAPI(object): #NamedLogger):
                     return 0
         return 0
 
-    def close_ticket(self, ticketid):
+    def close_ticket(self, ticketid, resolution, comment):
         # this will close a ticket by ticketid
         print "Ticket {} exists, CLOSE requested".format(ticketid)
         ticket_obj = self.jira.issue(ticketid)
         if not self.is_ticket_resolved(ticket_obj):
             try:
                 if self.is_ticket_closeable(ticket_obj):
-                    comment = '''This ticket is being closed for hygiene, as it is more than 6 months old.
-                    If the vulnerability still exists, a new ticket will be opened.'''
-                    error = self.jira.transition_issue(issue=ticketid, transition=self.JIRA_CLOSE_ISSUE, comment = comment, resolution = {"name": self.JIRA_RESOLUTION_OBSOLETE })
+                    error = self.jira.transition_issue(issue=ticketid, transition=self.JIRA_CLOSE_ISSUE, comment = comment, resolution = {"name": resolution })
                     print "[SUCCESS] ticket {} closed successfully".format(ticketid)
                     #logger.info("ticket {} reopened successfully".format(ticketid))
                     return 1
@@ -288,8 +298,12 @@ class JiraAPI(object): #NamedLogger):
         print "Closing obsolete tickets older than {} months".format(self.max_time_tracking)
         jql = "labels=vulnerability_management AND created <startOfMonth(-{}) and resolution=Unresolved".format(self.max_time_tracking)
         tickets_to_close = self.jira.search_issues(jql, maxResults=0)
+        
+        comment = '''This ticket is being closed for hygiene, as it is more than 6 months old.
+        If the vulnerability still exists, a new ticket will be opened.'''
+        
         for ticket in tickets_to_close:
-                self.close_ticket(ticket)
+                self.close_ticket(ticket, self.JIRA_RESOLUTION_OBSOLETE, comment)
         
         return 0
 
