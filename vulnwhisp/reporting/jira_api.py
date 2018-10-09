@@ -100,6 +100,7 @@ class JiraAPI(object): #NamedLogger):
                 continue
             elif to_update:
                 self.ticket_update_assets(vuln, ticketid, ticket_assets)
+                continue
 
             try:
                 tpl = template(self.template_path, vuln)
