@@ -16,6 +16,7 @@ import os
 import io
 import time
 import sqlite3
+import json
 
 # TODO Create logging option which stores data about scan
 
@@ -796,7 +797,7 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
 
 class vulnWhispererQualysVuln(vulnWhispererBase):
 
-    CONFIG_SECTION = 'qualys'
+    CONFIG_SECTION = 'qualys_vuln'
     COLUMN_MAPPING = {'cvss_base': 'cvss',
                      'cvss3_base': 'cvss3',
                      'cve_id': 'cve',
@@ -972,7 +973,7 @@ class vulnWhispererJIRA(vulnWhispererBase):
 
         project = self.config.get(jira_section,'jira_project')
         if project == "":
-            self.vprint('{fail} JIRA project is missing on the configuration file!'.format(bcolors.FAIL))
+            self.vprint('{fail} JIRA project is missing on the configuration file!'.format(fail=bcolors.FAIL))
             sys.exit(0)
         
         # check that project actually exists
@@ -1040,12 +1041,66 @@ class vulnWhispererJIRA(vulnWhispererBase):
         
         return vulnerabilities
     
-    def parse_qualys_vm_vulnerabilites(self, fullpath, source, scan_name):
-        #TODO
+    def parse_qualys_vuln_vulnerabilities(self, fullpath, source, scan_name):
+        #parsing of the qualys vulnerabilities schema
         #parse json
-        return 0
+        vulnerabilities = []
+        minimum_criticality_reported = 4
 
-    def parse_vulnerabilities(self, fullpath):
+        risks = ['info', 'low', 'medium', 'high', 'critical'] 
+
+        data=[json.loads(line) for line in open(fullpath).readlines()] 
+       
+        #qualys fields we want - []
+        for index in range(len(data)):
+            if int(data[index]['risk']) < 4:
+                continue
+            
+            if not vulnerabilities or data[index]['plugin_name'] not in [entry['title'] for entry in vulnerabilities]:
+                vuln = {}
+                #vulnerabilities should have all the info for creating all JIRA labels
+                vuln['source'] = source
+                vuln['scan_name'] = scan_name
+                #vulnerability variables
+                vuln['title'] = data[index]['plugin_name']
+                vuln['diagnosis'] =  data[index]['threat'].replace('\\n',' ')
+                vuln['consequence'] = data[index]['impact'].replace('\\n',' ')
+                vuln['solution'] = data[index]['solution'].replace('\\n',' ')
+                vuln['ips'] = []
+                #TODO ADDED DNS RESOLUTION FROM QUALYS! \n SEPARATORS INSTEAD OF \\n!
+                
+                vuln['ips'].append("{ip} - {protocol}/{port} - {dns}".format(**self.get_asset_fields(data[index])))
+
+                #different risk system than Nessus!
+                vuln['risk'] = risks[int(data[index]['risk'])-1]
+                
+                # Nessus "nan" value gets automatically casted to float by python
+                if not (type(data[index]['vendor_reference']) is float or data[index]['vendor_reference'] == None):
+                    vuln['references'] = data[index]['vendor_reference'].split("\\n")
+                else:
+                    vuln['references'] = []
+                vulnerabilities.append(vuln)
+            else:
+                # grouping assets by vulnerability to open on single ticket, as each asset has its own nessus entry
+                for vuln in vulnerabilities:
+                    if vuln['title'] == data[index]['plugin_name']:
+                        vuln['ips'].append("{ip} - {protocol}/{port} - {dns}".format(**self.get_asset_fields(data[index])))
+
+        return vulnerabilities
+
+    def get_asset_fields(self, vuln):
+        values = {}
+        values['ip'] = vuln['ip']
+        values['protocol'] = vuln['protocol'] 
+        values['port'] = vuln['port'] 
+        values['dns'] = vuln['dns']
+        for key in values.keys():
+            if not values[key]:
+                values[key] = 'N/A'
+
+        return values
+
+    def parse_vulnerabilities(self, fullpath, source, scan_name):
         #TODO: SINGLE LOCAL SAVE FORMAT FOR ALL SCANNERS
         #JIRA standard vuln format - ['source', 'scan_name', 'title', 'diagnosis', 'consequence', 'solution', 'ips', 'references']
 
@@ -1056,7 +1111,6 @@ class vulnWhispererJIRA(vulnWhispererBase):
 
         project, components, fullpath = self.get_env_variables(source, scan_name)
 
-
         vulnerabilities = []
 
         #***Nessus parsing***
@@ -1064,15 +1118,19 @@ class vulnWhispererJIRA(vulnWhispererBase):
             vulnerabilities = self.parse_nessus_vulnerabilities(fullpath, source, scan_name)
 
         #***Qualys VM parsing***
-        if source == "qualys_vm":
-            vulnerabilities = self.parse_qualys_vm_vulnerabilities(fullpath, source, scan_name)
+        if source == "qualys_vuln":
+            vulnerabilities = self.parse_qualys_vuln_vulnerabilities(fullpath, source, scan_name)
         
         #***JIRA sync***
-        self.vprint('{info} {source} data has been successfuly parsed'.format(info=bcolors.INFO, source=source.upper()))
-        self.vprint('{info} Starting JIRA sync'.format(info=bcolors.INFO))
-        
-        self.jira.sync(vulnerabilities, project, components)
-        
+        if vulnerabilities:
+            self.vprint('{info} {source} data has been successfuly parsed'.format(info=bcolors.INFO, source=source.upper()))
+            self.vprint('{info} Starting JIRA sync'.format(info=bcolors.INFO))
+            
+            self.jira.sync(vulnerabilities, project, components)
+        else:
+            self.vprint("{fail} Vulnerabilities from {source} has not been parsed! Exiting...".format(fail=bcolors.FAIL, source=source))
+            sys.exit(0)
+
         return True
 
 
@@ -1127,8 +1185,9 @@ class vulnWhisperer(object):
             vw.process_vuln_scans()
         
         elif self.profile == 'jira':
+            #first we check config fields are created, otherwise we create them
+            vw = vulnWhispererJIRA(config=self.config)
             if not (self.source and self.scanname):
                 print('{error} - Source scanner and scan name needed!'.format(error=bcolors.FAIL))
                 return 0
-            vw = vulnWhispererJIRA(config=self.config)
             vw.jira_sync(self.source, self.scanname)
