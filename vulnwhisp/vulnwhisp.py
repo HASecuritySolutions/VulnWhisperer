@@ -983,6 +983,9 @@ class vulnWhispererJIRA(vulnWhispererBase):
          
         components = self.config.get(jira_section,'components').split(',')
         
+        #cleaning empty array from ''
+        if not components[0]:
+            components = []
         #datafile path
         filename = self.get_latest_results(source, scan_name)
         

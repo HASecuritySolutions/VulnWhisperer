@@ -49,7 +49,6 @@ class JiraAPI(object): #NamedLogger):
                 print "[ERROR] Error creating Ticket: component {} not found".format(component)
                 return 0
                     
-        print "components are ",components, components_ticket 
         new_issue = self.jira.create_issue(project=project,
                                            summary=title,
                                            description=desc,
