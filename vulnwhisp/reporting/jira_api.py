@@ -26,6 +26,7 @@ class JiraAPI(object): #NamedLogger):
         #<JIRA Resolution: name=u'Obsolete', id=u'11'>
         self.JIRA_RESOLUTION_OBSOLETE = "Obsolete"
         self.clean_obsolete = clean_obsolete
+        self.template_path = 'vulnwhisp/reporting/resources/ticket.tpl'
     
     def create_ticket(self, title, desc, project="IS", components=[], tags=[]):
         labels = ['vulnerability_management']
@@ -88,16 +89,20 @@ class JiraAPI(object): #NamedLogger):
                 vuln['scan_name'] = "_".join(vuln['scan_name'].split(" "))
             
             exists = False
+            to_update = False
             ticketid = ""
-            exists, ticketid = self.check_vuln_already_exists(vuln)
+            ticket_assets = []
+            exists, to_update, ticketid, ticket_assets = self.check_vuln_already_exists(vuln)
 
             if exists:
                 # If ticket "resolved" -> reopen, as vulnerability is still existent
                 self.reopen_ticket(ticketid)
                 continue
+            elif to_update:
+                self.ticket_update_assets(vuln, ticketid, ticket_assets)
 
             try:
-                tpl = template('vulnwhisp/reporting/resources/ticket.tpl', vuln)
+                tpl = template(self.template_path, vuln)
             except Exception as e:
                 print e
                 return 0
@@ -110,6 +115,7 @@ class JiraAPI(object): #NamedLogger):
 
     def check_vuln_already_exists(self, vuln):
         # we need to return if the vulnerability has already been reported and the ID of the ticket for further processing
+        #function returns array [duplicated(bool), update(bool), ticketid, ticket_assets]
         title = vuln['title']
         labels = [vuln['source'], vuln['scan_name'], 'vulnerability_management', 'vulnerability'] 
         #list(set()) to remove duplicates
@@ -122,7 +128,7 @@ class JiraAPI(object): #NamedLogger):
             jql = "{} AND NOT labels=advisory AND created >=startOfMonth(-{})".format(" AND ".join(["labels={}".format(label) for label in labels]), self.max_time_tracking)
             self.all_tickets = self.jira.search_issues(jql, maxResults=0)
         
-        #TODO WARNING: function IGNORES DUPLICATES, after finding a "duplicate" will just return it exists
+        #WARNING: function IGNORES DUPLICATES, after finding a "duplicate" will just return it exists
         #it wont iterate over the rest of tickets looking for other possible duplicates/similar issues
         print "Comparing Vulnerabilities to created tickets"
         for index in range(len(self.all_tickets)-1):
@@ -131,20 +137,12 @@ class JiraAPI(object): #NamedLogger):
                 difference = list(set(assets).symmetric_difference(checking_assets))
                 #to check intersection - set(assets) & set(checking_assets)
                 if difference: 
-                    print difference
-                    if difference in assets:
-                        #TODO check specific case of assets, update ticket
-                        print "new asset vulnerable, should be added to ticket. TickedID: {}".format(checking_ticketid)
-                        return True,checking_ticketid #this will automatically validate
-                    else:
-                        #TODO check specific case of assets, update ticket
-                        print "asset on ticket is no longer vulnerable. TickedID: {}".format(checking_ticketid)
-                        print assets, checking_assets
-                        return True,checking_ticketid #this will automatically validate
+                    print "Asset mismatch, ticket to update. TickedID: {}".format(checking_ticketid)
+                    return False, True, checking_ticketid, checking_assets #this will automatically validate
                 else:
                     print "Confirmed duplicated. TickedID: {}".format(checking_ticketid)
-                    return True,checking_ticketid #this will automatically validate
-        return False, ""
+                    return True, False, checking_ticketid, [] #this will automatically validate
+        return False, False, "", []
 
     def ticket_get_unique_fields(self, ticket):
         title = ticket.raw.get('fields', {}).get('summary').encode("ascii").strip()
@@ -154,8 +152,48 @@ class JiraAPI(object): #NamedLogger):
             assets = list(set(re.findall(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b", affected_assets_section)))
         except:
             print "[ERROR] Ticket IPs regex failed. Ticket ID: {}".format(ticketid)
+            assets = []
         
         return ticketid, title, assets
+
+    def ticket_update_assets(self, vuln, ticketid, ticket_assets):
+        # correct description will always be in the vulnerability to report, only needed to update description to new one
+        print "Ticket {} exists, UPDATE requested".format(ticketid)
+        
+        try:
+            tpl = template(self.template_path, vuln)
+        except Exception as e:
+            print e
+            return 0
+
+        ticket_obj = self.jira.issue(ticketid)
+        ticket_obj.update()
+        assets = list(set(re.findall(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b", ",".join(vuln['ips']))))
+        difference = list(set(assets).symmetric_difference(ticket_assets))
+        
+        comment = ''
+        #put a comment with the assets that have been added/removed
+        for asset in difference:
+            if asset in assets:
+                comment += "Asset {} have been added to the ticket as vulnerability *has been newly detected*.\n".format(asset)
+            elif asset in ticket_assets:
+                comment += "Asset {} have been removed from the ticket as vulnerability *has been resolved*.\n".format(asset)
+        
+        ticket_obj.fields.labels.append('updated')
+        try:
+            ticket_obj.update(description=tpl, comment=comment, fields={"labels":ticket_obj.fields.labels})
+            print "Ticket {} updated successfully".format(ticketid)
+        except:
+            print "[ERROR] Error while trying up update ticket {}".format(ticketid)
+        return 0
+
+    def close_fixed_tickets(self):
+        #TODO
+        # close tickets which vulnerabilities have been resolved and are still open
+
+
+        return 0
+
 
     def is_ticket_reopenable(self, ticket_obj):
         transitions = self.jira.transitions(ticket_obj)
@@ -200,7 +238,7 @@ class JiraAPI(object): #NamedLogger):
         return False
 
     def reopen_ticket(self, ticketid):
-        print "Ticket {} exists, reopen requested".format(ticketid)
+        print "Ticket {} exists, REOPEN requested".format(ticketid)
         # this will reopen a ticket by ticketid
         ticket_obj = self.jira.issue(ticketid)
         
@@ -226,6 +264,7 @@ class JiraAPI(object): #NamedLogger):
 
     def close_ticket(self, ticketid):
         # this will close a ticket by ticketid
+        print "Ticket {} exists, CLOSE requested".format(ticketid)
         ticket_obj = self.jira.issue(ticketid)
         if not self.is_ticket_resolved(ticket_obj):
             try:
