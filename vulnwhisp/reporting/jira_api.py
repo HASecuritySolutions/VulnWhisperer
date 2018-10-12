@@ -107,7 +107,6 @@ class JiraAPI(object): #NamedLogger):
             except Exception as e:
                 print e
                 return 0
-    
             self.create_ticket(title=vuln['title'], desc=tpl, project=project, components=components, tags=[vuln['source'], vuln['scan_name'], 'vulnerability'])
         
         self.close_fixed_tickets(vulnerabilities)
@@ -128,6 +127,7 @@ class JiraAPI(object): #NamedLogger):
             # we want to check all JIRA tickets, to include tickets moved to other queues
             # will exclude tickets older than 6 months, old tickets will get closed for higiene and recreated if still vulnerable
             jql = "{} AND NOT labels=advisory AND created >=startOfMonth(-{})".format(" AND ".join(["labels={}".format(label) for label in labels]), self.max_time_tracking)
+            
             self.all_tickets = self.jira.search_issues(jql, maxResults=0)
         
         #WARNING: function IGNORES DUPLICATES, after finding a "duplicate" will just return it exists
@@ -162,6 +162,8 @@ class JiraAPI(object): #NamedLogger):
         # correct description will always be in the vulnerability to report, only needed to update description to new one
         print "Ticket {} exists, UPDATE requested".format(ticketid)
         
+        if self.is_ticket_resolved(self.jira.issue(ticketid)):
+            self.reopen_ticket(ticketid)
         try:
             tpl = template(self.template_path, vuln)
         except Exception as e:
@@ -199,7 +201,8 @@ class JiraAPI(object): #NamedLogger):
         If the vulnerability reappears, a new ticket will be opened.'''
 
         for ticket in self.all_tickets:
-            if ticket.raw['fields']['summary'] in found_vulns:
+            if ticket.raw['fields']['summary'].strip() in found_vulns:
+                print "Ticket {} is still vulnerable".format(ticket)
                 continue
             print "Ticket {} is no longer vulnerable".format(ticket)
             self.close_ticket(ticket, self.JIRA_RESOLUTION_FIXED, comment) 

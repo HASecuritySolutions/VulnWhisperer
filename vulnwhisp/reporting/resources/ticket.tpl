@@ -25,7 +25,7 @@
 
 
 
-Please do not delete or modify the ticket assigned tags.
+Please do not delete or modify the ticket assigned tags or title, as they are used to be synced. If the ticket ceases to be recognised, a new ticket will raise.
 
 In the case of the team accepting the risk and wanting to close the ticket, please add the label "*risk_accepted*" to the ticket before closing it.
 
