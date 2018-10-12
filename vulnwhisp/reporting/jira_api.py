@@ -107,7 +107,7 @@ class JiraAPI(object): #NamedLogger):
             except Exception as e:
                 print e
                 return 0
-            self.create_ticket(title=vuln['title'], desc=tpl, project=project, components=components, tags=[vuln['source'], vuln['scan_name'], 'vulnerability'])
+            self.create_ticket(title=vuln['title'], desc=tpl, project=project, components=components, tags=[vuln['source'], vuln['scan_name'], 'vulnerability', vuln['risk']])
         
         self.close_fixed_tickets(vulnerabilities)
         # we reinitialize so the next sync redoes the query with their specific variables

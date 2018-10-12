@@ -1027,7 +1027,7 @@ class vulnWhispererJIRA(vulnWhispererBase):
                 vuln['solution'] = df.loc[index]['Solution'].replace('\\n',' ')
                 vuln['ips'] = []
                 vuln['ips'].append("{} - {}/{}".format(df.loc[index]['Host'], df.loc[index]['Protocol'], df.loc[index]['Port']))
-                vuln['risk'] = df.loc[index]['Risk']
+                vuln['risk'] = df.loc[index]['Risk'].lower()
                 
                 # Nessus "nan" value gets automatically casted to float by python
                 if not (type(df.loc[index]['See Also']) is float):
