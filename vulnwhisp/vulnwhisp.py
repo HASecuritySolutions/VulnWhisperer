@@ -7,6 +7,7 @@ from frameworks.nessus import NessusAPI
 from frameworks.qualys import qualysScanReport
 from frameworks.qualys_vuln import qualysVulnScan
 from frameworks.openvas import OpenVAS_API
+from reporting.jira_api import JiraAPI
 from utils.cli import bcolors
 import pandas as pd
 from lxml import objectify
@@ -15,6 +16,7 @@ import os
 import io
 import time
 import sqlite3
+import json
 
 # TODO Create logging option which stores data about scan
 
@@ -49,7 +51,10 @@ class vulnWhispererBase(object):
 
         if config is not None:
             self.config = vwConfig(config_in=config)
-            self.enabled = self.config.get(self.CONFIG_SECTION, 'enabled')
+            try:
+                self.enabled = self.config.get(self.CONFIG_SECTION, 'enabled')
+            except:
+                self.enabled = False
             self.hostname = self.config.get(self.CONFIG_SECTION, 'hostname')
             self.username = self.config.get(self.CONFIG_SECTION, 'username')
             self.password = self.config.get(self.CONFIG_SECTION, 'password')
@@ -173,7 +178,46 @@ class vulnWhispererBase(object):
             self.vprint('{info} Directory already exist for {scan} - Skipping creation'.format(
                 scan=self.write_path, info=bcolors.INFO))
 
+    def get_latest_results(self, source, scan_name):
+        try:
+            self.conn.text_factory = str
+            self.cur.execute('SELECT filename FROM scan_history WHERE source="{}" AND scan_name="{}" ORDER BY id DESC LIMIT 1;'.format(source, scan_name))
+            #should always return just one filename
+            results = [r[0] for r in self.cur.fetchall()][0]
+        except:
+            results = []
+        return results
 
+        return True
+
+        
+    def get_scan_profiles(self):
+        # Returns a list of source.scan_name elements from the database
+        
+        # we get the list of sources
+        try:
+            self.conn.text_factory = str
+            self.cur.execute('SELECT DISTINCT source FROM scan_history;')
+            sources = [r[0] for r in self.cur.fetchall()]
+        except:
+            sources = []
+            self.vprint("{fail} Process failed at executing 'SELECT DISTINCT source FROM scan_history;'".format(fail=bcolors.FAIL))
+        
+        results = []
+
+        # we get the list of scans within each source
+        for source in sources:
+            scan_names = []
+            try:
+                self.conn.text_factory = str
+                self.cur.execute("SELECT DISTINCT scan_name FROM scan_history WHERE source='{}';".format(source))
+                scan_names = [r[0] for r in self.cur.fetchall()]
+                for scan in scan_names:
+                    results.append('{}.{}'.format(source,scan))
+            except:
+                scan_names = []
+
+        return results
 
 class vulnWhispererNessus(vulnWhispererBase):
 
@@ -753,7 +797,7 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
 
 class vulnWhispererQualysVuln(vulnWhispererBase):
 
-    CONFIG_SECTION = 'qualys'
+    CONFIG_SECTION = 'qualys_vuln'
     COLUMN_MAPPING = {'cvss_base': 'cvss',
                      'cvss3_base': 'cvss3',
                      'cve_id': 'cve',
@@ -875,6 +919,224 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
         return 0
 
 
+class vulnWhispererJIRA(vulnWhispererBase):
+
+    CONFIG_SECTION = 'jira'
+
+    def __init__(
+            self,
+            config=None,
+            db_name='report_tracker.db',
+            purge=False,
+            verbose=None,
+            debug=False,
+            username=None,
+            password=None,
+        ):
+        super(vulnWhispererJIRA, self).__init__(config=config)
+        self.config_path = config
+        self.config = vwConfig(config)
+     
+                 
+        if config is not None:
+            try:
+                self.vprint('{info} Attempting to connect to jira...'.format(info=bcolors.INFO))
+                self.jira = \
+                    JiraAPI(hostname=self.hostname,
+                              username=self.username,
+                              password=self.password)
+                self.jira_connect = True
+                self.vprint('{success} Connected to jira on {host}'.format(success=bcolors.SUCCESS,
+                                                                                    host=self.hostname))
+            except Exception as e:
+                self.vprint(e)
+                raise Exception(
+                    '{fail} Could not connect to nessus -- Please verify your settings in {config} are correct and try again.\nReason: {e}'.format(
+                        config=self.config.config_in,
+                        fail=bcolors.FAIL, e=e))
+                sys.exit(1)
+   
+        profiles = []
+        profiles = self.get_scan_profiles()
+        
+        if not self.config.exists_jira_profiles(profiles):
+            self.config.update_jira_profiles(profiles)
+            self.vprint("{info} Jira profiles have been created in {config}, please fill the variables before rerunning the module.".format(info=bcolors.INFO ,config=self.config_path))
+            sys.exit(0)
+    
+   
+    def get_env_variables(self, source, scan_name):
+        # function returns an array with [jira_project, jira_components, datafile_path]
+
+        #Jira variables
+        jira_section = self.config.normalize_section("{}.{}".format(source,scan_name))
+
+        project = self.config.get(jira_section,'jira_project')
+        if project == "":
+            self.vprint('{fail} JIRA project is missing on the configuration file!'.format(fail=bcolors.FAIL))
+            sys.exit(0)
+        
+        # check that project actually exists
+        if not self.jira.project_exists(project):
+            self.vprint("{fail} JIRA project '{project}' doesn't exist!".format(fail=bcolors.FAIL, project=project))
+            sys.exit(0)
+         
+        components = self.config.get(jira_section,'components').split(',')
+        
+        #cleaning empty array from ''
+        if not components[0]:
+            components = []
+        #datafile path
+        filename = self.get_latest_results(source, scan_name)
+        
+        # search data files under user specified directory
+        for root, dirnames, filenames in os.walk(vwConfig(self.config_path).get(source,'write_path')):
+            if filename in filenames:
+                fullpath = "{}/{}".format(root,filename)
+        
+        if not fullpath:
+            self.vprint('{error} - Scan file path "{scan_name}" for source "{source}" has not been found.'.format(error=bcolors.FAIL, scan_name=scan_name, source=source))
+            return 0
+
+        return project, components, fullpath
+
+
+    def parse_nessus_vulnerabilities(self, fullpath, source, scan_name):
+        
+        vulnerabilities = []
+
+        # we need to parse the CSV
+        excluded_risks = ['None','Low']
+        df = pd.read_csv(fullpath, delimiter=',')
+        
+        #nessus fields we want - ['Host','Protocol','Port', 'Name', 'Synopsis', 'Description', 'Solution', 'See Also']
+        for index in range(len(df)):
+            # filtering vulnerabilities by criticality, discarding low risk
+            if df.loc[index]['Risk'] in excluded_risks:
+                continue
+            
+            if not vulnerabilities or df.loc[index]['Name'] not in [entry['title'] for entry in vulnerabilities]:
+                vuln = {}
+                #vulnerabilities should have all the info for creating all JIRA labels
+                vuln['source'] = source
+                vuln['scan_name'] = scan_name
+                #vulnerability variables
+                vuln['title'] = df.loc[index]['Name']
+                vuln['diagnosis'] =  df.loc[index]['Synopsis'].replace('\\n',' ')
+                vuln['consequence'] = df.loc[index]['Description'].replace('\\n',' ')
+                vuln['solution'] = df.loc[index]['Solution'].replace('\\n',' ')
+                vuln['ips'] = []
+                vuln['ips'].append("{} - {}/{}".format(df.loc[index]['Host'], df.loc[index]['Protocol'], df.loc[index]['Port']))
+                vuln['risk'] = df.loc[index]['Risk'].lower()
+                
+                # Nessus "nan" value gets automatically casted to float by python
+                if not (type(df.loc[index]['See Also']) is float):
+                    vuln['references'] = df.loc[index]['See Also'].split("\\n")
+                else:
+                    vuln['references'] = []
+                vulnerabilities.append(vuln)
+
+            else:
+                # grouping assets by vulnerability to open on single ticket, as each asset has its own nessus entry
+                for vuln in vulnerabilities:
+                    if vuln['title'] == df.loc[index]['Name']:
+                        vuln['ips'].append("{} - {}/{}".format(df.loc[index]['Host'], df.loc[index]['Protocol'], df.loc[index]['Port']))
+        
+        return vulnerabilities
+    
+    def parse_qualys_vuln_vulnerabilities(self, fullpath, source, scan_name):
+        #parsing of the qualys vulnerabilities schema
+        #parse json
+        vulnerabilities = []
+        minimum_criticality_reported = 4
+
+        risks = ['info', 'low', 'medium', 'high', 'critical'] 
+
+        data=[json.loads(line) for line in open(fullpath).readlines()] 
+       
+        #qualys fields we want - []
+        for index in range(len(data)):
+            if int(data[index]['risk']) < 4:
+                continue
+            
+            if not vulnerabilities or data[index]['plugin_name'] not in [entry['title'] for entry in vulnerabilities]:
+                vuln = {}
+                #vulnerabilities should have all the info for creating all JIRA labels
+                vuln['source'] = source
+                vuln['scan_name'] = scan_name
+                #vulnerability variables
+                vuln['title'] = data[index]['plugin_name']
+                vuln['diagnosis'] =  data[index]['threat'].replace('\\n',' ')
+                vuln['consequence'] = data[index]['impact'].replace('\\n',' ')
+                vuln['solution'] = data[index]['solution'].replace('\\n',' ')
+                vuln['ips'] = []
+                #TODO ADDED DNS RESOLUTION FROM QUALYS! \n SEPARATORS INSTEAD OF \\n!
+                
+                vuln['ips'].append("{ip} - {protocol}/{port} - {dns}".format(**self.get_asset_fields(data[index])))
+
+                #different risk system than Nessus!
+                vuln['risk'] = risks[int(data[index]['risk'])-1]
+                
+                # Nessus "nan" value gets automatically casted to float by python
+                if not (type(data[index]['vendor_reference']) is float or data[index]['vendor_reference'] == None):
+                    vuln['references'] = data[index]['vendor_reference'].split("\\n")
+                else:
+                    vuln['references'] = []
+                vulnerabilities.append(vuln)
+            else:
+                # grouping assets by vulnerability to open on single ticket, as each asset has its own nessus entry
+                for vuln in vulnerabilities:
+                    if vuln['title'] == data[index]['plugin_name']:
+                        vuln['ips'].append("{ip} - {protocol}/{port} - {dns}".format(**self.get_asset_fields(data[index])))
+
+        return vulnerabilities
+
+    def get_asset_fields(self, vuln):
+        values = {}
+        values['ip'] = vuln['ip']
+        values['protocol'] = vuln['protocol'] 
+        values['port'] = vuln['port'] 
+        values['dns'] = vuln['dns']
+        for key in values.keys():
+            if not values[key]:
+                values[key] = 'N/A'
+
+        return values
+
+    def parse_vulnerabilities(self, fullpath, source, scan_name):
+        #TODO: SINGLE LOCAL SAVE FORMAT FOR ALL SCANNERS
+        #JIRA standard vuln format - ['source', 'scan_name', 'title', 'diagnosis', 'consequence', 'solution', 'ips', 'references']
+
+        return 0
+
+
+    def jira_sync(self, source, scan_name):
+
+        project, components, fullpath = self.get_env_variables(source, scan_name)
+
+        vulnerabilities = []
+
+        #***Nessus parsing***
+        if source == "nessus":
+            vulnerabilities = self.parse_nessus_vulnerabilities(fullpath, source, scan_name)
+
+        #***Qualys VM parsing***
+        if source == "qualys_vuln":
+            vulnerabilities = self.parse_qualys_vuln_vulnerabilities(fullpath, source, scan_name)
+        
+        #***JIRA sync***
+        if vulnerabilities:
+            self.vprint('{info} {source} data has been successfuly parsed'.format(info=bcolors.INFO, source=source.upper()))
+            self.vprint('{info} Starting JIRA sync'.format(info=bcolors.INFO))
+            
+            self.jira.sync(vulnerabilities, project, components)
+        else:
+            self.vprint("{fail} Vulnerabilities from {source} has not been parsed! Exiting...".format(fail=bcolors.FAIL, source=source))
+            sys.exit(0)
+
+        return True
+
+
 class vulnWhisperer(object):
 
     def __init__(self,
@@ -882,13 +1144,17 @@ class vulnWhisperer(object):
                  verbose=None,
                  username=None,
                  password=None,
-                 config=None):
+                 config=None,
+                 source=None,
+                 scanname=None):
 
         self.profile = profile
         self.config = config
         self.username = username
         self.password = password
         self.verbose = verbose
+        self.source = source
+        self.scanname = scanname
 
 
     def whisper_vulnerabilities(self):
@@ -920,3 +1186,11 @@ class vulnWhisperer(object):
         elif self.profile == 'qualys_vuln':
             vw = vulnWhispererQualysVuln(config=self.config)
             vw.process_vuln_scans()
+        
+        elif self.profile == 'jira':
+            #first we check config fields are created, otherwise we create them
+            vw = vulnWhispererJIRA(config=self.config)
+            if not (self.source and self.scanname):
+                print('{error} - Source scanner and scan name needed!'.format(error=bcolors.FAIL))
+                return 0
+            vw.jira_sync(self.source, self.scanname)

@@ -25,7 +25,15 @@ Currently Supports
 - [ ] [Nexpose](https://www.rapid7.com/products/nexpose/)
 - [ ] [Insight VM](https://www.rapid7.com/products/insightvm/)
 - [ ] [NMAP](https://nmap.org/)
+- [ ] [Burp Suite](https://portswigger.net/burp)
+- [ ] [OWASP ZAP](https://www.zaproxy.org/)
 - [ ] More to come
+
+### Reporting Frameworks
+
+- [X] [ELK](https://www.elastic.co/elk-stack)
+- [X] [Jira](https://www.atlassian.com/software/jira)
+- [ ] [Splunk](https://www.splunk.com/)
 
 Getting Started
 ===============

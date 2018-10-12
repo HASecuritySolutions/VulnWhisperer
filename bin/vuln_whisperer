@@ -24,6 +24,10 @@ def main():
                         help='Path of config file', type=lambda x: isFileValid(parser, x.strip()))
     parser.add_argument('-s', '--section', dest='section', required=False,
                         help='Section in config')
+    parser.add_argument('--source', dest='source', required=False,
+                        help='JIRA required only! Source scanner to report')
+    parser.add_argument('-n', '--scanname', dest='scanname', required=False,
+                        help='JIRA required only! Scan name from scan to report')
     parser.add_argument('-v', '--verbose', dest='verbose', action='store_true', default=True,
                         help='Prints status out to screen (defaults to True)')
     parser.add_argument('-u', '--username', dest='username', required=False, default=None, type=lambda x: x.strip(), help='The NESSUS username')
@@ -46,7 +50,9 @@ def main():
                                profile=section,
                                verbose=args.verbose,
                                username=args.username,
-                               password=args.password)
+                               password=args.password,
+                               source=args.source,
+                               scanname=args.scanname)
 
             	vw.whisper_vulnerabilities()
 	    sys.exit(1)
@@ -56,7 +62,9 @@ def main():
                                profile=args.section,
                                verbose=args.verbose,
                                username=args.username,
-                               password=args.password)
+                               password=args.password,
+                               source=args.source,
+                               scanname=args.scanname)
 
             vw.whisper_vulnerabilities()
             sys.exit(1)
