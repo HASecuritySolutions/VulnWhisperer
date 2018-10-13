@@ -991,7 +991,7 @@ class vulnWhispererJIRA(vulnWhispererBase):
         if not min_critical:
             self.vprint('{error} - "min_critical_to_report" variable on config file is empty.'.format(error=bcolors.FAIL))
             sys.exit(0)
-
+            
         #datafile path
         filename = self.get_latest_results(source, scan_name)
         
@@ -1014,6 +1014,7 @@ class vulnWhispererJIRA(vulnWhispererBase):
         # we need to parse the CSV
         risks = ['none', 'low', 'medium', 'high', 'critical'] 
         min_risk = int([i for i,x in enumerate(risks) if x == min_critical][0])
+
         df = pd.read_csv(fullpath, delimiter=',')
         
         #nessus fields we want - ['Host','Protocol','Port', 'Name', 'Synopsis', 'Description', 'Solution', 'See Also']
