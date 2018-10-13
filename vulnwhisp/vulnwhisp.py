@@ -986,6 +986,12 @@ class vulnWhispererJIRA(vulnWhispererBase):
         #cleaning empty array from ''
         if not components[0]:
             components = []
+        
+        min_critical = self.config.get(jira_section,'min_critical_to_report')
+        if not min_critical:
+            self.vprint('{error} - "min_critical_to_report" variable on config file is empty.'.format(error=bcolors.FAIL))
+            sys.exit(0)
+            
         #datafile path
         filename = self.get_latest_results(source, scan_name)
         
@@ -998,21 +1004,24 @@ class vulnWhispererJIRA(vulnWhispererBase):
             self.vprint('{error} - Scan file path "{scan_name}" for source "{source}" has not been found.'.format(error=bcolors.FAIL, scan_name=scan_name, source=source))
             return 0
 
-        return project, components, fullpath
+        return project, components, fullpath, min_critical
 
 
-    def parse_nessus_vulnerabilities(self, fullpath, source, scan_name):
+    def parse_nessus_vulnerabilities(self, fullpath, source, scan_name, min_critical):
         
         vulnerabilities = []
 
         # we need to parse the CSV
-        excluded_risks = ['None','Low']
+        risks = ['none', 'low', 'medium', 'high', 'critical'] 
+        min_risk = int([i for i,x in enumerate(risks) if x == min_critical][0])
+
         df = pd.read_csv(fullpath, delimiter=',')
         
         #nessus fields we want - ['Host','Protocol','Port', 'Name', 'Synopsis', 'Description', 'Solution', 'See Also']
         for index in range(len(df)):
             # filtering vulnerabilities by criticality, discarding low risk
-            if df.loc[index]['Risk'] in excluded_risks:
+            to_report = int([i for i,x in enumerate(risks) if x == df.loc[index]['Risk'].lower()][0])
+            if to_report < min_risk:
                 continue
             
             if not vulnerabilities or df.loc[index]['Name'] not in [entry['title'] for entry in vulnerabilities]:
@@ -1044,19 +1053,19 @@ class vulnWhispererJIRA(vulnWhispererBase):
         
         return vulnerabilities
     
-    def parse_qualys_vuln_vulnerabilities(self, fullpath, source, scan_name):
+    def parse_qualys_vuln_vulnerabilities(self, fullpath, source, scan_name, min_critical):
         #parsing of the qualys vulnerabilities schema
         #parse json
         vulnerabilities = []
-        minimum_criticality_reported = 4
 
         risks = ['info', 'low', 'medium', 'high', 'critical'] 
+        min_risk = int([i for i,x in enumerate(risks) if x == min_critical][0])
 
         data=[json.loads(line) for line in open(fullpath).readlines()] 
        
         #qualys fields we want - []
         for index in range(len(data)):
-            if int(data[index]['risk']) < 4:
+            if int(data[index]['risk']) < min_risk:
                 continue
             
             if not vulnerabilities or data[index]['plugin_name'] not in [entry['title'] for entry in vulnerabilities]:
@@ -1103,7 +1112,7 @@ class vulnWhispererJIRA(vulnWhispererBase):
 
         return values
 
-    def parse_vulnerabilities(self, fullpath, source, scan_name):
+    def parse_vulnerabilities(self, fullpath, source, scan_name, min_critical):
         #TODO: SINGLE LOCAL SAVE FORMAT FOR ALL SCANNERS
         #JIRA standard vuln format - ['source', 'scan_name', 'title', 'diagnosis', 'consequence', 'solution', 'ips', 'references']
 
@@ -1112,17 +1121,17 @@ class vulnWhispererJIRA(vulnWhispererBase):
 
     def jira_sync(self, source, scan_name):
 
-        project, components, fullpath = self.get_env_variables(source, scan_name)
+        project, components, fullpath, min_critical = self.get_env_variables(source, scan_name)
 
         vulnerabilities = []
 
         #***Nessus parsing***
         if source == "nessus":
-            vulnerabilities = self.parse_nessus_vulnerabilities(fullpath, source, scan_name)
+            vulnerabilities = self.parse_nessus_vulnerabilities(fullpath, source, scan_name, min_critical)
 
         #***Qualys VM parsing***
         if source == "qualys_vuln":
-            vulnerabilities = self.parse_qualys_vuln_vulnerabilities(fullpath, source, scan_name)
+            vulnerabilities = self.parse_qualys_vuln_vulnerabilities(fullpath, source, scan_name, min_critical)
         
         #***JIRA sync***
         if vulnerabilities:
