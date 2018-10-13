@@ -988,7 +988,10 @@ class vulnWhispererJIRA(vulnWhispererBase):
             components = []
         
         min_critical = self.config.get(jira_section,'min_critical_to_report')
-        
+        if not min_critical:
+            self.vprint('{error} - "min_critical_to_report" variable on config file is empty.'.format(error=bcolors.FAIL))
+            sys.exit(0)
+
         #datafile path
         filename = self.get_latest_results(source, scan_name)
         
