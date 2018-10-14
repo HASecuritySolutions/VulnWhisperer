@@ -233,7 +233,10 @@ To launch docker-compose, do:
 ```shell
 docker-compose -f docker-compose.yml up
 ```
-
+Before you start the containers, make sure Elasticsearch is allowed to create many memory mapped area's. Otherwise starting Elasticsearch will fail:
+```shell
+sysctl -w vm.max_map_count=262144
+```
 
 Running Nightly
 ---------------
