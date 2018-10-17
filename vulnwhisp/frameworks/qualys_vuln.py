@@ -17,7 +17,7 @@ class qualysWhisperAPI(object):
     def __init__(self, config=None):
         self.config = config
         try:
-            self.qgc = qualysapi.connect(config)
+            self.qgc = qualysapi.connect(config, 'qualys_vuln')
             # Fail early if we can't make a request or auth is incorrect
             self.qgc.request('about.php')
             print('[SUCCESS] - Connected to Qualys at %s' % self.qgc.server)

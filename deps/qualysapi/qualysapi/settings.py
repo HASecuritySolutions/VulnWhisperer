@@ -17,5 +17,4 @@ else:
     default_filename = ".qcrc"
 
 defaults = {'hostname': 'qualysapi.qualys.com',
-            'max_retries': '3',
-            'template_id': '00000'}
+            'max_retries': '3'}

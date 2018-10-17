@@ -4,7 +4,7 @@ __author__ = 'Austin Taylor'
 
 from base.config import vwConfig
 from frameworks.nessus import NessusAPI
-from frameworks.qualys import qualysScanReport
+from frameworks.qualys_web import qualysScanReport
 from frameworks.qualys_vuln import qualysVulnScan
 from frameworks.openvas import OpenVAS_API
 from reporting.jira_api import JiraAPI
@@ -469,7 +469,7 @@ class vulnWhispererNessus(vulnWhispererBase):
 
 class vulnWhispererQualys(vulnWhispererBase):
 
-    CONFIG_SECTION = 'qualys'
+    CONFIG_SECTION = 'qualys_web'
     COLUMN_MAPPING = {'Access Path': 'access_path',
                      'Ajax Request': 'ajax_request',
                      'Ajax Request ID': 'ajax_request_id',
@@ -1176,7 +1176,7 @@ class vulnWhisperer(object):
                                      profile=self.profile)
             vw.whisper_nessus()
 
-        elif self.profile == 'qualys':
+        elif self.profile == 'qualys_web':
             vw = vulnWhispererQualys(config=self.config)
             vw.process_web_assets()
 
