@@ -816,7 +816,7 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
             username=None,
             password=None,
         ):
-
+        
         super(vulnWhispererQualysVuln, self).__init__(config=config)
 
         self.qualys_scan = qualysVulnScan(config=config)
@@ -1059,7 +1059,8 @@ class vulnWhispererJIRA(vulnWhispererBase):
         vulnerabilities = []
 
         risks = ['info', 'low', 'medium', 'high', 'critical'] 
-        min_risk = int([i for i,x in enumerate(risks) if x == min_critical][0])
+        # +1 as array is 0-4, but score is 1-5
+        min_risk = int([i for i,x in enumerate(risks) if x == min_critical][0])+1
 
         data=[json.loads(line) for line in open(fullpath).readlines()] 
        
