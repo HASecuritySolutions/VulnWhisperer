@@ -35,7 +35,7 @@ class qualysWhisperAPI(object):
     def __init__(self, config=None):
         self.config = config
         try:
-            self.qgc = qualysapi.connect(config)
+            self.qgc = qualysapi.connect(config, 'qualys_web')
             print('[SUCCESS] - Connected to Qualys at %s' % self.qgc.server)
         except Exception as e:
             print('[ERROR] Could not connect to Qualys - %s' % e)

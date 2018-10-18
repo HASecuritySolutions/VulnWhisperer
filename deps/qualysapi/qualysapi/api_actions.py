@@ -5,7 +5,7 @@ from qualysapi.api_objects import *
 
 
 class QGActions(object):
-    def getHost(host):
+    def getHost(self, host):
         call = '/api/2.0/fo/asset/host/'
         parameters = {'action': 'list', 'ips': host, 'details': 'All'}
         hostData = objectify.fromstring(self.request(call, parameters)).RESPONSE

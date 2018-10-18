@@ -14,12 +14,12 @@ __license__ = 'Apache License 2.0'
 logger = logging.getLogger(__name__)
 
 
-def connect(config_file=qcs.default_filename, remember_me=False, remember_me_always=False):
+def connect(config_file=qcs.default_filename, section='info', remember_me=False, remember_me_always=False):
     """ Return a QGAPIConnect object for v1 API pulling settings from config
     file.
     """
     # Retrieve login credentials.
-    conf = qcconf.QualysConnectConfig(filename=config_file, remember_me=remember_me, 
+    conf = qcconf.QualysConnectConfig(filename=config_file, section=section, remember_me=remember_me,
                                       remember_me_always=remember_me_always)
     connect = qcconn.QGConnector(conf.get_auth(),
                                  conf.get_hostname(),

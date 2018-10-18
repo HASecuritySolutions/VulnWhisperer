@@ -27,13 +27,13 @@ class AssetGroup(object):
         self.scanner_appliances = scanner_appliances
         self.title = str(title)
 
-    def addAsset(conn, ip):
+    def addAsset(self, conn, ip):
         call = '/api/2.0/fo/asset/group/'
         parameters = {'action': 'edit', 'id': self.id, 'add_ips': ip}
         conn.request(call, parameters)
         self.scanips.append(ip)
 
-    def setAssets(conn, ips):
+    def setAssets(self, conn, ips):
         call = '/api/2.0/fo/asset/group/'
         parameters = {'action': 'edit', 'id': self.id, 'set_ips': ips}
         conn.request(call, parameters)

@@ -21,7 +21,6 @@ logger = logging.getLogger(__name__)
 
 
 __author__ = "Parag Baxi <parag.baxi@gmail.com> & Colin Bell <colin.bell@uwaterloo.ca>"
-__updated_by__ = "Austin Taylor <vulnWhisperer@austintaylor.io>"
 __copyright__ = "Copyright 2011-2013, Parag Baxi & University of Waterloo"
 __license__ = "BSD-new"
 
@@ -31,10 +30,10 @@ class QualysConnectConfig:
     from an ini file.
     """
 
-    def __init__(self, filename=qcs.default_filename, remember_me=False, remember_me_always=False):
+    def __init__(self, filename=qcs.default_filename, section='info', remember_me=False, remember_me_always=False):
 
         self._cfgfile = None
-
+        self._section = section
         # Prioritize local directory filename.
         # Check for file existence.
         if os.path.exists(filename):
@@ -53,49 +52,35 @@ class QualysConnectConfig:
 
             # apply bitmask to current mode to check ONLY user access permissions.
             if (mode & (stat.S_IRWXG | stat.S_IRWXO)) != 0:
-                logging.warning('%s permissions allows more than user access.' % (filename,))
+                logger.warning('%s permissions allows more than user access.' % (filename,))
 
             self._cfgparse.read(self._cfgfile)
 
-        # if 'info' doesn't exist, create the section.
-        if not self._cfgparse.has_section('qualys'):
-            self._cfgparse.add_section('qualys')
+        # if 'info'/ specified section doesn't exist, create the section.
+        if not self._cfgparse.has_section(self._section):
+            self._cfgparse.add_section(self._section)
 
         # Use default hostname (if one isn't provided).
-        if not self._cfgparse.has_option('qualys', 'hostname'):
+        if not self._cfgparse.has_option(self._section, 'hostname'):
             if self._cfgparse.has_option('DEFAULT', 'hostname'):
                 hostname = self._cfgparse.get('DEFAULT', 'hostname')
-                self._cfgparse.set('qualys', 'hostname', hostname)
+                self._cfgparse.set(self._section, 'hostname', hostname)
             else:
                 raise Exception("No 'hostname' set. QualysConnect does not know who to connect to.")
 
         # Use default max_retries (if one isn't provided).
-        if not self._cfgparse.has_option('qualys', 'max_retries'):
+        if not self._cfgparse.has_option(self._section, 'max_retries'):
             self.max_retries = qcs.defaults['max_retries']
         else:
-            self.max_retries = self._cfgparse.get('qualys', 'max_retries')
+            self.max_retries = self._cfgparse.get(self._section, 'max_retries')
             try:
                 self.max_retries = int(self.max_retries)
             except Exception:
                 logger.error('Value max_retries must be an integer.')
                 print('Value max_retries must be an integer.')
                 exit(1)
-            self._cfgparse.set('qualys', 'max_retries', str(self.max_retries))
+            self._cfgparse.set(self._section, 'max_retries', str(self.max_retries))
         self.max_retries = int(self.max_retries)
-
-        #Get template ID... user will need to set this to pull back CSV reports
-        if not self._cfgparse.has_option('qualys', 'template_id'):
-            self.report_template_id = qcs.defaults['template_id']
-        else:
-            self.report_template_id = self._cfgparse.get('qualys', 'template_id')
-            try:
-                self.report_template_id = int(self.report_template_id)
-            except Exception:
-                logger.error('Report Template ID Must be set and be an integer')
-                print('Value template ID must be an integer.')
-                exit(1)
-            self._cfgparse.set('qualys', 'template_id', str(self.report_template_id))
-        self.report_template_id = int(self.report_template_id)
 
         # Proxy support
         proxy_config = proxy_url = proxy_protocol = proxy_port = proxy_username = proxy_password = None
@@ -168,18 +153,16 @@ class QualysConnectConfig:
             self.proxies = None
 
         # ask username (if one doesn't exist)
-        if not self._cfgparse.has_option('qualys', 'username'):
+        if not self._cfgparse.has_option(self._section, 'username'):
             username = input('QualysGuard Username: ')
-            self._cfgparse.set('qualys', 'username', username)
+            self._cfgparse.set(self._section, 'username', username)
 
         # ask password (if one doesn't exist)
-        if not self._cfgparse.has_option('qualys', 'password'):
+        if not self._cfgparse.has_option(self._section, 'password'):
             password = getpass.getpass('QualysGuard Password: ')
-            self._cfgparse.set('qualys', 'password', password)
+            self._cfgparse.set(self._section, 'password', password)
 
-
-
-        logging.debug(self._cfgparse.items('qualys'))
+        logger.debug(self._cfgparse.items(self._section))
 
         if remember_me or remember_me_always:
             # Let's create that config file for next time...
@@ -211,11 +194,8 @@ class QualysConnectConfig:
 
     def get_auth(self):
         ''' Returns username from the configfile. '''
-        return (self._cfgparse.get('qualys', 'username'), self._cfgparse.get('qualys', 'password'))
+        return (self._cfgparse.get(self._section, 'username'), self._cfgparse.get(self._section, 'password'))
 
     def get_hostname(self):
         ''' Returns hostname. '''
-        return self._cfgparse.get('qualys', 'hostname')
-
-    def get_template_id(self):
-        return self._cfgparse.get('qualys','template_id')
+        return self._cfgparse.get(self._section, 'hostname')
