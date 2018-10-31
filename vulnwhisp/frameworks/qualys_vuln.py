@@ -7,6 +7,7 @@ import pandas as pd
 import qualysapi
 import requests
 import sys
+import logging
 import os
 import dateutil.parser as dp
 
@@ -15,14 +16,16 @@ class qualysWhisperAPI(object):
     SCANS = 'api/2.0/fo/scan'
 
     def __init__(self, config=None):
+        self.logger = logging.getLogger('qualysWhisperAPI')
         self.config = config
         try:
             self.qgc = qualysapi.connect(config)
             # Fail early if we can't make a request or auth is incorrect
             self.qgc.request('about.php')
-            print('[SUCCESS] - Connected to Qualys at %s' % self.qgc.server)
+            self.logger.info('Connected to Qualys at {}'.format(self.qgc.server))
         except Exception as e:
-            print('[ERROR] Could not connect to Qualys - %s' % e)
+            self.logger.error('Could not connect to Qualys: {}'.format(str(e)))
+            # FIXME: exit(1) does not exist: either it's exit() or sys.exit(CODE)
             exit(1)
 
     def scan_xml_parser(self, xml):
@@ -66,10 +69,12 @@ class qualysWhisperAPI(object):
 
 class qualysUtils:
     def __init__(self):
-        pass
+        self.logger = logging.getLogger('qualysUtils')
 
     def iso_to_epoch(self, dt):
-        return dp.parse(dt).strftime('%s')
+        out = dp.parse(dt).strftime('%s')
+        self.logger.info('Converted {} to {}'.format(dt, out))
+        return out
 
 
 class qualysVulnScan:
@@ -82,6 +87,7 @@ class qualysVulnScan:
             delimiter=',',
             quotechar='"',
         ):
+        self.logger = logging.getLogger('qualysVulnScan')
         self.file_in = file_in
         self.file_stream = file_stream
         self.report = None
@@ -91,8 +97,7 @@ class qualysVulnScan:
             try:
                 self.qw = qualysWhisperAPI(config=config)
             except Exception as e:
-                print('Could not load config! Please check settings for %s' \
-                      % e)
+                self.logger.error('Could not load config! Please check settings. Error: {}'.format(str(e)))
 
         if file_stream:
             self.open_file = file_in.splitlines()
@@ -104,7 +109,7 @@ class qualysVulnScan:
     def process_data(self, scan_id=None):
         """Downloads a file from Qualys and normalizes it"""
         
-        print('[ACTION] - Downloading scan ID: %s' % scan_id)
+        self.logger.info('Downloading scan ID: {}'.format(scan_id))
         scan_report = self.qw.get_scan_details(scan_id=scan_id)
         keep_columns = ['category', 'cve_id', 'cvss3_base', 'cvss3_temporal', 'cvss_base', 'cvss_temporal', 'dns', 'exploitability', 'fqdn', 'impact', 'ip', 'ip_status', 'netbios', 'os', 'pci_vuln', 'port', 'protocol', 'qid', 'results', 'severity', 'solution', 'ssl', 'threat', 'title', 'type', 'vendor_reference']
         scan_report = scan_report.filter(keep_columns)
