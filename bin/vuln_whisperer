@@ -32,6 +32,7 @@ def main():
                         help='Prints status out to screen (defaults to True)')
     parser.add_argument('-u', '--username', dest='username', required=False, default=None, type=lambda x: x.strip(), help='The NESSUS username')
     parser.add_argument('-p', '--password', dest='password', required=False, default=None, type=lambda x: x.strip(), help='The NESSUS password')
+    parser.add_argument('-F', '--fancy', action='store_true', help='Enable colourful logging output')
     parser.add_argument('-d', '--debug', action='store_true', help='Enable debugging messages')
     args = parser.parse_args()
 
@@ -41,6 +42,9 @@ def main():
         level=logging.DEBUG if args.debug else logging.INFO
     )
     logger = logging.getLogger(name='main')
+    if args.fancy:
+        import coloredlogs
+        coloredlogs.install(level='DEBUG' if args.debug else 'INFO')
 
     try:
         if args.config and not args.section:
