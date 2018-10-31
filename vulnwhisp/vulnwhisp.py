@@ -691,7 +691,7 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
     def whisper_reports(self, output_format='json', launched_date=None, report_id=None, cleanup=True):
         report = None
         if report_id:
-            sefl.logger.info('Processing report ID: {}'.format(report_id))
+            self.logger.info('Processing report ID: {}'.format(report_id))
 
 
             scan_name = report_id.replace('-', '')
@@ -1136,7 +1136,7 @@ class vulnWhisperer(object):
                  scanname=None):
 
         self.logger = logging.getLogger('vulnWhisperer')
-        if debug:
+        if verbose:
             self.logger.setLevel(logging.DEBUG)
         self.profile = profile
         self.config = config

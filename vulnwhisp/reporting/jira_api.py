@@ -18,7 +18,7 @@ class JiraAPI(object):
         self.username = username
         self.password = password
         self.jira = JIRA(options={'server': hostname}, basic_auth=(self.username, self.password))
-        self.logger.info("Created vjira service for {}".format(server))
+        self.logger.info("Created vjira service for {}".format(hostname))
         self.all_tickets = []
         self.JIRA_REOPEN_ISSUE = "Reopen Issue"
         self.JIRA_CLOSE_ISSUE = "Close Issue"
@@ -42,7 +42,7 @@ class JiraAPI(object):
             exists = False
             for c in project_obj.components:
                 if component == c.name:
-                    self.logger.debug("resolved component name {} to id {}".format(component_name, c.id))
+                    self.logger.debug("resolved component name {} to id {}".format(c.name, c.id))
                     components_ticket.append({ "id": c.id })
                     exists=True
             if not exists:
@@ -153,7 +153,7 @@ class JiraAPI(object):
             affected_assets_section = ticket.raw.get('fields', {}).get('description').encode("ascii").split("{panel:title=Affected Assets}")[1].split("{panel}")[0]
             assets = list(set(re.findall(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b", affected_assets_section)))
         except:
-            sefl.logger.error("Ticket IPs regex failed. Ticket ID: {}".format(ticketid))
+            self.logger.error("Ticket IPs regex failed. Ticket ID: {}".format(ticketid))
             assets = []
         
         return ticketid, title, assets
@@ -232,7 +232,7 @@ class JiraAPI(object):
             if ticket_obj.raw['fields'].get('resolution') is not None:
                 if ticket_obj.raw['fields'].get('resolution').get('name') != 'Unresolved':
                     self.logger.debug("Checked ticket {} is already closed".format(ticket_obj))
-                    self.logger.info("ticket {} is closed".format(ticketid))
+                    self.logger.info("ticket {} is closed".format(ticket_obj.id))
                     return True
         self.logger.debug("Checked ticket {} is already open".format(ticket_obj))
         return False
@@ -281,7 +281,7 @@ class JiraAPI(object):
             try:
                 if self.is_ticket_closeable(ticket_obj):
                     error = self.jira.transition_issue(issue=ticketid, transition=self.JIRA_CLOSE_ISSUE, comment = comment, resolution = {"name": resolution })
-                    self,logger.info("ticket {} reopened successfully".format(ticketid))
+                    self.logger.info("ticket {} reopened successfully".format(ticketid))
                     return 1
             except Exception as e:
                 # continue with ticket data so that a new ticket is created in place of the "lost" one
