@@ -3,22 +3,22 @@ from datetime import datetime, timedelta
 
 from jira import JIRA
 import requests
+import logging
 from bottle import template
 import re
 
-class JiraAPI(object): #NamedLogger):
-    __logname__="vjira"
-    
-    #TODO implement logging
-
+class JiraAPI(object):
     def __init__(self, hostname=None, username=None, password=None, debug=False, clean_obsolete=True, max_time_window=6):
-        #self.setup_logger(debug=debug)
+        self.logger = logging.getLogger('JiraAPI')
+        if debug:
+            self.logger.setLevel(logging.DEBUG)
+
         if "https://" not in hostname:
             hostname = "https://{}".format(hostname)
         self.username = username
         self.password = password
         self.jira = JIRA(options={'server': hostname}, basic_auth=(self.username, self.password))
-        #self.logger.info("Created vjira service for {}".format(server))
+        self.logger.info("Created vjira service for {}".format(hostname))
         self.all_tickets = []
         self.JIRA_REOPEN_ISSUE = "Reopen Issue"
         self.JIRA_CLOSE_ISSUE = "Close Issue"
@@ -34,19 +34,19 @@ class JiraAPI(object): #NamedLogger):
         for tag in tags:
             labels.append(str(tag))
 
-        #self.logger.info("creating ticket for project {} title[20] {}".format(project, title[:20]))
-        #self.logger.info("project {} has a component requirement: {}".format(project, self.PROJECT_COMPONENT_TABLE[project]))
+        self.logger.info("creating ticket for project {} title[20] {}".format(project, title[:20]))
+        self.logger.info("project {} has a component requirement: {}".format(project, self.PROJECT_COMPONENT_TABLE[project]))
         project_obj = self.jira.project(project)
         components_ticket = []
         for component in components:
             exists = False
             for c in project_obj.components:
                 if component == c.name:
-                    #self.logger.debug("resolved component name {} to id {}".format(component_name, c.id)ra python)
+                    self.logger.debug("resolved component name {} to id {}".format(c.name, c.id))
                     components_ticket.append({ "id": c.id })
                     exists=True
             if not exists:
-                print "[ERROR] Error creating Ticket: component {} not found".format(component)
+                self.logger.error("Error creating Ticket: component {} not found".format(component))
                 return 0
                     
         new_issue = self.jira.create_issue(project=project,
@@ -56,7 +56,7 @@ class JiraAPI(object): #NamedLogger):
                                            labels=labels,
                                            components=components_ticket)
 
-        print "[SUCCESS] Ticket {} has been created".format(new_issue)
+        self.logger.info("Ticket {} has been created".format(new_issue))
         return new_issue
     
     #Basic JIRA Metrics
@@ -64,7 +64,7 @@ class JiraAPI(object): #NamedLogger):
         jql = "labels= vulnerability_management and resolution = Unresolved" 
         if project:
             jql += " and (project='{}')".format(project)
-        print jql
+        self.logger.debug('Executing: {}'.format(jql)) 
         return len(self.jira.search_issues(jql, maxResults=0))
 
     def metrics_closed_tickets(self, project=None):
@@ -75,7 +75,7 @@ class JiraAPI(object): #NamedLogger):
 
     def sync(self, vulnerabilities, project, components=[]):
         #JIRA structure of each vulnerability: [source, scan_name, title, diagnosis, consequence, solution, ips, risk, references]
-        print "JIRA Sync started"
+        self.logger.info("JIRA Sync started")
 
         # [HIGIENE] close tickets older than 6 months as obsolete
         # Higiene clean up affects to all tickets created by the module, filters by label 'vulnerability_management'
@@ -105,7 +105,7 @@ class JiraAPI(object): #NamedLogger):
             try:
                 tpl = template(self.template_path, vuln)
             except Exception as e:
-                print e
+                self.logger.error('Exception templating: {}'.format(str(e)))
                 return 0
             self.create_ticket(title=vuln['title'], desc=tpl, project=project, components=components, tags=[vuln['source'], vuln['scan_name'], 'vulnerability', vuln['risk']])
         
@@ -123,7 +123,7 @@ class JiraAPI(object): #NamedLogger):
         assets = list(set(re.findall(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b", ",".join(vuln['ips']))))
         
         if not self.all_tickets:
-            print "Retrieving all JIRA tickets with the following tags {}".format(labels)
+            self.logger.info("Retrieving all JIRA tickets with the following tags {}".format(labels))
             # we want to check all JIRA tickets, to include tickets moved to other queues
             # will exclude tickets older than 6 months, old tickets will get closed for higiene and recreated if still vulnerable
             jql = "{} AND NOT labels=advisory AND created >=startOfMonth(-{})".format(" AND ".join(["labels={}".format(label) for label in labels]), self.max_time_tracking)
@@ -132,17 +132,17 @@ class JiraAPI(object): #NamedLogger):
         
         #WARNING: function IGNORES DUPLICATES, after finding a "duplicate" will just return it exists
         #it wont iterate over the rest of tickets looking for other possible duplicates/similar issues
-        print "Comparing Vulnerabilities to created tickets"
+        self.logger.info("Comparing Vulnerabilities to created tickets")
         for index in range(len(self.all_tickets)-1):
             checking_ticketid, checking_title, checking_assets = self.ticket_get_unique_fields(self.all_tickets[index])
             if title == checking_title: 
                 difference = list(set(assets).symmetric_difference(checking_assets))
                 #to check intersection - set(assets) & set(checking_assets)
                 if difference: 
-                    print "Asset mismatch, ticket to update. TickedID: {}".format(checking_ticketid)
+                    self.logger.info("Asset mismatch, ticket to update. TickedID: {}".format(checking_ticketid))
                     return False, True, checking_ticketid, checking_assets #this will automatically validate
                 else:
-                    print "Confirmed duplicated. TickedID: {}".format(checking_ticketid)
+                    self.logger.info("Confirmed duplicated. TickedID: {}".format(checking_ticketid))
                     return True, False, checking_ticketid, [] #this will automatically validate
         return False, False, "", []
 
@@ -153,21 +153,21 @@ class JiraAPI(object): #NamedLogger):
             affected_assets_section = ticket.raw.get('fields', {}).get('description').encode("ascii").split("{panel:title=Affected Assets}")[1].split("{panel}")[0]
             assets = list(set(re.findall(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b", affected_assets_section)))
         except:
-            print "[ERROR] Ticket IPs regex failed. Ticket ID: {}".format(ticketid)
+            self.logger.error("Ticket IPs regex failed. Ticket ID: {}".format(ticketid))
             assets = []
         
         return ticketid, title, assets
 
     def ticket_update_assets(self, vuln, ticketid, ticket_assets):
         # correct description will always be in the vulnerability to report, only needed to update description to new one
-        print "Ticket {} exists, UPDATE requested".format(ticketid)
+        self.logger.info("Ticket {} exists, UPDATE requested".format(ticketid))
         
         if self.is_ticket_resolved(self.jira.issue(ticketid)):
             self.reopen_ticket(ticketid)
         try:
             tpl = template(self.template_path, vuln)
         except Exception as e:
-            print e
+            self.logger.error('Exception updating assets: {}'.format(str(e)))
             return 0
 
         ticket_obj = self.jira.issue(ticketid)
@@ -186,9 +186,9 @@ class JiraAPI(object): #NamedLogger):
         ticket_obj.fields.labels.append('updated')
         try:
             ticket_obj.update(description=tpl, comment=comment, fields={"labels":ticket_obj.fields.labels})
-            print "Ticket {} updated successfully".format(ticketid)
+            self.logger.info("Ticket {} updated successfully".format(ticketid))
         except:
-            print "[ERROR] Error while trying up update ticket {}".format(ticketid)
+            self.logger.error("Error while trying up update ticket {}".format(ticketid))
         return 0
 
     def close_fixed_tickets(self, vulnerabilities):
@@ -202,9 +202,9 @@ class JiraAPI(object): #NamedLogger):
 
         for ticket in self.all_tickets:
             if ticket.raw['fields']['summary'].strip() in found_vulns:
-                print "Ticket {} is still vulnerable".format(ticket)
+                self.logger.info("Ticket {} is still vulnerable".format(ticket))
                 continue
-            print "Ticket {} is no longer vulnerable".format(ticket)
+            self.logger.info("Ticket {} is no longer vulnerable".format(ticket))
             self.close_ticket(ticket, self.JIRA_RESOLUTION_FIXED, comment) 
         return 0
 
@@ -213,9 +213,9 @@ class JiraAPI(object): #NamedLogger):
         transitions = self.jira.transitions(ticket_obj)
         for transition in transitions:
             if transition.get('name') == self.JIRA_REOPEN_ISSUE:
-                #print "ticket is reopenable"
+                self.logger.debug("Ticket is reopenable")
                 return True
-        print "[ERROR] Ticket can't be opened. Check Jira transitions."
+        self.logger.warn("Ticket can't be opened. Check Jira transitions.")
         return False
 
     def is_ticket_closeable(self, ticket_obj):
@@ -223,7 +223,7 @@ class JiraAPI(object): #NamedLogger):
         for transition in transitions:
             if transition.get('name') == self.JIRA_CLOSE_ISSUE:
                 return True
-        print "[ERROR] Ticket can't closed. Check Jira transitions."
+        self.logger.warn("Ticket can't closed. Check Jira transitions.")
         return False
 
     def is_ticket_resolved(self, ticket_obj):
@@ -231,10 +231,10 @@ class JiraAPI(object): #NamedLogger):
         if ticket_obj is not None:
             if ticket_obj.raw['fields'].get('resolution') is not None:
                 if ticket_obj.raw['fields'].get('resolution').get('name') != 'Unresolved':
-                    print "Checked ticket {} is already closed".format(ticket_obj)
-                    #logger.info("ticket {} is closed".format(ticketid))
+                    self.logger.debug("Checked ticket {} is already closed".format(ticket_obj))
+                    self.logger.info("ticket {} is closed".format(ticket_obj.id))
                     return True
-        print "Checked ticket {} is already open".format(ticket_obj)
+        self.logger.debug("Checked ticket {} is already open".format(ticket_obj))
         return False
 
 
@@ -242,23 +242,21 @@ class JiraAPI(object): #NamedLogger):
         if ticket_obj is not None:
             if ticket_obj.raw['fields'].get('labels') is not None:
                 labels = ticket_obj.raw['fields'].get('labels')
-                print labels
                 if "risk_accepted" in labels:
-                    print "Ticket {} accepted risk, will be ignored".format(ticket_obj)
+                    self.logger.warn("Ticket {} accepted risk, will be ignored".format(ticket_obj))
                     return True
                 elif "server_decomission" in labels:
-                    print "Ticket {} server decomissioned, will be ignored".format(ticket_obj)
+                    self.logger.warn("Ticket {} server decomissioned, will be ignored".format(ticket_obj))
                     return True
-        print "Ticket {} risk has not been accepted".format(ticket_obj)
+        self.logger.info("Ticket {} risk has not been accepted".format(ticket_obj))
         return False
 
     def reopen_ticket(self, ticketid):
-        print "Ticket {} exists, REOPEN requested".format(ticketid)
+        self.logger.debug("Ticket {} exists, REOPEN requested".format(ticketid))
         # this will reopen a ticket by ticketid
         ticket_obj = self.jira.issue(ticketid)
         
         if self.is_ticket_resolved(ticket_obj):
-            #print "ticket is resolved"
             if not self.is_risk_accepted(ticket_obj):
                 try:
                     if self.is_ticket_reopenable(ticket_obj):
@@ -267,38 +265,34 @@ class JiraAPI(object): #NamedLogger):
                         If server has been decomissioned, please add the label "*server_decomission*" to the ticket before closing it.
                         If you have further doubts, please contact the Security Team.'''
                         error = self.jira.transition_issue(issue=ticketid, transition=self.JIRA_REOPEN_ISSUE, comment = comment)
-                        print "[SUCCESS] ticket {} reopened successfully".format(ticketid)
-                        #logger.info("ticket {} reopened successfully".format(ticketid))
+                        self.logger.info("ticket {} reopened successfully".format(ticketid))
                         return 1
                 except Exception as e:
                     # continue with ticket data so that a new ticket is created in place of the "lost" one
-                    print "[ERROR] error reopening ticket {}: {}".format(ticketid, e)
-                    #logger.error("error reopening ticket {}: {}".format(ticketid, e))
+                    self.logger.error("error reopening ticket {}: {}".format(ticketid, e))
                     return 0
         return 0
 
     def close_ticket(self, ticketid, resolution, comment):
         # this will close a ticket by ticketid
-        print "Ticket {} exists, CLOSE requested".format(ticketid)
+        self.logger.debug("Ticket {} exists, CLOSE requested".format(ticketid))
         ticket_obj = self.jira.issue(ticketid)
         if not self.is_ticket_resolved(ticket_obj):
             try:
                 if self.is_ticket_closeable(ticket_obj):
                     error = self.jira.transition_issue(issue=ticketid, transition=self.JIRA_CLOSE_ISSUE, comment = comment, resolution = {"name": resolution })
-                    print "[SUCCESS] ticket {} closed successfully".format(ticketid)
-                    #logger.info("ticket {} reopened successfully".format(ticketid))
+                    self.logger.info("ticket {} reopened successfully".format(ticketid))
                     return 1
             except Exception as e:
                 # continue with ticket data so that a new ticket is created in place of the "lost" one
-                print "[ERROR] error closing ticket {}: {}".format(ticketid, e)
-                #logger.error("error closing ticket {}: {}".format(ticketid, e))
+                self.logger.error("error closing ticket {}: {}".format(ticketid, e))
                 return 0
                 
         return 0
 
     def close_obsolete_tickets(self):
         # Close tickets older than 6 months, vulnerabilities not solved will get created a new ticket 
-        print "Closing obsolete tickets older than {} months".format(self.max_time_tracking)
+        self.logger.info("Closing obsolete tickets older than {} months".format(self.max_time_tracking))
         jql = "labels=vulnerability_management AND created <startOfMonth(-{}) and resolution=Unresolved".format(self.max_time_tracking)
         tickets_to_close = self.jira.search_issues(jql, maxResults=0)
         

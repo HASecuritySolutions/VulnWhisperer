@@ -4,11 +4,11 @@ __author__ = 'Austin Taylor'
 
 
 from vulnwhisp.vulnwhisp import vulnWhisperer
-from vulnwhisp.utils.cli import bcolors
 from vulnwhisp.base.config import vwConfig
 import os
 import argparse
 import sys
+import logging
 
 def isFileValid(parser, arg):
     if not os.path.exists(arg):
@@ -32,16 +32,28 @@ def main():
                         help='Prints status out to screen (defaults to True)')
     parser.add_argument('-u', '--username', dest='username', required=False, default=None, type=lambda x: x.strip(), help='The NESSUS username')
     parser.add_argument('-p', '--password', dest='password', required=False, default=None, type=lambda x: x.strip(), help='The NESSUS password')
+    parser.add_argument('-F', '--fancy', action='store_true', help='Enable colourful logging output')
+    parser.add_argument('-d', '--debug', action='store_true', help='Enable debugging messages')
     args = parser.parse_args()
+
+    # First setup logging
+    logging.basicConfig(
+        stream=sys.stdout,
+        level=logging.DEBUG if args.debug else logging.INFO
+    )
+    logger = logging.getLogger(name='main')
+    if args.fancy:
+        import coloredlogs
+        coloredlogs.install(level='DEBUG' if args.debug else 'INFO')
 
     try:
         if args.config and not args.section:
 	    
-            print('{yellow}WARNING: {warning}{endc}'.format(yellow=bcolors.WARNING,
-                                                      warning='No section was specified, vulnwhisperer will scrape enabled modules from config file. \
-						      \nPlease specify a section using -s. \
-                                                      \nExample vuln_whisperer -c config.ini -s nessus',
-                                                      endc=bcolors.ENDC))
+            # this remains a print since we are in the main binary
+            print('WARNING: {warning}'.format(warning='No section was specified, vulnwhisperer will scrape enabled modules from config file. \
+						    \nPlease specify a section using -s. \
+                                                    \nExample vuln_whisperer -c config.ini -s nessus'))
+            logger.info('No section was specified, vulnwhisperer will scrape enabled modules from the config file.')
 	    config = vwConfig(config_in=args.config)
 	    enabled_sections = config.get_enabled()
 		
@@ -55,9 +67,11 @@ def main():
                                scanname=args.scanname)
 
             	vw.whisper_vulnerabilities()
+            # TODO: fix this to NOT be exit 1 unless in error
 	    sys.exit(1)
 
         else:
+            logger.info('Running vulnwhisperer for section {}'.format(args.section))
             vw = vulnWhisperer(config=args.config,
                                profile=args.section,
                                verbose=args.verbose,
@@ -67,11 +81,15 @@ def main():
                                scanname=args.scanname)
 
             vw.whisper_vulnerabilities()
+            # TODO: fix this to NOT be exit 1 unless in error
             sys.exit(1)
 
     except Exception as e:
         if args.verbose:
-            print('{red} ERROR: {error}{endc}'.format(red=bcolors.FAIL, error=e, endc=bcolors.ENDC))
+            # this will remain a print since we are in the main binary
+            logger.error('{}'.format(str(e)))
+            print('ERROR: {error}'.format(error=e))
+        # TODO: fix this to NOT be exit 2 unless in error
         sys.exit(2)
 
 

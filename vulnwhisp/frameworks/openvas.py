@@ -4,11 +4,11 @@ __author__ = 'Austin Taylor'
 
 import datetime as dt
 import io
+import logging
 
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
-from ..utils.cli import bcolors
 
 
 class OpenVAS_API(object):
@@ -21,6 +21,9 @@ class OpenVAS_API(object):
                  password=None,
                  report_format_id=None,
                  verbose=True):
+        self.logger = logging.getLogger('OpenVAS_API')
+        if verbose:
+            self.logger.setLevel(logging.DEBUG)
         if username is None or password is None:
             raise Exception('ERROR: Missing username or password.')
 
@@ -48,10 +51,6 @@ class OpenVAS_API(object):
 
         self.openvas_reports = self.get_reports()
         self.report_formats = self.get_report_formats()
-
-    def vprint(self, msg):
-        if self.verbose:
-            print(msg)
 
     def login(self):
         resp = self.get_token()
@@ -90,9 +89,9 @@ class OpenVAS_API(object):
                 try:
                     self.login()
                     timeout += 1
-                    self.vprint('[INFO] Token refreshed')
+                    self.logger.info(' Token refreshed')
                 except Exception as e:
-                    self.vprint('[FAIL] Could not refresh token\nReason: %s' % e)
+                    self.logger.error('Could not refresh token\nReason: {}'.format(str(e)))
             else:
                 success = True
 
@@ -116,7 +115,7 @@ class OpenVAS_API(object):
             ('cmd', 'get_report_formats'),
             ('token', self.token)
         )
-        self.vprint('{info} Retrieving available report formats'.format(info=bcolors.INFO))
+        self.logger.info('Retrieving available report formats')
         data = self.request(url=self.OMP, method='GET', params=params)
 
         bs = BeautifulSoup(data.content, "lxml")
@@ -133,7 +132,7 @@ class OpenVAS_API(object):
         return format_mapping
 
     def get_reports(self, complete=True):
-        print('{info} Retreiving OpenVAS report data...'.format(info=bcolors.INFO))
+        self.logger.info('Retreiving OpenVAS report data...')
         params = (('cmd', 'get_reports'),
                   ('token', self.token),
                   ('max_results', 1),
@@ -184,7 +183,7 @@ class OpenVAS_API(object):
             ('report_format_id', '{report_format_id}'.format(report_format_id=self.report_formats['CSV Results'])),
             ('submit', 'Download'),
         )
-        print('Retrieving %s' % report_id)
+        self.logger.info('Retrieving {}'.format(report_id))
         req = self.request(self.OMP, params=params, method='GET')
         report_df = pd.read_csv(io.BytesIO(req.text.encode('utf-8')))
         report_df['report_ids'] = report_id

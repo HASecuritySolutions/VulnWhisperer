@@ -12,6 +12,7 @@ import requests
 import sys
 import os
 import csv
+import logging
 import dateutil.parser as dp
 
 
@@ -33,19 +34,20 @@ class qualysWhisperAPI(object):
     VERSION = '/qps/rest/portal/version'
 
     def __init__(self, config=None):
+        self.logger = logging.getLogger('qualysWhisperAPI')
         self.config = config
         try:
             self.qgc = qualysapi.connect(config)
-            print('[SUCCESS] - Connected to Qualys at %s' % self.qgc.server)
+            self.logger.info('Connected to Qualys at {}'.format(self.qgc.server))
         except Exception as e:
-            print('[ERROR] Could not connect to Qualys - %s' % e)
+            self.logger.error('Could not connect to Qualys: {}'.format(str(e)))
         self.headers = {
             "content-type": "text/xml"}
         self.config_parse = qcconf.QualysConnectConfig(config)
         try:
             self.template_id = self.config_parse.get_template_id()
         except:
-            print('ERROR - Could not retrieve template ID')
+            self.logger.error('Could not retrieve template ID')
 
     def request(self, path, method='get', data=None):
         methods = {'get': requests.get,
@@ -126,15 +128,15 @@ class qualysWhisperAPI(object):
         dataframes = []
         _records = []
         total = int(self.get_was_scan_count(status=status))
-        print('Retrieving information for %s scans' % total)
+        self.logger.info('Retrieving information for {} scans'.format(total))
         for i in range(0, total):
             if i % limit == 0:
                 if (total - i) < limit:
                     qualys_api_limit = total - i
-                print('Making a request with a limit of %s at offset %s' % (str(qualys_api_limit), str(i + 1)))
+                self.logger.info('Making a request with a limit of {} at offset {}'.format((str(qualys_api_limit), str(i + 1))))
                 scan_info = self.get_scan_info(limit=qualys_api_limit, offset=i + 1, status=status)
                 _records.append(scan_info)
-        print('Converting XML to DataFrame')
+        self.logger.debug('Converting XML to DataFrame')
         dataframes = [self.xml_parser(xml) for xml in _records]
 
         return pd.concat(dataframes, axis=0).reset_index().drop('index', axis=1)
@@ -235,10 +237,9 @@ class qualysWhisperAPI(object):
         mapper = {'scan': self.generate_scan_report_XML,
                   'webapp': self.generate_webapp_report_XML}
         try:
-            # print lxml.etree.tostring(mapper[kind](report_id), pretty_print=True)
             data = mapper[kind](report_id)
         except Exception as e:
-            print(e)
+            self.logger.error('Error creating report: {}'.format(str(e)))
 
         return self.qgc.request(self.REPORT_CREATE, data)
 
@@ -322,7 +323,7 @@ class qualysReportFields:
 
 class qualysUtils:
     def __init__(self):
-        pass
+        self.logger = logging.getLogger('qualysUtils')
 
     def grab_section(
             self,
@@ -398,6 +399,7 @@ class qualysWebAppReport:
             delimiter=',',
             quotechar='"',
     ):
+        self.logger = logging.getLogger('qualysWebAppReport')
         self.file_in = file_in
         self.file_stream = file_stream
         self.report = None
@@ -407,8 +409,7 @@ class qualysWebAppReport:
             try:
                 self.qw = qualysWhisperAPI(config=config)
             except Exception as e:
-                print('Could not load config! Please check settings for %s' \
-                      % e)
+                self.logger.error('Could not load config! Please check settings. Error: {}'.format(str(e)))
 
         if file_stream:
             self.open_file = file_in.splitlines()
@@ -517,7 +518,7 @@ class qualysWebAppReport:
                 merged_df[~merged_df.Title.str.contains('Links Crawled|External Links Discovered'
                                                         )]
         except Exception as e:
-            print(e)
+            self.logger.error('Error merging df: {}'.format(str(e)))
         return merged_df
 
     def download_file(self, file_id):
@@ -527,7 +528,7 @@ class qualysWebAppReport:
         for line in report.splitlines():
             file_out.write(line + '\n')
         file_out.close()
-        print('[ACTION] - File written to %s' % filename)
+        self.logger.info('File written to {}'.format(filename))
         return filename
 
     def remove_file(self, filename):
@@ -537,7 +538,7 @@ class qualysWebAppReport:
         """Downloads a file from qualys and normalizes it"""
 
         download_file = self.download_file(file_id)
-        print('[ACTION] - Downloading file ID: %s' % file_id)
+        self.logger.info('Downloading file ID: {}'.format(file_id))
         report_data = self.grab_sections(download_file)
         merged_data = self.data_normalizer(report_data)
         if scan:
@@ -562,35 +563,30 @@ class qualysWebAppReport:
                           + '_{last_updated}'.format(last_updated=updated_date) \
                           + '.csv'
             if os.path.isfile(report_name):
-                print('[ACTION] - File already exist! Skipping...')
+                self.logger.info('File already exists! Skipping...')
                 pass
             else:
-                print('[ACTION] - Generating report for %s' % report_id)
+                self.logger.info('Generating report for {}'.format(report_id))
                 status = self.qw.create_report(report_id)
                 root = objectify.fromstring(status)
                 if root.responseCode == 'SUCCESS':
-                    print('[INFO] - Successfully generated report for webapp: %s' \
-                          % report_id)
+                    self.logger.info('Successfully generated report for webapp: {}'.format(report_id))
                     generated_report_id = root.data.Report.id
-                    print ('[INFO] - New Report ID: %s' \
-                           % generated_report_id)
+                    self.logger.info('New Report ID: {}'.format(generated_report_id))
                     vuln_ready = self.process_data(generated_report_id)
 
                     vuln_ready.to_csv(report_name, index=False, header=True)  # add when timestamp occured
-                    print('[SUCCESS] - Report written to %s' \
-                          % report_name)
+                    self.logger.info('Report written to {}'.format(report_name))
                     if cleanup:
-                        print('[ACTION] - Removing report %s' \
-                              % generated_report_id)
+                        self.logger.info('Removing report {}'.format(generated_report_id))
                         cleaning_up = \
                             self.qw.delete_report(generated_report_id)
                         self.remove_file(str(generated_report_id) + '.csv')
-                        print('[ACTION] - Deleted report: %s' \
-                              % generated_report_id)
+                        self.logger.info('Deleted report: {}'.format(generated_report_id))
                 else:
-                    print('Could not process report ID: %s' % status)
+                    self.logger.error('Could not process report ID: {}'.format(status))
         except Exception as e:
-            print('[ERROR] - Could not process %s - %s' % (report_id, e))
+            self.logger.error('Could not process {}: {}'.format(report_id, e))
         return vuln_ready
 
 
@@ -633,6 +629,7 @@ class qualysScanReport:
             delimiter=',',
             quotechar='"',
     ):
+        self.logger = logging.getLogger('qualysScanReport')
         self.file_in = file_in
         self.file_stream = file_stream
         self.report = None
@@ -642,8 +639,7 @@ class qualysScanReport:
             try:
                 self.qw = qualysWhisperAPI(config=config)
             except Exception as e:
-                print('Could not load config! Please check settings for %s' \
-                      % e)
+                self.logger.error('Could not load config! Please check settings. Error: {}'.format(str(e)))
 
         if file_stream:
             self.open_file = file_in.splitlines()
@@ -746,7 +742,7 @@ class qualysScanReport:
                 merged_df[~merged_df.Title.str.contains('Links Crawled|External Links Discovered'
                                                         )]
         except Exception as e:
-            print(e)
+            self.logger.error('Error normalizing: {}'.format(str(e)))
         return merged_df
 
     def download_file(self, path='', file_id=None):
@@ -756,7 +752,7 @@ class qualysScanReport:
         for line in report.splitlines():
             file_out.write(line + '\n')
         file_out.close()
-        print('[ACTION] - File written to %s' % filename)
+        self.logger.info('File written to {}'.format(filename))
         return filename
 
     def remove_file(self, filename):
@@ -766,7 +762,7 @@ class qualysScanReport:
         """Downloads a file from qualys and normalizes it"""
 
         download_file = self.download_file(path=path, file_id=file_id)
-        print('[ACTION] - Downloading file ID: %s' % file_id)
+        self.logger.info('Downloading file ID: {}'.format(file_id))
         report_data = self.grab_sections(download_file)
         merged_data = self.data_normalizer(report_data)
         merged_data.sort_index(axis=1, inplace=True)
@@ -788,35 +784,29 @@ class qualysScanReport:
                           + '_{last_updated}'.format(last_updated=updated_date) \
                           + '.csv'
             if os.path.isfile(report_name):
-                print('[ACTION] - File already exist! Skipping...')
-                pass
+                self.logger.info('File already exist! Skipping...')
             else:
-                print('[ACTION] - Generating report for %s' % report_id)
+                self.logger.info('Generating report for {}'.format(report_id))
                 status = self.qw.create_report(report_id)
                 root = objectify.fromstring(status)
                 if root.responseCode == 'SUCCESS':
-                    print('[INFO] - Successfully generated report for webapp: %s' \
-                          % report_id)
+                    self.logger.info('Successfully generated report for webapp: {}'.format(report_id))
                     generated_report_id = root.data.Report.id
-                    print ('[INFO] - New Report ID: %s' \
-                           % generated_report_id)
+                    self.logger.info('New Report ID: {}'.format(generated_report_id))
                     vuln_ready = self.process_data(generated_report_id)
 
                     vuln_ready.to_csv(report_name, index=False, header=True)  # add when timestamp occured
-                    print('[SUCCESS] - Report written to %s' \
-                          % report_name)
+                    self.logger.info('Report written to {}'.format(report_name))
                     if cleanup:
-                        print('[ACTION] - Removing report %s from disk' \
-                              % generated_report_id)
+                        self.logger.info('Removing report {} from disk'.format(generated_report_id))
                         cleaning_up = \
                             self.qw.delete_report(generated_report_id)
                         self.remove_file(str(generated_report_id) + '.csv')
-                        print('[ACTION] - Deleted report from Qualys Database: %s' \
-                              % generated_report_id)
+                        self.logger.info('Deleted report from Qualys Database: {}'.format(generated_report_id))
                 else:
-                    print('Could not process report ID: %s' % status)
+                    self.logger.error('Could not process report ID: {}'.format(status))
         except Exception as e:
-            print('[ERROR] - Could not process %s - %s' % (report_id, e))
+            self.logger.error('Could not process {}: {}'.format(report_id, e))
         return vuln_ready
 
 

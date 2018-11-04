@@ -8,7 +8,6 @@ from frameworks.qualys import qualysScanReport
 from frameworks.qualys_vuln import qualysVulnScan
 from frameworks.openvas import OpenVAS_API
 from reporting.jira_api import JiraAPI
-from utils.cli import bcolors
 import pandas as pd
 from lxml import objectify
 import sys
@@ -17,9 +16,6 @@ import io
 import time
 import sqlite3
 import json
-
-# TODO Create logging option which stores data about scan
-
 import logging
 
 
@@ -39,7 +35,9 @@ class vulnWhispererBase(object):
             section=None,
             develop=False,
         ):
-
+        self.logger = logging.getLogger('vulnWhispererBase')
+        if debug:
+            self.logger.setLevel(logging.DEBUG)
 
         if self.CONFIG_SECTION is None:
                 raise Exception('Implementing class must define CONFIG_SECTION')
@@ -74,26 +72,23 @@ class vulnWhispererBase(object):
                                                  'database', db_name))
             if not os.path.exists(self.db_path):
                 os.makedirs(self.db_path)
-                self.vprint('{info} Creating directory {dir}'.format(info=bcolors.INFO, dir=self.db_path))
+                self.logger.info('Creating directory {dir}'.format(dir=self.db_path))
 
             if not os.path.exists(self.database):
                 with open(self.database, 'w'):
-                    self.vprint('{info} Creating file {dir}'.format(info=bcolors.INFO, dir=self.database))
-                    pass
+                    self.logging.info('Creating file {dir}'.format(dir=self.database))
 
             try:
                 self.conn = sqlite3.connect(self.database)
                 self.cur = self.conn.cursor()
-                self.vprint('{info} Connected to database at {loc}'.format(info=bcolors.INFO,
-                                                                           loc=self.database))
+                self.logger.info('Connected to database at {loc}'.format(loc=self.database))
             except Exception as e:
-                self.vprint(
-                    '{fail} Could not connect to database at {loc}\nReason: {e} - Please ensure the path exist'.format(
+                self.logger.error('Could not connect to database at {loc}\nReason: {e} - Please ensure the path exist'.format(
                         e=e,
-                        fail=bcolors.FAIL, loc=self.database))
+                        loc=self.database))
         else:
 
-            self.vprint('{fail} Please specify a database to connect to!'.format(fail=bcolors.FAIL))
+            self.logger.error('Please specify a database to connect to!')
             exit(1)
 
         self.table_columns = [
@@ -113,10 +108,6 @@ class vulnWhispererBase(object):
         self.processed = 0
         self.skipped = 0
         self.scan_list = []
-
-    def vprint(self, msg):
-        if self.verbose:
-            print(msg)
 
     def create_table(self):
         self.cur.execute(
@@ -171,12 +162,12 @@ class vulnWhispererBase(object):
     def directory_check(self):
         if not os.path.exists(self.write_path):
             os.makedirs(self.write_path)
-            self.vprint('{info} Directory created at {scan} - Skipping creation'.format(
-                scan=self.write_path, info=bcolors.INFO))
+            self.logger.info('Directory created at {scan} - Skipping creation'.format(
+                scan=self.write_path))
         else:
             os.path.exists(self.write_path)
-            self.vprint('{info} Directory already exist for {scan} - Skipping creation'.format(
-                scan=self.write_path, info=bcolors.INFO))
+            self.logger.info('Directory already exist for {scan} - Skipping creation'.format(
+                scan=self.write_path))
 
     def get_latest_results(self, source, scan_name):
         try:
@@ -201,7 +192,7 @@ class vulnWhispererBase(object):
             sources = [r[0] for r in self.cur.fetchall()]
         except:
             sources = []
-            self.vprint("{fail} Process failed at executing 'SELECT DISTINCT source FROM scan_history;'".format(fail=bcolors.FAIL))
+            self.logger.error("Process failed at executing 'SELECT DISTINCT source FROM scan_history;'")
         
         results = []
 
@@ -238,6 +229,9 @@ class vulnWhispererNessus(vulnWhispererBase):
 
         super(vulnWhispererNessus, self).__init__(config=config)
 
+        self.logger = logging.getLogger('vulnWhispererNessus')
+        if debug:
+            self.logger.setLevel(logging.DEBUG)
         self.port = int(self.config.get(self.CONFIG_SECTION, 'port'))
 
         self.develop = True
@@ -251,26 +245,23 @@ class vulnWhispererNessus(vulnWhispererBase):
                                                         'trash')
 
                 try:
-                    self.vprint('{info} Attempting to connect to nessus...'.format(info=bcolors.INFO))
+                    self.logger.info('Attempting to connect to nessus...')
                     self.nessus = \
                         NessusAPI(hostname=self.hostname,
                                   port=self.nessus_port,
                                   username=self.username,
                                   password=self.password)
                     self.nessus_connect = True
-                    self.vprint('{success} Connected to nessus on {host}:{port}'.format(success=bcolors.SUCCESS,
-                                                                                        host=self.hostname,
-                                                                                        port=str(self.nessus_port)))
+                    self.logger.info('Connected to nessus on {host}:{port}'.format(host=self.hostname,
+                                                                                   port=str(self.nessus_port)))
                 except Exception as e:
-                    self.vprint(e)
+                    self.logger.error('Exception: {}'.format(str(e)))
                     raise Exception(
-                        '{fail} Could not connect to nessus -- Please verify your settings in {config} are correct and try again.\nReason: {e}'.format(
+                        'Could not connect to nessus -- Please verify your settings in {config} are correct and try again.\nReason: {e}'.format(
                             config=self.config.config_in,
-                            fail=bcolors.FAIL, e=e))
+                            e=e))
             except Exception as e:
-
-                self.vprint('{fail} Could not properly load your config!\nReason: {e}'.format(fail=bcolors.FAIL,
-                                                                                              e=e))
+                self.logger.error('Could not properly load your config!\nReason: {e}'.format(e=e))
                 sys.exit(1)
 
 
@@ -283,7 +274,7 @@ class vulnWhispererNessus(vulnWhispererBase):
         :return:
         """
 
-        self.vprint('{info} Gathering all scan data... this may take a while...'.format(info=bcolors.INFO))
+        self.logger.info('Gathering all scan data... this may take a while...')
         scan_records = []
         for s in scans:
             if s:
@@ -310,7 +301,6 @@ class vulnWhispererNessus(vulnWhispererBase):
                         scan_records.append(record.copy())
                 except Exception as e:
                     # Generates error each time nonetype is encountered.
-                    # print(e)
 
                     pass
 
@@ -331,11 +321,10 @@ class vulnWhispererNessus(vulnWhispererBase):
                              == 'completed']
             else:
                 scan_list = all_scans
-            self.vprint('{info} Identified {new} scans to be processed'.format(info=bcolors.INFO,
-                                                                               new=len(scan_list)))
+            self.logger.info('Identified {new} scans to be processed'.format(new=len(scan_list)))
 
             if not scan_list:
-                self.vprint('{info} No new scans to process. Exiting...'.format(info=bcolors.INFO))
+                self.logger.warn('No new scans to process. Exiting...')
                 return 0
 
             # Create scan subfolders
@@ -348,9 +337,9 @@ class vulnWhispererNessus(vulnWhispererBase):
                         os.makedirs(self.path_check(f['name']))
                 else:
                     os.path.exists(self.path_check(f['name']))
-                    self.vprint('{info} Directory already exist for {scan} - Skipping creation'.format(
+                    self.logger.info('Directory already exist for {scan} - Skipping creation'.format(
                         scan=self.path_check(f['name'
-                                             ]), info=bcolors.INFO))
+                                             ])))
 
             # try download and save scans into each folder the belong to
 
@@ -406,9 +395,7 @@ class vulnWhispererNessus(vulnWhispererBase):
                                 1,
                             )
                             self.record_insert(record_meta)
-                            self.vprint(
-                                '{info} File {filename} already exist! Updating database'.format(info=bcolors.INFO,
-                                                                                                 filename=relative_path_name))
+                            self.logger.info('File {filename} already exist! Updating database'.format(filename=relative_path_name))
                     else:
                         file_req = \
                             self.nessus.download_scan(scan_id=scan_id, history=history_id,
@@ -417,9 +404,7 @@ class vulnWhispererNessus(vulnWhispererBase):
                             pd.read_csv(io.StringIO(file_req.decode('utf-8'
                                                                     )))
                         if len(clean_csv) > 2:
-                            self.vprint('Processing %s/%s for scan: %s'
-                                        % (scan_count, len(scan_list),
-                                           scan_name))
+                            self.logger.info('Processing {}/{} for scan: {}'.format(scan_count, len(scan_list), scan_name))
                             columns_to_cleanse = ['CVSS','CVE','Description','Synopsis','Solution','See Also','Plugin Output']
 
                             for col in columns_to_cleanse:
@@ -438,10 +423,8 @@ class vulnWhispererNessus(vulnWhispererBase):
                                 1,
                             )
                             self.record_insert(record_meta)
-                            self.vprint('{info} {filename} records written to {path} '.format(info=bcolors.INFO,
-                                                                                              filename=clean_csv.shape[
-                                                                                                  0],
-                                                                                              path=file_name))
+                            self.logger.info('{filename} records written to {path} '.format(filename=clean_csv.shape[0],
+                                                                                            path=file_name))
                         else:
                             record_meta = (
                                 scan_name,
@@ -455,16 +438,12 @@ class vulnWhispererNessus(vulnWhispererBase):
                                 1,
                             )
                             self.record_insert(record_meta)
-                            self.vprint(file_name
-                                        + ' has no host available... Updating database and skipping!'
-                                        )
+                            self.logger.warn('{} has no host available... Updating database and skipping!'.format(file_name))
             self.conn.close()
-            '{success} Scan aggregation complete! Connection to database closed.'.format(success=bcolors.SUCCESS)
+            self.logger.info('Scan aggregation complete! Connection to database closed.')
         else:
 
-            self.vprint('{fail} Failed to use scanner at {host}'.format(fail=bcolors.FAIL,
-                                                                        host=self.hostname + ':'
-                                                                             + self.nessus_port))
+            self.logger.error('Failed to use scanner at {host}:{port}'.format(host=self.hostname, port=self.nessus_port))
 
 
 class vulnWhispererQualys(vulnWhispererBase):
@@ -530,6 +509,10 @@ class vulnWhispererQualys(vulnWhispererBase):
         ):
 
         super(vulnWhispererQualys, self).__init__(config=config)
+        self.logger = logging.getLogger('vulnWhispererQualys')
+        if debug:
+            self.logger.setLevel(logging.DEBUG)
+        
 
         self.qualys_scan = qualysScanReport(config=config)
         self.latest_scans = self.qualys_scan.qw.get_all_scans()
@@ -573,18 +556,16 @@ class vulnWhispererQualys(vulnWhispererBase):
                     1,
                 )
                 self.record_insert(record_meta)
-                self.vprint('{info} File {filename} already exist! Updating database'.format(info=bcolors.INFO, filename=relative_path_name))
+                self.logger.info('File {filename} already exist! Updating database'.format(filename=relative_path_name))
 
             else:
-                print('{action} - Generating report for %s'.format(action=bcolors.ACTION) % report_id)
+                self.logger.info('Generating report for {}'.format(report_id))
                 status = self.qualys_scan.qw.create_report(report_id)
                 root = objectify.fromstring(status)
                 if root.responseCode == 'SUCCESS':
-                    print('{info} - Successfully generated report! ID: %s'.format(info=bcolors.INFO) \
-                          % report_id)
+                    self.logger.info('Successfully generated report! ID: {}'.format(report_id))
                     generated_report_id = root.data.Report.id
-                    print('{info} - New Report ID: %s'.format(info=bcolors.INFO) \
-                          % generated_report_id)
+                    self.logger.info('New Report ID: {}'.format(generated_report_id))
 
                     vuln_ready = self.qualys_scan.process_data(path=self.write_path, file_id=str(generated_report_id))
 
@@ -613,22 +594,19 @@ class vulnWhispererQualys(vulnWhispererBase):
                     elif output_format == 'csv':
                        vuln_ready.to_csv(relative_path_name, index=False, header=True)  # add when timestamp occured
 
-                    print('{success} - Report written to %s'.format(success=bcolors.SUCCESS) \
-                          % report_name)
+                    self.logger.info('Report written to {}'.format(report_name))
 
                     if cleanup:
-                        print('{action} - Removing report %s from Qualys Database'.format(action=bcolors.ACTION) \
-                              % generated_report_id)
+                        self.logger.info('Removing report {} from Qualys Database'.format(generated_report_id))
                         cleaning_up = \
                             self.qualys_scan.qw.delete_report(generated_report_id)
                         os.remove(self.path_check(str(generated_report_id) + '.csv'))
-                        print('{action} - Deleted report from local disk: %s'.format(action=bcolors.ACTION) \
-                              % self.path_check(str(generated_report_id)))
+                        self.logger.info('Deleted report from local disk: {}'.format(self.path_check(str(generated_report_id))))
                 else:
-                    print('{error} Could not process report ID: %s'.format(error=bcolors.FAIL) % status)
+                    self.logger.error('Could not process report ID: {}'.format(status))
 
         except Exception as e:
-            print('{error} - Could not process %s - %s'.format(error=bcolors.FAIL) % (report_id, e))
+            self.logger.error('Could not process {}: {}'.format(report_id, str(e)))
         return vuln_ready
 
 
@@ -637,8 +615,7 @@ class vulnWhispererQualys(vulnWhispererBase):
             self.scans_to_process = self.latest_scans[~self.latest_scans['id'].isin(self.uuids)]
         else:
             self.scans_to_process = self.latest_scans
-        self.vprint('{info} Identified {new} scans to be processed'.format(info=bcolors.INFO,
-                                                                           new=len(self.scans_to_process)))
+        self.logger.info('Identified {new} scans to be processed'.format(new=len(self.scans_to_process)))
 
 
     def process_web_assets(self):
@@ -648,13 +625,13 @@ class vulnWhispererQualys(vulnWhispererBase):
             for app in self.scans_to_process.iterrows():
                 counter += 1
                 r = app[1]
-                print('Processing %s/%s' % (counter, len(self.scans_to_process)))
+                self.logger.debug('Processing {}/{}'.format(counter, len(self.scans_to_process)))
                 self.whisper_reports(report_id=r['id'],
                                      launched_date=r['launchedDate'],
                                      scan_name=r['name'],
                                      scan_reference=r['reference'])
         else:
-            self.vprint('{info} No new scans to process. Exiting...'.format(info=bcolors.INFO))
+            self.logger.info('No new scans to process. Exiting...')
         self.conn.close()
         return 0
 
@@ -698,6 +675,9 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
             password=None,
     ):
         super(vulnWhispererOpenVAS, self).__init__(config=config)
+        self.logger = logging.getLogger('vulnWhispererOpenVAS')
+        if debug:
+            self.logger.setLevel(logging.DEBUG)
 
         self.port = int(self.config.get(self.CONFIG_SECTION, 'port'))
         self.develop = True
@@ -711,7 +691,7 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
     def whisper_reports(self, output_format='json', launched_date=None, report_id=None, cleanup=True):
         report = None
         if report_id:
-            print('Processing report ID: %s' % report_id)
+            self.logger.info('Processing report ID: {}'.format(report_id))
 
 
             scan_name = report_id.replace('-', '')
@@ -720,7 +700,6 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
                                                                                        extension=output_format)
             relative_path_name = self.path_check(report_name)
             scan_reference = report_id
-            print relative_path_name
 
             if os.path.isfile(relative_path_name):
                 # TODO Possibly make this optional to sync directories
@@ -737,8 +716,7 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
                     1,
                 )
                 self.record_insert(record_meta)
-                self.vprint('{info} File {filename} already exist! Updating database'.format(info=bcolors.INFO,
-                                                                                             filename=relative_path_name))
+                self.logger.info('File {filename} already exist! Updating database'.format(filename=relative_path_name))
 
                 record_meta = (
                     scan_name,
@@ -763,8 +741,7 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
                     with open(relative_path_name, 'w') as f:
                         f.write(vuln_ready.to_json(orient='records', lines=True))
                         f.write('\n')
-                print('{success} - Report written to %s'.format(success=bcolors.SUCCESS) \
-                      % report_name)
+                self.logger.info('Report written to {}'.format(report_name))
 
         return report
 
@@ -774,8 +751,7 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
                 ~self.openvas_api.openvas_reports.report_ids.isin(self.uuids)]
         else:
             self.scans_to_process = self.openvas_api.openvas_reports
-        self.vprint('{info} Identified {new} scans to be processed'.format(info=bcolors.INFO,
-                                                                           new=len(self.scans_to_process)))
+        self.logger.info('Identified {new} scans to be processed'.format(new=len(self.scans_to_process)))
 
     def process_openvas_scans(self):
         counter = 0
@@ -784,13 +760,12 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
             for scan in self.scans_to_process.iterrows():
                 counter += 1
                 info = scan[1]
-                print(
-                '[INFO] Processing %s/%s - Report ID: %s' % (counter, len(self.scans_to_process), info['report_ids']))
+                self.logger.info('Processing {}/{} - Report ID: {}'.format(counter, len(self.scans_to_process), info['report_ids']))
                 self.whisper_reports(report_id=info['report_ids'],
                                      launched_date=info['epoch'])
-            self.vprint('{info} Processing complete!'.format(info=bcolors.INFO))
+            self.logger.info('Processing complete')
         else:
-            self.vprint('{info} No new scans to process. Exiting...'.format(info=bcolors.INFO))
+            self.logger.info('No new scans to process. Exiting...')
         self.conn.close()
         return 0
 
@@ -818,6 +793,9 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
         ):
         
         super(vulnWhispererQualysVuln, self).__init__(config=config)
+        self.logger = logging.getLogger('vulnWhispererQualysVuln')
+        if debug:
+            self.logger.setLevel(logging.DEBUG)
 
         self.qualys_scan = qualysVulnScan(config=config)
         self.directory_check()
@@ -855,10 +833,10 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
                     1,
                 )
                 self.record_insert(record_meta)
-                self.vprint('{info} File {filename} already exist! Updating database'.format(info=bcolors.INFO, filename=relative_path_name))
+                self.logger.info('File {filename} already exist! Updating database'.format(filename=relative_path_name))
 
             else:
-                print('Processing report ID: %s' % report_id)
+                self.logger.info('Processing report ID: {}'.format(report_id))
                 vuln_ready = self.qualys_scan.process_data(scan_id=report_id)
                 vuln_ready['scan_name'] = scan_name
                 vuln_ready['scan_reference'] = report_id
@@ -882,11 +860,10 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
                         f.write(vuln_ready.to_json(orient='records', lines=True))
                         f.write('\n')
 
-                print('{success} - Report written to %s'.format(success=bcolors.SUCCESS) \
-                      % report_name)
+                self.logger.info('Report written to {}'.format(report_name))
 
         except Exception as e:
-            print('{error} - Could not process %s - %s'.format(error=bcolors.FAIL) % (report_id, e))
+            self.logger.error('Could not process {}: {}'.format(report_id, str(e)))
 
 
     def identify_scans_to_process(self):
@@ -897,8 +874,7 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
                 & (self.latest_scans['status'] == 'Finished')]
         else:
             self.scans_to_process = self.latest_scans
-        self.vprint('{info} Identified {new} scans to be processed'.format(info=bcolors.INFO,
-                                                                           new=len(self.scans_to_process)))
+        self.logger.info('Identified {new} scans to be processed'.format(new=len(self.scans_to_process)))
 
 
     def process_vuln_scans(self):
@@ -908,13 +884,13 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
             for app in self.scans_to_process.iterrows():
                 counter += 1
                 r = app[1]
-                print('Processing %s/%s' % (counter, len(self.scans_to_process)))
+                self.logger.debug('Processing {}/{}'.format(counter, len(self.scans_to_process)))
                 self.whisper_reports(report_id=r['id'],
                                      launched_date=r['date'],
                                      scan_name=r['name'],
                                      scan_reference=r['type'])
         else:
-            self.vprint('{info} No new scans to process. Exiting...'.format(info=bcolors.INFO))
+            self.logger.info('No new scans to process. Exiting...')
         self.conn.close()
         return 0
 
@@ -934,26 +910,27 @@ class vulnWhispererJIRA(vulnWhispererBase):
             password=None,
         ):
         super(vulnWhispererJIRA, self).__init__(config=config)
+        self.logger = logging.getLogger('vulnWhispererJira')
+        if debug:
+            self.logger.setLevel(logging.DEBUG)
         self.config_path = config
         self.config = vwConfig(config)
      
                  
         if config is not None:
             try:
-                self.vprint('{info} Attempting to connect to jira...'.format(info=bcolors.INFO))
+                self.logger.info('Attempting to connect to jira...')
                 self.jira = \
                     JiraAPI(hostname=self.hostname,
                               username=self.username,
                               password=self.password)
                 self.jira_connect = True
-                self.vprint('{success} Connected to jira on {host}'.format(success=bcolors.SUCCESS,
-                                                                                    host=self.hostname))
+                self.logger.info('Connected to jira on {host}'.format(host=self.hostname))
             except Exception as e:
-                self.vprint(e)
+                self.logger.error('Exception: {}'.format(str(e)))
                 raise Exception(
-                    '{fail} Could not connect to nessus -- Please verify your settings in {config} are correct and try again.\nReason: {e}'.format(
-                        config=self.config.config_in,
-                        fail=bcolors.FAIL, e=e))
+                    'Could not connect to nessus -- Please verify your settings in {config} are correct and try again.\nReason: {e}'.format(
+                        config=self.config.config_in, e=e))
                 sys.exit(1)
    
         profiles = []
@@ -961,7 +938,7 @@ class vulnWhispererJIRA(vulnWhispererBase):
         
         if not self.config.exists_jira_profiles(profiles):
             self.config.update_jira_profiles(profiles)
-            self.vprint("{info} Jira profiles have been created in {config}, please fill the variables before rerunning the module.".format(info=bcolors.INFO ,config=self.config_path))
+            self.logger.info("Jira profiles have been created in {config}, please fill the variables before rerunning the module.".format(config=self.config_path))
             sys.exit(0)
     
    
@@ -973,12 +950,12 @@ class vulnWhispererJIRA(vulnWhispererBase):
 
         project = self.config.get(jira_section,'jira_project')
         if project == "":
-            self.vprint('{fail} JIRA project is missing on the configuration file!'.format(fail=bcolors.FAIL))
+            self.logger.error('JIRA project is missing on the configuration file!')
             sys.exit(0)
         
         # check that project actually exists
         if not self.jira.project_exists(project):
-            self.vprint("{fail} JIRA project '{project}' doesn't exist!".format(fail=bcolors.FAIL, project=project))
+            self.logger.error("JIRA project '{project}' doesn't exist!".format(project=project))
             sys.exit(0)
          
         components = self.config.get(jira_section,'components').split(',')
@@ -989,7 +966,7 @@ class vulnWhispererJIRA(vulnWhispererBase):
         
         min_critical = self.config.get(jira_section,'min_critical_to_report')
         if not min_critical:
-            self.vprint('{error} - "min_critical_to_report" variable on config file is empty.'.format(error=bcolors.FAIL))
+            self.logger.error('"min_critical_to_report" variable on config file is empty.')
             sys.exit(0)
             
         #datafile path
@@ -1001,7 +978,7 @@ class vulnWhispererJIRA(vulnWhispererBase):
                 fullpath = "{}/{}".format(root,filename)
         
         if not fullpath:
-            self.vprint('{error} - Scan file path "{scan_name}" for source "{source}" has not been found.'.format(error=bcolors.FAIL, scan_name=scan_name, source=source))
+            self.logger.error('Scan file path "{scan_name}" for source "{source}" has not been found.'.format(scan_name=scan_name, source=source))
             return 0
 
         return project, components, fullpath, min_critical
@@ -1136,12 +1113,12 @@ class vulnWhispererJIRA(vulnWhispererBase):
         
         #***JIRA sync***
         if vulnerabilities:
-            self.vprint('{info} {source} data has been successfuly parsed'.format(info=bcolors.INFO, source=source.upper()))
-            self.vprint('{info} Starting JIRA sync'.format(info=bcolors.INFO))
+            self.logger.info('{source} data has been successfuly parsed'.format(source=source.upper()))
+            self.logger.info('Starting JIRA sync')
             
             self.jira.sync(vulnerabilities, project, components)
         else:
-            self.vprint("{fail} Vulnerabilities from {source} has not been parsed! Exiting...".format(fail=bcolors.FAIL, source=source))
+            self.logger.info("Vulnerabilities from {source} has not been parsed! Exiting...".format(source=source))
             sys.exit(0)
 
         return True
@@ -1158,6 +1135,9 @@ class vulnWhisperer(object):
                  source=None,
                  scanname=None):
 
+        self.logger = logging.getLogger('vulnWhisperer')
+        if verbose:
+            self.logger.setLevel(logging.DEBUG)
         self.profile = profile
         self.config = config
         self.username = username
@@ -1201,6 +1181,6 @@ class vulnWhisperer(object):
             #first we check config fields are created, otherwise we create them
             vw = vulnWhispererJIRA(config=self.config)
             if not (self.source and self.scanname):
-                print('{error} - Source scanner and scan name needed!'.format(error=bcolors.FAIL))
+                self.logger.error('Source scanner and scan name needed!')
                 return 0
             vw.jira_sync(self.source, self.scanname)
