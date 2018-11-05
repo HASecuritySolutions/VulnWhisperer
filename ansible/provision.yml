@@ -1,0 +1,4 @@
+- hosts: ec2
+  become: true
+  roles:
+    - vulnwhisperer
