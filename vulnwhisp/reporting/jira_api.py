@@ -97,9 +97,11 @@ class JiraAPI(object):
             if exists:
                 # If ticket "resolved" -> reopen, as vulnerability is still existent
                 self.reopen_ticket(ticketid)
+                self.add_label(ticketid, vuln['risk'])
                 continue
             elif to_update:
                 self.ticket_update_assets(vuln, ticketid, ticket_assets)
+                self.add_label(ticketid, vuln['risk'])
                 continue
 
             try:
@@ -182,13 +184,26 @@ class JiraAPI(object):
                 comment += "Asset {} have been added to the ticket as vulnerability *has been newly detected*.\n".format(asset)
             elif asset in ticket_assets:
                 comment += "Asset {} have been removed from the ticket as vulnerability *has been resolved*.\n".format(asset)
-        
-        ticket_obj.fields.labels.append('updated')
+       
         try:
             ticket_obj.update(description=tpl, comment=comment, fields={"labels":ticket_obj.fields.labels})
             self.logger.info("Ticket {} updated successfully".format(ticketid))
+            self.add_label(ticketid, 'updated')
         except:
             self.logger.error("Error while trying up update ticket {}".format(ticketid))
+        return 0
+
+    def add_label(self, ticketid, label):
+        ticket_obj = self.jira.issue(ticketid)
+        
+        if label not in ticket_obj.fields.labels:
+                ticket_obj.fields.labels.append(label)
+        
+        try:
+            ticket_obj.update(fields={"labels":ticket_obj.fields.labels})
+            self.logger.info("Added label {label} to ticket {ticket}".format(label=label, ticket=ticketid))
+        except:
+            self.logger.error("Error while trying to add label {label} to ticket {ticket}".format(label=label, ticket=ticketid))
         return 0
 
     def close_fixed_tickets(self, vulnerabilities):
@@ -266,6 +281,7 @@ class JiraAPI(object):
                         If you have further doubts, please contact the Security Team.'''
                         error = self.jira.transition_issue(issue=ticketid, transition=self.JIRA_REOPEN_ISSUE, comment = comment)
                         self.logger.info("Ticket {} reopened successfully".format(ticketid))
+                        self.add_label(ticketid, 'reopened')
                         return 1
                 except Exception as e:
                     # continue with ticket data so that a new ticket is created in place of the "lost" one
@@ -282,6 +298,7 @@ class JiraAPI(object):
                 if self.is_ticket_closeable(ticket_obj):
                     error = self.jira.transition_issue(issue=ticketid, transition=self.JIRA_CLOSE_ISSUE, comment = comment, resolution = {"name": resolution })
                     self.logger.info("Ticket {} closed successfully".format(ticketid))
+                    self.add_label(ticketid, 'closed')
                     return 1
             except Exception as e:
                 # continue with ticket data so that a new ticket is created in place of the "lost" one
