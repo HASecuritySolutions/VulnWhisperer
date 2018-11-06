@@ -172,7 +172,7 @@ class vulnWhispererBase(object):
     def get_latest_results(self, source, scan_name):
         try:
             self.conn.text_factory = str
-            self.cur.execute('SELECT filename FROM scan_history WHERE source="{}" AND scan_name="{}" ORDER BY id DESC LIMIT 1;'.format(source, scan_name))
+            self.cur.execute('SELECT filename FROM scan_history WHERE source="{}" AND scan_name="{}" ORDER BY last_modified DESC LIMIT 1;'.format(source, scan_name))
             #should always return just one filename
             results = [r[0] for r in self.cur.fetchall()][0]
         except:
@@ -1045,6 +1045,10 @@ class vulnWhispererJIRA(vulnWhispererBase):
         #qualys fields we want - []
         for index in range(len(data)):
             if int(data[index]['risk']) < min_risk:
+                continue
+
+            elif data[index]['type'] == 'Practice' or data[index]['type'] == 'Ig':
+                self.logger.debug("Vulnerability '{vuln}' ignored, as it is 'Practice/Potential', not verified.".format(vuln=data[index]['plugin_name']))
                 continue
             
             if not vulnerabilities or data[index]['plugin_name'] not in [entry['title'] for entry in vulnerabilities]:
