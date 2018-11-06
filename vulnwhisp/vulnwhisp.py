@@ -971,6 +971,7 @@ class vulnWhispererJIRA(vulnWhispererBase):
             
         #datafile path
         filename = self.get_latest_results(source, scan_name)
+        fullpath = ""
         
         # search data files under user specified directory
         for root, dirnames, filenames in os.walk(vwConfig(self.config_path).get(source,'write_path')):
