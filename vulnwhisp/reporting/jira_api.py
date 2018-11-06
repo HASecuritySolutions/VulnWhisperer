@@ -56,7 +56,7 @@ class JiraAPI(object):
                                            labels=labels,
                                            components=components_ticket)
 
-        self.logger.info("Ticket {} has been created".format(new_issue))
+        self.logger.info("Ticket {} created successfully".format(new_issue))
         return new_issue
     
     #Basic JIRA Metrics
@@ -232,7 +232,7 @@ class JiraAPI(object):
             if ticket_obj.raw['fields'].get('resolution') is not None:
                 if ticket_obj.raw['fields'].get('resolution').get('name') != 'Unresolved':
                     self.logger.debug("Checked ticket {} is already closed".format(ticket_obj))
-                    self.logger.info("ticket {} is closed".format(ticket_obj.id))
+                    self.logger.info("Ticket {} is closed".format(ticket_obj))
                     return True
         self.logger.debug("Checked ticket {} is already open".format(ticket_obj))
         return False
@@ -265,7 +265,7 @@ class JiraAPI(object):
                         If server has been decomissioned, please add the label "*server_decomission*" to the ticket before closing it.
                         If you have further doubts, please contact the Security Team.'''
                         error = self.jira.transition_issue(issue=ticketid, transition=self.JIRA_REOPEN_ISSUE, comment = comment)
-                        self.logger.info("ticket {} reopened successfully".format(ticketid))
+                        self.logger.info("Ticket {} reopened successfully".format(ticketid))
                         return 1
                 except Exception as e:
                     # continue with ticket data so that a new ticket is created in place of the "lost" one
@@ -281,7 +281,7 @@ class JiraAPI(object):
             try:
                 if self.is_ticket_closeable(ticket_obj):
                     error = self.jira.transition_issue(issue=ticketid, transition=self.JIRA_CLOSE_ISSUE, comment = comment, resolution = {"name": resolution })
-                    self.logger.info("ticket {} reopened successfully".format(ticketid))
+                    self.logger.info("Ticket {} closed successfully".format(ticketid))
                     return 1
             except Exception as e:
                 # continue with ticket data so that a new ticket is created in place of the "lost" one

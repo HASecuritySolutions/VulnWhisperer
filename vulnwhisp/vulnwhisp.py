@@ -17,6 +17,7 @@ import time
 import sqlite3
 import json
 import logging
+import socket
 
 
 class vulnWhispererBase(object):
@@ -915,6 +916,7 @@ class vulnWhispererJIRA(vulnWhispererBase):
             self.logger.setLevel(logging.DEBUG)
         self.config_path = config
         self.config = vwConfig(config)
+        self.host_resolv_cache = {}
      
                  
         if config is not None:
@@ -1088,7 +1090,23 @@ class vulnWhispererJIRA(vulnWhispererBase):
         values['ip'] = vuln['ip']
         values['protocol'] = vuln['protocol'] 
         values['port'] = vuln['port'] 
-        values['dns'] = vuln['dns']
+        values['dns'] = ''
+        if vuln['dns']:
+            values['dns'] = vuln['dns']
+        else:
+            if values['ip'] in self.host_resolv_cache.keys():
+                self.logger.debug("Hostname from {ip} cached, retrieving from cache.".format(ip=values['ip']))
+                values['dns'] = self.host_resolv_cache[values['ip']]
+            else:
+                self.logger.debug("No hostname, trying to resolve {ip}'s  hostname.".format(ip=values['ip']))
+                try:
+                    values['dns'] = socket.gethostbyaddr(vuln['ip'])[0]
+                    self.host_resolv_cache[values['ip']] = values['dns']
+                    self.logger.debug("Hostname found: {hostname}.".format(hostname=hostname))
+                except:
+                    self.host_resolv_cache[values['ip']] = ''
+                    self.logger.debug("Hostname not found for: {ip}.".format(ip=values['ip']))
+
         for key in values.keys():
             if not values[key]:
                 values[key] = 'N/A'
