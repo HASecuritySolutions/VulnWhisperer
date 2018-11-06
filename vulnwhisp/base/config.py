@@ -25,17 +25,17 @@ class vwConfig(object):
         self.logger.debug('Calling getbool for {}:{}'.format(section, option))
         return self.config.getboolean(section, option)
 
-    def get_enabled(self):
-	enabled = []
+    def get_sections_with_attribute(self, attribute):
+	sections = []
         # TODO: does this not also need the "yes" case?
 	check = ["true", "True", "1"]
 	for section in self.config.sections():
             try:
-                if self.get(section, "enabled") in check:
-                    enabled.append(section)	
+                if self.get(section, attribute) in check:
+                    sections.append(section)	
             except:
-                self.logger.error("Section {} has no option 'enabled'".format(section))
-	return enabled
+                self.logger.error("Section {} has no option '{}'".format(section, attribute))
+	return sections
 
     def exists_jira_profiles(self, profiles):
         # get list of profiles source_scanner.scan_name
@@ -62,11 +62,13 @@ class vwConfig(object):
                 self.config.set(section_name,'source',profile.split('.')[0])
                 # in case any scan name contains '.' character
                 self.config.set(section_name,'scan_name','.'.join(profile.split('.')[1:]))
-                self.config.set(section_name,'jira_project', "")
+                self.config.set(section_name,'jira_project', '')
                 self.config.set(section_name,'; if multiple components, separate by ","')
-                self.config.set(section_name,'components', "")
+                self.config.set(section_name,'components', '')
                 self.config.set(section_name,'; minimum criticality to report (low, medium, high or critical)')
                 self.config.set(section_name,'min_critical_to_report', 'high')
+                self.config.set(section_name,'; automatically report, boolean value ')
+                self.config.set(section_name,'autoreport', 'false')
         
         # TODO: try/catch this
         # writing changes back to file

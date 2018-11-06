@@ -982,7 +982,7 @@ class vulnWhispererJIRA(vulnWhispererBase):
         
         if not fullpath:
             self.logger.error('Scan file path "{scan_name}" for source "{source}" has not been found.'.format(scan_name=scan_name, source=source))
-            return 0
+            sys.exit(1)
 
         return project, components, fullpath, min_critical
 
@@ -1121,6 +1121,7 @@ class vulnWhispererJIRA(vulnWhispererBase):
 
 
     def jira_sync(self, source, scan_name):
+        self.logger.info("Jira Sync triggered for source '{source}' and scan '{scan_name}'".format(source=source, scan_name=scan_name))
 
         project, components, fullpath, min_critical = self.get_env_variables(source, scan_name)
 
@@ -1146,6 +1147,14 @@ class vulnWhispererJIRA(vulnWhispererBase):
 
         return True
 
+    def sync_all(self):
+        autoreport_sections = self.config.get_sections_with_attribute('autoreport')
+
+        if autoreport_sections:
+            for scan in autoreport_sections:
+                self.jira_sync(self.config.get(scan, 'source'), self.config.get(scan, 'scan_name'))
+            return True
+        return False
 
 class vulnWhisperer(object):
 
@@ -1204,6 +1213,11 @@ class vulnWhisperer(object):
             #first we check config fields are created, otherwise we create them
             vw = vulnWhispererJIRA(config=self.config)
             if not (self.source and self.scanname):
-                self.logger.error('Source scanner and scan name needed!')
-                return 0
-            vw.jira_sync(self.source, self.scanname)
+                self.logger.info('No source/scan_name selected, all enabled scans will be synced')
+                success = vw.sync_all()
+                if not success:
+                    self.logger.error('All scans sync failed!')
+                    self.logger.error('Source scanner and scan name needed!')
+                    return 0
+            else:
+                vw.jira_sync(self.source, self.scanname)

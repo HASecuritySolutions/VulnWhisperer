@@ -28,7 +28,7 @@ class JiraAPI(object):
         self.JIRA_RESOLUTION_FIXED = "Fixed"
         self.clean_obsolete = clean_obsolete
         self.template_path = 'vulnwhisp/reporting/resources/ticket.tpl'
-    
+
     def create_ticket(self, title, desc, project="IS", components=[], tags=[]):
         labels = ['vulnerability_management']
         for tag in tags:
@@ -159,6 +159,28 @@ class JiraAPI(object):
             assets = []
         
         return ticketid, title, assets
+
+    def get_ticket_reported_assets(self, ticket):
+        #[METRICS] return a list with all the affected assets for that vulnerability (including already resolved ones) 
+        return list(set(re.findall(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b",str(self.jira.issue(ticket).raw))))
+
+    def get_resolution_time(self, ticket):
+        #get time a ticket took to be resolved
+        ticket_obj = self.jira.issue(ticket)
+        if self.is_ticket_resolved(ticket_obj):
+            ticket_data = ticket_obj.raw.get('fields')
+            #dates follow format '2018-11-06T10:36:13.849+0100'
+            created = [int(x) for x in ticket_data['created'].split('.')[0].replace('T', '-').replace(':','-').split('-')]
+            resolved =[int(x) for x in ticket_data['resolutiondate'].split('.')[0].replace('T', '-').replace(':','-').split('-')]
+            
+            start = datetime(created[0],created[1],created[2],created[3],created[4],created[5])
+            end = datetime(resolved[0],resolved[1],resolved[2],resolved[3],resolved[4],resolved[5])
+            
+            return (end-start).days
+        else:
+            self.logger.error("Ticket {ticket} is not resolved, can't calculate resolution time".format(ticket=ticket))
+
+        return False
 
     def ticket_update_assets(self, vuln, ticketid, ticket_assets):
         # correct description will always be in the vulnerability to report, only needed to update description to new one

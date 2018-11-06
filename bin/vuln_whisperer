@@ -55,7 +55,7 @@ def main():
                                                     \nExample vuln_whisperer -c config.ini -s nessus'))
             logger.info('No section was specified, vulnwhisperer will scrape enabled modules from the config file.')
 	    config = vwConfig(config_in=args.config)
-	    enabled_sections = config.get_enabled()
+	    enabled_sections = config.get_sections_with_attribute('enabled')
 		
 	    for section in enabled_sections:
 		vw = vulnWhisperer(config=args.config,
