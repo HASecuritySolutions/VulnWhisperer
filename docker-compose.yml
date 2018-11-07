@@ -46,6 +46,7 @@ services:
       - ./docker/1000_nessus_process_file.conf:/usr/share/logstash/pipeline/1000_nessus_process_file.conf
       - ./docker/2000_qualys_web_scans.conf:/usr/share/logstash/pipeline/2000_qualys_web_scans.conf
       - ./docker/3000_openvas.conf:/usr/share/logstash/pipeline/3000_openvas.conf
+      - ./docker/4000_jira.conf:/usr/share/logstash/pipeline/4000_jira.conf
       - ./docker/logstash.yml:/usr/share/logstash/config/logstash.yml
       - ./data/:/opt/VulnWhisperer/data
     environment:
