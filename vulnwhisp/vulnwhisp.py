@@ -917,7 +917,7 @@ class vulnWhispererJIRA(vulnWhispererBase):
         self.config_path = config
         self.config = vwConfig(config)
         self.host_resolv_cache = {}
-     
+        self.directory_check()   
                  
         if config is not None:
             try:
@@ -925,7 +925,8 @@ class vulnWhispererJIRA(vulnWhispererBase):
                 self.jira = \
                     JiraAPI(hostname=self.hostname,
                               username=self.username,
-                              password=self.password)
+                              password=self.password,
+                              path=self.config.get('jira','write_path'))
                 self.jira_connect = True
                 self.logger.info('Connected to jira on {host}'.format(host=self.hostname))
             except Exception as e:

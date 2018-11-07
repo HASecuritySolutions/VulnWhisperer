@@ -1,5 +1,6 @@
 import json
-from datetime import datetime, timedelta
+import os
+from datetime import datetime, date, timedelta
 
 from jira import JIRA
 import requests
@@ -8,7 +9,7 @@ from bottle import template
 import re
 
 class JiraAPI(object):
-    def __init__(self, hostname=None, username=None, password=None, debug=False, clean_obsolete=True, max_time_window=6):
+    def __init__(self, hostname=None, username=None, password=None, path="", debug=False, clean_obsolete=True, max_time_window=12):
         self.logger = logging.getLogger('JiraAPI')
         if debug:
             self.logger.setLevel(logging.DEBUG)
@@ -28,6 +29,10 @@ class JiraAPI(object):
         self.JIRA_RESOLUTION_FIXED = "Fixed"
         self.clean_obsolete = clean_obsolete
         self.template_path = 'vulnwhisp/reporting/resources/ticket.tpl'
+        if path:
+            self.download_tickets(path)
+        else:
+            self.logger.warning("No local path specified, skipping Jira ticket download.")
 
     def create_ticket(self, title, desc, project="IS", components=[], tags=[]):
         labels = ['vulnerability_management']
@@ -77,7 +82,7 @@ class JiraAPI(object):
         #JIRA structure of each vulnerability: [source, scan_name, title, diagnosis, consequence, solution, ips, risk, references]
         self.logger.info("JIRA Sync started")
 
-        # [HIGIENE] close tickets older than 6 months as obsolete
+        # [HIGIENE] close tickets older than 12 months as obsolete
         # Higiene clean up affects to all tickets created by the module, filters by label 'vulnerability_management'
         if self.clean_obsolete:
             self.close_obsolete_tickets()
@@ -127,7 +132,7 @@ class JiraAPI(object):
         if not self.all_tickets:
             self.logger.info("Retrieving all JIRA tickets with the following tags {}".format(labels))
             # we want to check all JIRA tickets, to include tickets moved to other queues
-            # will exclude tickets older than 6 months, old tickets will get closed for higiene and recreated if still vulnerable
+            # will exclude tickets older than 12 months, old tickets will get closed for higiene and recreated if still vulnerable
             jql = "{} AND NOT labels=advisory AND created >=startOfMonth(-{})".format(" AND ".join(["labels={}".format(label) for label in labels]), self.max_time_tracking)
             
             self.all_tickets = self.jira.search_issues(jql, maxResults=0)
@@ -330,12 +335,12 @@ class JiraAPI(object):
         return 0
 
     def close_obsolete_tickets(self):
-        # Close tickets older than 6 months, vulnerabilities not solved will get created a new ticket 
+        # Close tickets older than 12 months, vulnerabilities not solved will get created a new ticket 
         self.logger.info("Closing obsolete tickets older than {} months".format(self.max_time_tracking))
         jql = "labels=vulnerability_management AND created <startOfMonth(-{}) and resolution=Unresolved".format(self.max_time_tracking)
         tickets_to_close = self.jira.search_issues(jql, maxResults=0)
         
-        comment = '''This ticket is being closed for hygiene, as it is more than 6 months old.
+        comment = '''This ticket is being closed for hygiene, as it is more than 12 months old.
         If the vulnerability still exists, a new ticket will be opened.'''
         
         for ticket in tickets_to_close:
@@ -351,3 +356,28 @@ class JiraAPI(object):
             return False
         return False
 
+    def download_tickets(self, path):
+        #saves all tickets locally, local snapshot of vulnerability_management ticktes
+        #check if file already exists
+        check_date = str(date.today())
+        fname = '{}jira_{}.json'.format(path, check_date) 
+        if os.path.isfile(fname):
+            self.logger.info("File {} already exists, skipping ticket download".format(fname))
+            return True
+        try:
+            self.logger.info("Saving locally tickets from the last {} months".format(self.max_time_tracking))
+            jql = "labels=vulnerability_management AND created >=startOfMonth(-{})".format(self.max_time_tracking)
+            tickets_data = self.jira.search_issues(jql, maxResults=0)
+            
+            #end of line needed, as writelines() doesn't add it automatically, otherwise one big line
+            to_save = [json.dumps(ticket.raw.get('fields'))+"\n" for ticket in tickets_data]
+            with open(fname, 'w') as outfile:
+                outfile.writelines(to_save)
+                self.logger.info("Tickets saved succesfully.")
+            
+            return True
+
+        except Exception as e:
+            self.logger.error("Tickets could not be saved locally: {}.".format(e))
+        
+        return False 
