@@ -34,7 +34,7 @@ class vwConfig(object):
                 if self.get(section, attribute) in check:
                     sections.append(section)	
             except:
-                self.logger.error("Section {} has no option '{}'".format(section, attribute))
+                self.logger.warn("Section {} has no option '{}'".format(section, attribute))
 	return sections
 
     def exists_jira_profiles(self, profiles):

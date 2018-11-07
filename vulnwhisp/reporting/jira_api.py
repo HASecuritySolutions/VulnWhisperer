@@ -32,7 +32,7 @@ class JiraAPI(object):
         if path:
             self.download_tickets(path)
         else:
-            self.logger.warning("No local path specified, skipping Jira ticket download.")
+            self.logger.warn("No local path specified, skipping Jira ticket download.")
 
     def create_ticket(self, title, desc, project="IS", components=[], tags=[]):
         labels = ['vulnerability_management']
@@ -146,7 +146,7 @@ class JiraAPI(object):
                 difference = list(set(assets).symmetric_difference(checking_assets))
                 #to check intersection - set(assets) & set(checking_assets)
                 if difference: 
-                    self.logger.info("Asset mismatch, ticket to update. TickedID: {}".format(checking_ticketid))
+                    self.logger.info("Asset mismatch, ticket to update. Ticket ID: {}".format(checking_ticketid))
                     return False, True, checking_ticketid, checking_assets #this will automatically validate
                 else:
                     self.logger.info("Confirmed duplicated. TickedID: {}".format(checking_ticketid))
@@ -323,9 +323,10 @@ class JiraAPI(object):
         if not self.is_ticket_resolved(ticket_obj):
             try:
                 if self.is_ticket_closeable(ticket_obj):
+                    #need to add the label before closing the ticket
+                    self.add_label(ticketid, 'closed')
                     error = self.jira.transition_issue(issue=ticketid, transition=self.JIRA_CLOSE_ISSUE, comment = comment, resolution = {"name": resolution })
                     self.logger.info("Ticket {} closed successfully".format(ticketid))
-                    self.add_label(ticketid, 'closed')
                     return 1
             except Exception as e:
                 # continue with ticket data so that a new ticket is created in place of the "lost" one
