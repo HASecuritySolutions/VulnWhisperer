@@ -1103,7 +1103,7 @@ class vulnWhispererJIRA(vulnWhispererBase):
                 try:
                     values['dns'] = socket.gethostbyaddr(vuln['ip'])[0]
                     self.host_resolv_cache[values['ip']] = values['dns']
-                    self.logger.debug("Hostname found: {hostname}.".format(hostname=hostname))
+                    self.logger.debug("Hostname found: {hostname}.".format(hostname=values['dns']))
                 except:
                     self.host_resolv_cache[values['ip']] = ''
                     self.logger.debug("Hostname not found for: {ip}.".format(ip=values['ip']))
