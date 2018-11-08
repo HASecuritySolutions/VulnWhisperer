@@ -69,7 +69,7 @@ class NessusAPI(object):
         success = False
 
         url = self.base + url
-        self.logging.debug('Requesting to url {}'.format(url))
+        self.logger.debug('Requesting to url {}'.format(url))
         methods = {'GET': requests.get,
                    'POST': requests.post,
                    'DELETE': requests.delete}

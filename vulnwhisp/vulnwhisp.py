@@ -17,6 +17,7 @@ import time
 import sqlite3
 import json
 import logging
+import socket
 
 
 class vulnWhispererBase(object):
@@ -172,7 +173,7 @@ class vulnWhispererBase(object):
     def get_latest_results(self, source, scan_name):
         try:
             self.conn.text_factory = str
-            self.cur.execute('SELECT filename FROM scan_history WHERE source="{}" AND scan_name="{}" ORDER BY id DESC LIMIT 1;'.format(source, scan_name))
+            self.cur.execute('SELECT filename FROM scan_history WHERE source="{}" AND scan_name="{}" ORDER BY last_modified DESC LIMIT 1;'.format(source, scan_name))
             #should always return just one filename
             results = [r[0] for r in self.cur.fetchall()][0]
         except:
@@ -915,7 +916,8 @@ class vulnWhispererJIRA(vulnWhispererBase):
             self.logger.setLevel(logging.DEBUG)
         self.config_path = config
         self.config = vwConfig(config)
-     
+        self.host_resolv_cache = {}
+        self.directory_check()   
                  
         if config is not None:
             try:
@@ -923,7 +925,8 @@ class vulnWhispererJIRA(vulnWhispererBase):
                 self.jira = \
                     JiraAPI(hostname=self.hostname,
                               username=self.username,
-                              password=self.password)
+                              password=self.password,
+                              path=self.config.get('jira','write_path'))
                 self.jira_connect = True
                 self.logger.info('Connected to jira on {host}'.format(host=self.hostname))
             except Exception as e:
@@ -971,6 +974,7 @@ class vulnWhispererJIRA(vulnWhispererBase):
             
         #datafile path
         filename = self.get_latest_results(source, scan_name)
+        fullpath = ""
         
         # search data files under user specified directory
         for root, dirnames, filenames in os.walk(vwConfig(self.config_path).get(source,'write_path')):
@@ -979,7 +983,7 @@ class vulnWhispererJIRA(vulnWhispererBase):
         
         if not fullpath:
             self.logger.error('Scan file path "{scan_name}" for source "{source}" has not been found.'.format(scan_name=scan_name, source=source))
-            return 0
+            sys.exit(1)
 
         return project, components, fullpath, min_critical
 
@@ -1045,6 +1049,10 @@ class vulnWhispererJIRA(vulnWhispererBase):
         for index in range(len(data)):
             if int(data[index]['risk']) < min_risk:
                 continue
+
+            elif data[index]['type'] == 'Practice' or data[index]['type'] == 'Ig':
+                self.logger.debug("Vulnerability '{vuln}' ignored, as it is 'Practice/Potential', not verified.".format(vuln=data[index]['plugin_name']))
+                continue
             
             if not vulnerabilities or data[index]['plugin_name'] not in [entry['title'] for entry in vulnerabilities]:
                 vuln = {}
@@ -1083,7 +1091,23 @@ class vulnWhispererJIRA(vulnWhispererBase):
         values['ip'] = vuln['ip']
         values['protocol'] = vuln['protocol'] 
         values['port'] = vuln['port'] 
-        values['dns'] = vuln['dns']
+        values['dns'] = ''
+        if vuln['dns']:
+            values['dns'] = vuln['dns']
+        else:
+            if values['ip'] in self.host_resolv_cache.keys():
+                self.logger.debug("Hostname from {ip} cached, retrieving from cache.".format(ip=values['ip']))
+                values['dns'] = self.host_resolv_cache[values['ip']]
+            else:
+                self.logger.debug("No hostname, trying to resolve {ip}'s  hostname.".format(ip=values['ip']))
+                try:
+                    values['dns'] = socket.gethostbyaddr(vuln['ip'])[0]
+                    self.host_resolv_cache[values['ip']] = values['dns']
+                    self.logger.debug("Hostname found: {hostname}.".format(hostname=values['dns']))
+                except:
+                    self.host_resolv_cache[values['ip']] = ''
+                    self.logger.debug("Hostname not found for: {ip}.".format(ip=values['ip']))
+
         for key in values.keys():
             if not values[key]:
                 values[key] = 'N/A'
@@ -1098,6 +1122,7 @@ class vulnWhispererJIRA(vulnWhispererBase):
 
 
     def jira_sync(self, source, scan_name):
+        self.logger.info("Jira Sync triggered for source '{source}' and scan '{scan_name}'".format(source=source, scan_name=scan_name))
 
         project, components, fullpath, min_critical = self.get_env_variables(source, scan_name)
 
@@ -1123,6 +1148,14 @@ class vulnWhispererJIRA(vulnWhispererBase):
 
         return True
 
+    def sync_all(self):
+        autoreport_sections = self.config.get_sections_with_attribute('autoreport')
+
+        if autoreport_sections:
+            for scan in autoreport_sections:
+                self.jira_sync(self.config.get(scan, 'source'), self.config.get(scan, 'scan_name'))
+            return True
+        return False
 
 class vulnWhisperer(object):
 
@@ -1181,6 +1214,11 @@ class vulnWhisperer(object):
             #first we check config fields are created, otherwise we create them
             vw = vulnWhispererJIRA(config=self.config)
             if not (self.source and self.scanname):
-                self.logger.error('Source scanner and scan name needed!')
-                return 0
-            vw.jira_sync(self.source, self.scanname)
+                self.logger.info('No source/scan_name selected, all enabled scans will be synced')
+                success = vw.sync_all()
+                if not success:
+                    self.logger.error('All scans sync failed!')
+                    self.logger.error('Source scanner and scan name needed!')
+                    return 0
+            else:
+                vw.jira_sync(self.source, self.scanname)
