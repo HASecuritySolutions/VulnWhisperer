@@ -56,21 +56,13 @@ Requirements
 
 <a id="installreq">Install Requirements-VulnWhisperer(may require sudo)</a>
 --------------------
-**First, install requirement dependencies**
+**First install requirement dependencies**
 ```shell
 
 sudo apt-get install  zlib1g-dev libxml2-dev libxslt1-dev 
 ```
 
-**Second, install dependant modules**
-```python
-
-cd deps/qualysapi
-python setup.py install
-```
-
-
-**Third, install requirements**
+**Then install requirements**
 
 ```python
 pip install -r /path/to/VulnWhisperer/requirements.txt
@@ -263,6 +255,7 @@ Contributors
 ------------
    - [@pemontto](https://github.com/pemontto)
    - [Quim Montal (@qmontal)](https://github.com/qmontal)
+   - [Andrea Lusuardi (@uovobw)](https://github.com/uovobw)
 
 AS SEEN ON TV
 -------------
