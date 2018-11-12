@@ -1,0 +1,12 @@
+base_packages:
+  - zlib1g-dev
+  - libxml2-dev
+  - libxslt1-dev
+  - libffi-dev
+  - libssl-dev
+
+python_packages:
+  - python2.7
+  - python2.7-dev
+  - python-virtualenv
+  - virtualenvwrapper

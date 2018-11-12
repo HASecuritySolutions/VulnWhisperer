@@ -1,0 +1,8 @@
+---
+- include: install.yml
+  tags:
+    - install
+
+- include: update.yml
+  tags:
+    - update

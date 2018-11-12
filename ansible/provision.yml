@@ -1,4 +1,27 @@
 - hosts: ec2
   become: true
+  vars:
+    vulnwhisperer:
+      prefix: "/opt"
+      location: "vulnwhisperer"
+      venv_location: "vulnwhisperer_venv"
+      repository: "https://github.com/HASecuritySolutions/VulnWhisperer.git"
+  vars_prompt:
+    name: install_option
+    prompt: "Please input either install or update"
+    private: no
+  pre_tasks:
+    - name: assert the correct input is addedd
+      fail:
+        msg: "Please specify one of either 'install' or 'update'"
+      when: install_option != "install" and install_option != "update"
   roles:
-    - vulnwhisperer
+    - role: elastic.elasticsearch
+      # set to true to enable closed source branch
+      es_enable_xpack: false
+      es_instance_name: "vulnwhisperer"
+      es_major_version: "5.x"
+      es_version: "5.6.13"
+      update_java: true
+    - role: vulnwhisperer
+      tags: "{{ install_option }}"
