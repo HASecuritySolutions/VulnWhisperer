@@ -6,12 +6,16 @@
       location: "vulnwhisperer"
       venv_location: "vulnwhisperer_venv"
       repository: "https://github.com/HASecuritySolutions/VulnWhisperer.git"
+      configuration_file_name: "vulnwhisperer.ini"
   vars_prompt:
-    name: install_option
-    prompt: "Please input either install or update"
-    private: no
+    - name: install_option
+      prompt: "Please input either install or update"
+      private: no
+    - name: configuration_file
+      prompt: "Full path to the VulnWhisperer configuration file"
+      private: no
   pre_tasks:
-    - name: assert the correct input is addedd
+    - name: assert the correct input is provided
       fail:
         msg: "Please specify one of either 'install' or 'update'"
       when: install_option != "install" and install_option != "update"
