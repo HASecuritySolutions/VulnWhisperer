@@ -19,6 +19,15 @@
       fail:
         msg: "Please specify one of either 'install' or 'update'"
       when: install_option != "install" and install_option != "update"
+    - name: check that the provided configuration file exists
+      become: false
+      local_action: stat path="{{ configuration_file }}"
+      ignore_errors: true
+      register: configuration_file_stat
+    - name: fail if the file is not available
+      fail:
+        msg: "Configuration file {{ configuration_file }} not found or inaccessible"
+      when: not configuration_file_stat.stat.exists
   roles:
     - role: elastic.elasticsearch
       # set to true to enable closed source branch
