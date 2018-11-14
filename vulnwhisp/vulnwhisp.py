@@ -77,7 +77,7 @@ class vulnWhispererBase(object):
 
             if not os.path.exists(self.database):
                 with open(self.database, 'w'):
-                    self.logging.info('Creating file {dir}'.format(dir=self.database))
+                    self.logger.info('Creating file {dir}'.format(dir=self.database))
 
             try:
                 self.conn = sqlite3.connect(self.database)

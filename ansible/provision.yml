@@ -1,0 +1,40 @@
+- hosts: ec2
+  become: true
+  vars:
+    vulnwhisperer:
+      prefix: "/opt"
+      location: "vulnwhisperer"
+      venv_location: "vulnwhisperer_venv"
+      repository: "https://github.com/HASecuritySolutions/VulnWhisperer.git"
+      configuration_file_name: "vulnwhisperer.ini"
+  vars_prompt:
+    - name: install_option
+      prompt: "Please input either install or update"
+      private: no
+    - name: configuration_file
+      prompt: "Full path to the VulnWhisperer configuration file"
+      private: no
+  pre_tasks:
+    - name: assert the correct input is provided
+      fail:
+        msg: "Please specify one of either 'install' or 'update'"
+      when: install_option != "install" and install_option != "update"
+    - name: check that the provided configuration file exists
+      become: false
+      local_action: stat path="{{ configuration_file }}"
+      ignore_errors: true
+      register: configuration_file_stat
+    - name: fail if the file is not available
+      fail:
+        msg: "Configuration file {{ configuration_file }} not found or inaccessible"
+      when: not configuration_file_stat.stat.exists
+  roles:
+    - role: elastic.elasticsearch
+      # set to true to enable closed source branch
+      es_enable_xpack: false
+      es_instance_name: "vulnwhisperer"
+      es_major_version: "5.x"
+      es_version: "5.6.13"
+      update_java: true
+    - role: vulnwhisperer
+      tags: "{{ install_option }}"
