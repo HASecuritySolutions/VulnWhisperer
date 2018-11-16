@@ -73,7 +73,7 @@ class JiraAPI(object):
         return len(self.jira.search_issues(jql, maxResults=0))
 
     def metrics_closed_tickets(self, project=None):
-        jql = "labels= vulnerability_management and NOT resolution = Unresolved" 
+        jql = "labels= vulnerability_management and NOT resolution = Unresolved AND created >=startOfMonth(-{})".format(self.max_time_tracking) 
         if project:
             jql += " and (project='{}')".format(project)
         return len(self.jira.search_issues(jql, maxResults=0))
