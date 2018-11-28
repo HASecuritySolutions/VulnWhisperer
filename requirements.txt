@@ -1,9 +1,9 @@
-pandas==0.20.3
-setuptools==40.4.3
-pytz==2017.2
-Requests==2.18.3
-qualysapi==5.0.4
-lxml==4.1.1
+pandas
+setuptools
+pytz
+Requests
+qualysapi
+lxml
 bs4
 jira
 bottle
