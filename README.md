@@ -7,7 +7,7 @@
 VulnWhisperer is a vulnerability data and report aggregator. VulnWhisperer will pull all the reports
  and create a file with a unique filename which is then fed into logstash. Logstash extracts data from the filename and tags all of the information inside the report (see logstash_vulnwhisp.conf file). Data is then shipped to elasticsearch to be indexed.
 
-[![Build Status](https://travis-ci.org/HASecuritySolutions/VulnWhisperer.svg?branch=master)](https://travis-ci.org/austin-taylor/VulnWhisperer)
+[![Build Status](https://travis-ci.org/HASecuritySolutions/VulnWhisperer.svg?branch=master)](https://travis-ci.org/HASecuritySolutions/VulnWhisperer)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](http://choosealicense.com/licenses/mit/)
 [![Twitter](https://img.shields.io/twitter/follow/VulnWhisperer.svg?style=social&label=Follow)](https://twitter.com/VulnWhisperer)
 
