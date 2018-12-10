@@ -1,0 +1,28 @@
+[
+  {
+    "_id": "54648700-3f74-11e7-852e-69207a3d0726",
+    "_type": "search",
+    "_source": {
+      "title": "VulnWhisperer - Saved Search",
+      "description": "",
+      "hits": 0,
+      "columns": [
+        "host",
+        "risk",
+        "risk_score",
+        "cve",
+        "plugin_name",
+        "solution",
+        "plugin_output"
+      ],
+      "sort": [
+        "@timestamp",
+        "desc"
+      ],
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"logstash-vulnwhisperer-*\",\"query\":{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"*\"}},\"filter\":[],\"highlight\":{\"pre_tags\":[\"@kibana-highlighted-field@\"],\"post_tags\":[\"@/kibana-highlighted-field@\"],\"fields\":{\"*\":{}},\"require_field_match\":false,\"fragment_size\":2147483647}}"
+      }
+    }
+  }
+]
