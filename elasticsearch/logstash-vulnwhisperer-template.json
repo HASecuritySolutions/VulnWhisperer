@@ -1,0 +1,122 @@
+{
+  "order": 0,
+  "template": "logstash-vulnwhisperer-*",
+  "settings": {
+    "index": {
+      "routing": {
+        "allocation": {
+          "total_shards_per_node": "2"
+        }
+      },
+      "mapping": {
+        "total_fields": {
+          "limit": "3000"
+        }
+      },
+      "refresh_interval": "5s",
+      "number_of_shards": "1",
+      "number_of_replicas": "0"
+    }
+  },
+  "mappings": {
+    "_default_": {
+      "_all": {
+        "enabled": false
+      },
+      "dynamic_templates": [
+        {
+          "message_field": {
+            "path_match": "message",
+            "match_mapping_type": "string",
+            "mapping": {
+              "type": "text",
+              "norms": false
+            }
+          }
+        },
+        {
+          "string_fields": {
+            "match": "*",
+            "match_mapping_type": "string",
+            "mapping": {
+              "type": "text",
+              "norms": false,
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            }
+          }
+        }
+      ],
+      "properties": {
+        "plugin_id": {
+          "type": "integer"
+        },
+        "last_updated": {
+          "type": "date"
+        },
+        "geoip": {
+          "dynamic": true,
+          "type": "object",
+          "properties": {
+            "ip": {
+              "type": "ip"
+            },
+            "latitude": {
+              "type": "float"
+            },
+            "location": {
+              "type": "geo_point"
+            },
+            "longitude": {
+              "type": "float"
+            }
+          }
+        },
+        "risk_score": {
+          "type": "float"
+        },
+        "source": {          
+          "type": "keyword"
+        },
+        "synopsis": {
+          "type": "keyword"
+        },
+        "see_also": {
+          "type": "keyword"
+        },
+        "@timestamp": {
+          "type": "date"
+        },
+        "cve": {
+          "type": "keyword"
+        },
+        "solution": {
+          "type": "keyword"
+        },
+        "port": {
+          "type": "integer"
+        },
+        "host": {
+          "type": "text"
+        },
+        "@version": {
+          "type": "keyword"
+        },
+        "risk": {
+          "type": "keyword"
+        },
+        "assign_ip": {
+          "type": "ip"
+        },
+        "cvss": {
+          "type": "float"
+        }
+      }
+    }
+  },
+  "aliases": {}
+}

@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='VulnWhisperer',
-    version='1.0.1',
+    version='1.7.1',
     packages=find_packages(),
     url='https://github.com/austin-taylor/vulnwhisperer',
     license="""MIT License
@@ -26,7 +26,7 @@ setup(
     SOFTWARE.""",
     author='Austin Taylor',
     author_email='email@austintaylor.io',
-    description='Vulnerability assessment framework aggregator',
+    description='Vulnerability Assessment Framework Aggregator',
     scripts=['bin/vuln_whisperer']
 )
 

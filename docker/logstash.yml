@@ -1,0 +1,5 @@
+path.config: /usr/share/logstash/pipeline/
+xpack.monitoring.elasticsearch.password: changeme
+xpack.monitoring.elasticsearch.url: vulnwhisp-es1.local:9200
+xpack.monitoring.elasticsearch.username: elastic
+xpack.monitoring.enabled: false

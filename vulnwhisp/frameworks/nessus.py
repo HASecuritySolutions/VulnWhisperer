@@ -1,12 +1,17 @@
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
-
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
 import pytz
 from datetime import datetime
 import json
 import sys
 import time
+import logging
+
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
 
 
 class NessusAPI(object):
@@ -23,6 +28,9 @@ class NessusAPI(object):
     EXPORT_HISTORY = EXPORT + '?history_id={history_id}'
 
     def __init__(self, hostname=None, port=None, username=None, password=None, verbose=True):
+        self.logger = logging.getLogger('NessusAPI')
+        if verbose:
+            self.logger.setLevel(logging.DEBUG)
         if username is None or password is None:
             raise Exception('ERROR: Missing username or password.')
 
@@ -35,7 +43,7 @@ class NessusAPI(object):
             'Origin': self.base,
             'Accept-Encoding': 'gzip, deflate, br',
             'Accept-Language': 'en-US,en;q=0.8',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.96 Safari/537.36',
+            'User-Agent': 'VulnWhisperer for Nessus',
             'Content-Type': 'application/json',
             'Accept': 'application/json, text/javascript, */*; q=0.01',
             'Referer': self.base,
@@ -46,10 +54,6 @@ class NessusAPI(object):
 
         self.login()
         self.scan_ids = self.get_scan_ids()
-
-    def vprint(self, msg):
-        if self.verbose:
-            print(msg)
 
     def login(self):
         resp = self.get_token()
@@ -65,6 +69,7 @@ class NessusAPI(object):
         success = False
 
         url = self.base + url
+        self.logger.debug('Requesting to url {}'.format(url))
         methods = {'GET': requests.get,
                    'POST': requests.post,
                    'DELETE': requests.delete}
@@ -72,18 +77,21 @@ class NessusAPI(object):
         while (timeout <= 10) and (not success):
             data = methods[method](url, data=data, headers=self.headers, verify=False)
             if data.status_code == 401:
+                if url == self.base + self.SESSION:
+                    break
                 try:
                     self.login()
                     timeout += 1
-                    self.vprint('[INFO] Token refreshed')
+                    self.logger.info('Token refreshed')
                 except Exception as e:
-                    self.vprint('[FAIL] Could not refresh token\nReason: %s' % e)
+                    self.logger.error('Could not refresh token\nReason: {}'.format(str(e)))
             else:
                 success = True
 
         if json:
             data = data.json()
         if download:
+            self.logger.debug('Returning data.content')
             return data.content
         return data
 
@@ -93,6 +101,7 @@ class NessusAPI(object):
         return token
 
     def logout(self):
+        self.logger.debug('Logging out')
         self.request(self.SESSION, method='DELETE')
 
     def get_folders(self):
@@ -105,7 +114,8 @@ class NessusAPI(object):
 
     def get_scan_ids(self):
         scans = self.get_scans()
-        scan_ids = [scan_id['id'] for scan_id in scans['scans']]
+        scan_ids = [scan_id['id'] for scan_id in scans['scans']] if scans['scans'] else []
+        self.logger.debug('Found {} scan_ids'.format(len(scan_ids)))
         return scan_ids
 
     def count_scan(self, scans, folder_id):
@@ -116,11 +126,10 @@ class NessusAPI(object):
 
     def print_scans(self, data):
         for folder in data['folders']:
-            print("\\{0} - ({1})\\".format(folder['name'], self.count_scan(data['scans'], folder['id'])))
+            self.logger.info("\\{0} - ({1})\\".format(folder['name'], self.count_scan(data['scans'], folder['id'])))
             for scan in data['scans']:
                 if scan['folder_id'] == folder['id']:
-                    print(
-                    "\t\"{0}\" - sid:{1} - uuid: {2}".format(scan['name'].encode('utf-8'), scan['id'], scan['uuid']))
+                    self.logger.info("\t\"{0}\" - sid:{1} - uuid: {2}".format(scan['name'].encode('utf-8'), scan['id'], scan['uuid']))
 
     def get_scan_details(self, scan_id):
         data = self.request(self.SCAN_ID.format(scan_id=scan_id), method='GET', json=True)
@@ -150,7 +159,7 @@ class NessusAPI(object):
         req = self.request(query, data=data, method='POST')
         return req
 
-    def download_scan(self, scan_id=None, history=None, export_format="", chapters="", dbpasswd=""):
+    def download_scan(self, scan_id=None, history=None, export_format="", chapters="", dbpasswd="", profile=""):
         running = True
         counter = 0
 
@@ -163,10 +172,10 @@ class NessusAPI(object):
         req = self.request(query, data=json.dumps(data), method='POST', json=True)
         try:
             file_id = req['file']
-            token_id = req['token']
+            token_id = req['token'] if 'token' in req else req['temp_token']
         except Exception as e:
-            print("[ERROR] %s" % e)
-        print('Download for file id ' + str(file_id) + '.')
+            self.logger.error('{}'.format(str(e)))
+        self.logger.info('Download for file id {}'.format(str(file_id)))
         while running:
             time.sleep(2)
             counter += 2
@@ -175,11 +184,14 @@ class NessusAPI(object):
             running = report_status['status'] != 'ready'
             sys.stdout.write(".")
             sys.stdout.flush()
+            # FIXME: why? can this be removed in favour of a counter?
             if counter % 60 == 0:
-                print("")
-
-        print("")
-        content = self.request(self.EXPORT_TOKEN_DOWNLOAD.format(token_id=token_id), method='GET', download=True)
+                self.logger.info("Completed: {}".format(counter))
+        self.logger.info("Done: {}".format(counter))
+        if profile=='tenable':
+            content = self.request(self.EXPORT_FILE_DOWNLOAD.format(scan_id=scan_id, file_id=file_id), method='GET', download=True)
+        else:
+            content = self.request(self.EXPORT_TOKEN_DOWNLOAD.format(token_id=token_id), method='GET', download=True)
         return content
 
     @staticmethod
@@ -199,12 +211,12 @@ class NessusAPI(object):
             local_tz = pytz.timezone('US/Central')
         else:
             local_tz = pytz.timezone(local_tz)
-        # print date_time
         local_time = local_tz.normalize(local_tz.localize(date_time))
         local_time = local_time.astimezone(pytz.utc)
         if epoch:
             naive = local_time.replace(tzinfo=None)
             local_time = int((naive - datetime(1970, 1, 1)).total_seconds())
+        self.logger.debug('Converted timestamp {} in datetime {}'.format(date_time, local_time))
         return local_time
 
     def tz_conv(self, tz):

@@ -1,0 +1,43 @@
+[
+  {
+    "_id": "72051530-448e-11e7-a818-f5f80dfc3590",
+    "_type": "dashboard",
+    "_source": {
+      "title": "VulnWhisperer - Reporting",
+      "hits": 0,
+      "description": "",
+      "panelsJSON": "[{\"col\":1,\"id\":\"2f979030-44b9-11e7-a818-f5f80dfc3590\",\"panelIndex\":5,\"row\":12,\"size_x\":6,\"size_y\":4,\"type\":\"visualization\"},{\"col\":1,\"id\":\"8d9592d0-44ec-11e7-a05f-d9719b331a27\",\"panelIndex\":12,\"row\":8,\"size_x\":6,\"size_y\":4,\"type\":\"visualization\"},{\"col\":7,\"id\":\"67d432e0-44ec-11e7-a05f-d9719b331a27\",\"panelIndex\":14,\"row\":4,\"size_x\":6,\"size_y\":4,\"type\":\"visualization\"},{\"col\":10,\"id\":\"297df800-3f7e-11e7-bd24-6903e3283192\",\"panelIndex\":15,\"row\":8,\"size_x\":3,\"size_y\":4,\"type\":\"visualization\"},{\"col\":7,\"id\":\"471a3580-3f6b-11e7-88e7-df1abe6547fb\",\"panelIndex\":20,\"row\":8,\"size_x\":3,\"size_y\":4,\"type\":\"visualization\"},{\"col\":11,\"id\":\"995e2280-3df3-11e7-a44e-c79ca8efb780\",\"panelIndex\":22,\"row\":1,\"size_x\":2,\"size_y\":3,\"type\":\"visualization\"},{\"col\":9,\"id\":\"b2f2adb0-897f-11e7-a2d2-c57bca21b3aa\",\"panelIndex\":23,\"row\":1,\"size_x\":2,\"size_y\":3,\"type\":\"visualization\"},{\"col\":7,\"id\":\"db55bce0-80b3-11e7-8790-73b60225f736\",\"panelIndex\":25,\"row\":1,\"size_x\":2,\"size_y\":3,\"type\":\"visualization\"},{\"col\":5,\"id\":\"d048c220-80b3-11e7-8790-73b60225f736\",\"panelIndex\":26,\"row\":1,\"size_x\":2,\"size_y\":3,\"type\":\"visualization\"},{\"col\":1,\"id\":\"e46ff7f0-897d-11e7-934b-67cec0a7da65\",\"panelIndex\":27,\"row\":1,\"size_x\":2,\"size_y\":3,\"type\":\"visualization\"},{\"col\":3,\"id\":\"c1361da0-80b3-11e7-8790-73b60225f736\",\"panelIndex\":28,\"row\":1,\"size_x\":2,\"size_y\":3,\"type\":\"visualization\"},{\"col\":1,\"id\":\"479deab0-8a39-11e7-a58a-9bfcb3761a3d\",\"panelIndex\":29,\"row\":4,\"size_x\":6,\"size_y\":4,\"type\":\"visualization\"}]",
+      "optionsJSON": "{\"darkTheme\":false}",
+      "uiStateJSON": "{\"P-15\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}},\"P-20\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}},\"P-21\":{\"vis\":{\"defaultColors\":{\"0 - 100\":\"rgb(0,104,55)\"}}},\"P-22\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}},\"P-23\":{\"vis\":{\"defaultColors\":{\"0 - 10000\":\"rgb(0,104,55)\"}}},\"P-24\":{\"vis\":{\"defaultColors\":{\"0 - 10000\":\"rgb(0,104,55)\"}}},\"P-25\":{\"vis\":{\"defaultColors\":{\"0 - 10000\":\"rgb(0,104,55)\"}}},\"P-26\":{\"vis\":{\"defaultColors\":{\"0 - 1000\":\"rgb(0,104,55)\"},\"legendOpen\":false}},\"P-27\":{\"vis\":{\"defaultColors\":{\"0 - 10000\":\"rgb(0,104,55)\"},\"legendOpen\":false}},\"P-28\":{\"vis\":{\"defaultColors\":{\"0 - 10000\":\"rgb(0,104,55)\"},\"legendOpen\":false}},\"P-5\":{\"vis\":{\"legendOpen\":false}}}",
+      "version": 1,
+      "timeRestore": true,
+      "timeTo": "now",
+      "timeFrom": "now-1y",
+      "refreshInterval": {
+        "display": "Off",
+        "pause": false,
+        "value": 0
+      },
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"filter\":[{\"query\":{\"match_all\":{}}}],\"highlightAll\":true,\"version\":true}"
+      }
+    }
+  },
+  {
+    "_id": "AWCUqesWib22Ai8JwW3u",
+    "_type": "dashboard",
+    "_source": {
+      "title": "VulnWhisperer - Risk Mitigation",
+      "hits": 0,
+      "description": "",
+      "panelsJSON": "[{\"col\":11,\"id\":\"995e2280-3df3-11e7-a44e-c79ca8efb780\",\"panelIndex\":20,\"row\":8,\"size_x\":2,\"size_y\":6,\"type\":\"visualization\"},{\"col\":1,\"id\":\"852816e0-3eb1-11e7-90cb-918f9cb01e3d\",\"panelIndex\":21,\"row\":10,\"size_x\":3,\"size_y\":5,\"type\":\"visualization\"},{\"col\":4,\"id\":\"297df800-3f7e-11e7-bd24-6903e3283192\",\"panelIndex\":27,\"row\":8,\"size_x\":3,\"size_y\":5,\"type\":\"visualization\"},{\"col\":9,\"id\":\"35b6d320-3f7f-11e7-bd24-6903e3283192\",\"panelIndex\":28,\"row\":8,\"size_x\":2,\"size_y\":6,\"type\":\"visualization\"},{\"col\":11,\"id\":\"471a3580-3f6b-11e7-88e7-df1abe6547fb\",\"panelIndex\":30,\"row\":1,\"size_x\":2,\"size_y\":3,\"type\":\"visualization\"},{\"col\":7,\"id\":\"de1a5f40-3f85-11e7-97f9-3777d794626d\",\"panelIndex\":31,\"row\":8,\"size_x\":2,\"size_y\":5,\"type\":\"visualization\"},{\"col\":10,\"id\":\"5093c620-44e9-11e7-8014-ede06a7e69f8\",\"panelIndex\":37,\"row\":4,\"size_x\":3,\"size_y\":4,\"type\":\"visualization\"},{\"col\":1,\"columns\":[\"host\",\"risk\",\"risk_score\",\"cve\",\"plugin_name\",\"solution\",\"plugin_output\"],\"id\":\"54648700-3f74-11e7-852e-69207a3d0726\",\"panelIndex\":38,\"row\":15,\"size_x\":12,\"size_y\":6,\"sort\":[\"@timestamp\",\"desc\"],\"type\":\"search\"},{\"col\":1,\"id\":\"fb6eb020-49ab-11e7-8f8c-57ad64ec48a6\",\"panelIndex\":39,\"row\":8,\"size_x\":3,\"size_y\":2,\"type\":\"visualization\"},{\"col\":5,\"id\":\"465c5820-8977-11e7-857e-e1d56b17746d\",\"panelIndex\":40,\"row\":4,\"size_x\":5,\"size_y\":4,\"type\":\"visualization\"},{\"col\":1,\"id\":\"56f0f5f0-3ebe-11e7-a192-93f36fbd9d05\",\"panelIndex\":46,\"row\":4,\"size_x\":4,\"size_y\":4,\"type\":\"visualization\"},{\"col\":1,\"id\":\"e46ff7f0-897d-11e7-934b-67cec0a7da65\",\"panelIndex\":47,\"row\":1,\"size_x\":2,\"size_y\":3,\"type\":\"visualization\"},{\"col\":3,\"id\":\"c1361da0-80b3-11e7-8790-73b60225f736\",\"panelIndex\":48,\"row\":1,\"size_x\":2,\"size_y\":3,\"type\":\"visualization\"},{\"col\":5,\"id\":\"d048c220-80b3-11e7-8790-73b60225f736\",\"panelIndex\":49,\"row\":1,\"size_x\":2,\"size_y\":3,\"type\":\"visualization\"},{\"col\":7,\"id\":\"db55bce0-80b3-11e7-8790-73b60225f736\",\"panelIndex\":50,\"row\":1,\"size_x\":2,\"size_y\":3,\"type\":\"visualization\"},{\"col\":9,\"id\":\"b2f2adb0-897f-11e7-a2d2-c57bca21b3aa\",\"panelIndex\":51,\"row\":1,\"size_x\":2,\"size_y\":3,\"type\":\"visualization\"}]",
+      "optionsJSON": "{\"darkTheme\":false}",
+      "uiStateJSON": "{\"P-11\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}},\"P-2\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}},\"P-20\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}},\"P-21\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":0,\"direction\":\"desc\"}}}},\"P-27\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}},\"P-28\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":0,\"direction\":\"desc\"}}}},\"P-3\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":0,\"direction\":\"asc\"}}}},\"P-30\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}},\"P-31\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}},\"P-40\":{\"vis\":{\"defaultColors\":{\"0 - 3\":\"rgb(0,104,55)\",\"3 - 7\":\"rgb(135,203,103)\",\"7 - 9\":\"rgb(255,255,190)\",\"9 - 11\":\"rgb(249,142,82)\"}}},\"P-41\":{\"vis\":{\"defaultColors\":{\"0 - 10000\":\"rgb(0,104,55)\"}}},\"P-42\":{\"vis\":{\"defaultColors\":{\"0 - 10000\":\"rgb(0,104,55)\"}}},\"P-43\":{\"vis\":{\"defaultColors\":{\"0 - 1000\":\"rgb(0,104,55)\"}}},\"P-44\":{\"vis\":{\"defaultColors\":{\"0 - 10000\":\"rgb(0,104,55)\"}}},\"P-45\":{\"vis\":{\"defaultColors\":{\"0 - 10000\":\"rgb(0,104,55)\"}}},\"P-46\":{\"vis\":{\"legendOpen\":true}},\"P-47\":{\"vis\":{\"defaultColors\":{\"0 - 10000\":\"rgb(0,104,55)\"},\"legendOpen\":false}},\"P-48\":{\"vis\":{\"defaultColors\":{\"0 - 10000\":\"rgb(0,104,55)\"},\"legendOpen\":false}},\"P-49\":{\"vis\":{\"defaultColors\":{\"0 - 1000\":\"rgb(0,104,55)\"},\"legendOpen\":false}},\"P-5\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}},\"P-50\":{\"vis\":{\"defaultColors\":{\"0 - 10000\":\"rgb(0,104,55)\"}}},\"P-51\":{\"vis\":{\"defaultColors\":{\"0 - 10000\":\"rgb(0,104,55)\"}}},\"P-6\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}},\"P-8\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}}}",
+      "version": 1,
+      "timeRestore": false,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"filter\":[{\"query\":{\"match_all\":{}}}],\"highlightAll\":true,\"version\":true}"
+      }
+    }
+  }
+]
