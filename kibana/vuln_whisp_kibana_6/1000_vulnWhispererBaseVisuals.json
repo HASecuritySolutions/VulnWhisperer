@@ -55,20 +55,7 @@
       }
     }
   },
-  {
-    "_id": "7e7fbc90-3df2-11e7-a44e-c79ca8efb780",
-    "_type": "visualization",
-    "_source": {
-      "title": "VulnWhisperer-PluginID",
-      "visState": "{\"title\":\"VulnWhisperer-PluginID\",\"type\":\"table\",\"params\":{\"perPage\":10,\"showMeticsAtAllLevels\":false,\"showPartialRows\":false,\"showTotal\":false,\"sort\":{\"columnIndex\":null,\"direction\":null},\"totalFunc\":\"sum\"},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"count\",\"schema\":\"metric\",\"params\":{}},{\"id\":\"2\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"bucket\",\"params\":{\"field\":\"plugin_id\",\"size\":50,\"order\":\"desc\",\"orderBy\":\"1\"}}],\"listeners\":{}}",
-      "uiStateJSON": "{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}}",
-      "description": "",
-      "version": 1,
-      "kibanaSavedObjectMeta": {
-        "searchSourceJSON": "{\"index\":\"4a6d9090-f66e-11e8-8f42-af2e41422cf8\",\"query\":{\"query\":{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"*\"}},\"language\":\"lucene\"},\"filter\":[]}"
-      }
-    }
-  },
+  
   {
     "_id": "1de9e550-3df1-11e7-a44e-c79ca8efb780",
     "_type": "visualization",
@@ -97,20 +84,7 @@
       }
     }
   },
-  {
-    "_id": "099a3820-3f68-11e7-a6bd-e764d950e506",
-    "_type": "visualization",
-    "_source": {
-      "title": "Timelion VulnWhisperer Example",
-      "visState": "{\"type\":\"timelion\",\"title\":\"Timelion VulnWhisperer Example\",\"params\":{\"expression\":\".es(index=logstash-vulnwhisperer-*,q=risk:high).label(\\\"Current High Risk\\\"),.es(index=logstash-vulnwhisperer-*,q=risk:high,offset=-1y).label(\\\"Last 1 Year High Risk\\\"),.es(index=logstash-vulnwhisperer-*,q=risk:medium).label(\\\"Current Medium Risk\\\"),.es(index=logstash-vulnwhisperer-*,q=risk:medium,offset=-1y).label(\\\"Last 1 Year Medium Risk\\\")\",\"interval\":\"auto\"}}",
-      "uiStateJSON": "{}",
-      "description": "",
-      "version": 1,
-      "kibanaSavedObjectMeta": {
-        "searchSourceJSON": "{}"
-      }
-    }
-  },
+  
   {
     "_id": "67d432e0-44ec-11e7-a05f-d9719b331a27",
     "_type": "visualization",
@@ -125,20 +99,7 @@
       }
     }
   },
-  {
-    "_id": "a91b9fe0-44ec-11e7-a05f-d9719b331a27",
-    "_type": "visualization",
-    "_source": {
-      "title": "VulnWhisperer - TL-Medium Risk",
-      "visState": "{\"title\":\"VulnWhisperer - TL-Medium Risk\",\"type\":\"timelion\",\"params\":{\"expression\":\".es(index='logstash-vulnwhisperer-*',q='(risk_score:>=4 AND risk_score:<7)').label(\\\"Original\\\"),.es(index='logstash-vulnwhisperer-*',q='(risk_score:>=4 AND risk_score:<7)',offset=-1w).label(\\\"One week offset\\\"),.es(index='logstash-vulnwhisperer-*',q='(risk_score:>=4 AND risk_score:<7)').subtract(.es(index='logstash-vulnwhisperer-*',q='(risk_score:>=4 AND risk_score:<7)',offset=-1w)).label(\\\"Difference\\\").lines(steps=3,fill=2,width=1)\",\"interval\":\"auto\"},\"aggs\":[],\"listeners\":{}}",
-      "uiStateJSON": "{}",
-      "description": "",
-      "version": 1,
-      "kibanaSavedObjectMeta": {
-        "searchSourceJSON": "{\"query\":{\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}},\"language\":\"lucene\"},\"filter\":[]}"
-      }
-    }
-  },
+  
   {
     "_id": "297df800-3f7e-11e7-bd24-6903e3283192",
     "_type": "visualization",
@@ -195,20 +156,7 @@
       }
     }
   },
-  {
-    "_id": "ecbb99c0-3f84-11e7-97f9-3777d794626d",
-    "_type": "visualization",
-    "_source": {
-      "title": "VulnWhisperer - Total",
-      "visState": "{\"title\":\"VulnWhisperer - Total\",\"type\":\"metric\",\"params\":{\"handleNoResults\":true,\"fontSize\":60},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"count\",\"schema\":\"metric\",\"params\":{\"customLabel\":\"Total\"}}],\"listeners\":{}}",
-      "uiStateJSON": "{}",
-      "description": "",
-      "version": 1,
-      "kibanaSavedObjectMeta": {
-        "searchSourceJSON": "{\"index\":\"4a6d9090-f66e-11e8-8f42-af2e41422cf8\",\"query\":{\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}},\"language\":\"lucene\"},\"filter\":[]}"
-      }
-    }
-  },
+  
   {
     "_id": "8d9592d0-44ec-11e7-a05f-d9719b331a27",
     "_type": "visualization",
@@ -223,20 +171,7 @@
       }
     }
   },
-  {
-    "_id": "a2d66660-44ec-11e7-a05f-d9719b331a27",
-    "_type": "visualization",
-    "_source": {
-      "title": "VulnWhisperer - TL-Low Risk",
-      "visState": "{\"title\":\"VulnWhisperer - TL-Low Risk\",\"type\":\"timelion\",\"params\":{\"expression\":\".es(index='logstash-vulnwhisperer-*',q='(risk_score:>0 AND risk_score:<4)').label(\\\"Original\\\"),.es(index='logstash-vulnwhisperer-*',q='(risk_score:>0 AND risk_score:<4)',offset=-1w).label(\\\"One week offset\\\"),.es(index='logstash-vulnwhisperer-*',q='(risk_score:>0 AND risk_score:<4)').subtract(.es(index='logstash-vulnwhisperer-*',q='(risk_score:>0 AND risk_score:<4)',offset=-1w)).label(\\\"Difference\\\").lines(steps=3,fill=2,width=1)\",\"interval\":\"auto\"},\"aggs\":[],\"listeners\":{}}",
-      "uiStateJSON": "{}",
-      "description": "",
-      "version": 1,
-      "kibanaSavedObjectMeta": {
-        "searchSourceJSON": "{\"query\":{\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}},\"language\":\"lucene\"},\"filter\":[]}"
-      }
-    }
-  },
+  
   {
     "_id": "fb6eb020-49ab-11e7-8f8c-57ad64ec48a6",
     "_type": "visualization",
@@ -248,20 +183,6 @@
       "version": 1,
       "kibanaSavedObjectMeta": {
         "searchSourceJSON": "{\"query\":{\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}},\"language\":\"lucene\"},\"filter\":[]}"
-      }
-    }
-  },
-  {
-    "_id": "80158c90-57c1-11e7-b484-a970fc9d150a",
-    "_type": "visualization",
-    "_source": {
-      "title": "VulnWhisperer - HIPAA TL",
-      "visState": "{\"type\":\"timelion\",\"title\":\"VulnWhisperer - HIPAA TL\",\"params\":{\"expression\":\".es(index=logstash-vulnwhisperer-*,q='risk_score:>9 AND tags:pci_asset').label(\\\"PCI Assets\\\"),.es(index=logstash-vulnwhisperer-*,q='risk_score:>9 AND tags:has_hipaa_data').label(\\\"Has HIPAA Data\\\"),.es(index=logstash-vulnwhisperer-*,q='risk_score:>9 AND tags:hipaa_asset').label(\\\"HIPAA Assets\\\")\",\"interval\":\"auto\"}}",
-      "uiStateJSON": "{}",
-      "description": "",
-      "version": 1,
-      "kibanaSavedObjectMeta": {
-        "searchSourceJSON": "{}"
       }
     }
   },
@@ -279,62 +200,7 @@
       }
     }
   },
-  {
-    "_id": "84f5c370-8a38-11e7-a58a-9bfcb3761a3d",
-    "_type": "visualization",
-    "_source": {
-      "title": "VulnWhisperer - TL - CriticalAssetsPluginNames",
-      "visState": "{\"title\":\"VulnWhisperer - TL - CriticalAssetsPluginNames\",\"type\":\"timelion\",\"params\":{\"expression\":\".es(index='logstash-vulnwhisperer-*', q='tags:critical_asset', split=\\\"plugin_name.keyword:10\\\").bars(width=4).label(regex=\\\".*:(.+)>.*\\\",label=\\\"$1\\\")\",\"interval\":\"auto\"},\"aggs\":[],\"listeners\":{}}",
-      "uiStateJSON": "{}",
-      "description": "",
-      "version": 1,
-      "kibanaSavedObjectMeta": {
-        "searchSourceJSON": "{\"query\":{\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}},\"language\":\"lucene\"},\"filter\":[]}"
-      }
-    }
-  },
-  {
-    "_id": "307cdae0-8a38-11e7-a58a-9bfcb3761a3d",
-    "_type": "visualization",
-    "_source": {
-      "title": "VulnWhisperer - TL - PluginNames",
-      "visState": "{\"title\":\"VulnWhisperer - TL - PluginNames\",\"type\":\"timelion\",\"params\":{\"expression\":\".es(index='logstash-vulnwhisperer-*', split=\\\"plugin_name.keyword:25\\\").bars(width=4).label(regex=\\\".*:(.+)>.*\\\",label=\\\"$1\\\")\",\"interval\":\"auto\"},\"aggs\":[],\"listeners\":{}}",
-      "uiStateJSON": "{}",
-      "description": "",
-      "version": 1,
-      "kibanaSavedObjectMeta": {
-        "searchSourceJSON": "{\"query\":{\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}},\"language\":\"lucene\"},\"filter\":[]}"
-      }
-    }
-  },
-  {
-    "_id": "a6508640-897a-11e7-bbc0-33592ce0be1e",
-    "_type": "visualization",
-    "_source": {
-      "title": "VulnWhisperer - Critical Assets Aggregated",
-      "visState": "{\"title\":\"VulnWhisperer - Critical Assets Aggregated\",\"type\":\"heatmap\",\"params\":{\"addTooltip\":true,\"addLegend\":true,\"enableHover\":true,\"legendPosition\":\"right\",\"times\":[],\"colorsNumber\":4,\"colorSchema\":\"Green to Red\",\"setColorRange\":true,\"colorsRange\":[{\"from\":0,\"to\":3},{\"from\":3,\"to\":7},{\"from\":7,\"to\":9},{\"from\":9,\"to\":11}],\"invertColors\":false,\"percentageMode\":false,\"valueAxes\":[{\"show\":false,\"id\":\"ValueAxis-1\",\"type\":\"value\",\"scale\":{\"type\":\"linear\",\"defaultYExtents\":false},\"labels\":{\"show\":true,\"rotate\":0,\"color\":\"white\",\"overwriteColor\":true}}],\"type\":\"heatmap\"},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"risk_score\",\"customLabel\":\"Residual Risk Score\"}},{\"id\":\"3\",\"enabled\":true,\"type\":\"date_histogram\",\"schema\":\"segment\",\"params\":{\"field\":\"@timestamp\",\"interval\":\"auto\",\"customInterval\":\"2h\",\"min_doc_count\":1,\"extended_bounds\":{},\"customLabel\":\"Date\"}},{\"id\":\"4\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"group\",\"params\":{\"field\":\"asset.keyword\",\"size\":10,\"order\":\"desc\",\"orderBy\":\"1\",\"otherBucket\":false,\"otherBucketLabel\":\"Other\",\"missingBucket\":false,\"missingBucketLabel\":\"Missing\",\"customLabel\":\"Critical Asset IP\"}},{\"id\":\"5\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"split\",\"params\":{\"field\":\"plugin_name.keyword\",\"size\":5,\"order\":\"desc\",\"orderBy\":\"1\",\"otherBucket\":false,\"otherBucketLabel\":\"Other\",\"missingBucket\":false,\"missingBucketLabel\":\"Missing\",\"row\":true}}]}",
-      "uiStateJSON": "{\"vis\":{\"colors\":{\"0 - 3\":\"#7EB26D\",\"3 - 7\":\"#EAB839\",\"7 - 9\":\"#EF843C\",\"8 - 10\":\"#BF1B00\",\"9 - 11\":\"#BF1B00\"},\"defaultColors\":{\"0 - 3\":\"rgb(0,104,55)\",\"3 - 7\":\"rgb(135,203,103)\",\"7 - 9\":\"rgb(255,255,190)\",\"9 - 11\":\"rgb(249,142,82)\"},\"legendOpen\":false}}",
-      "description": "",
-      "version": 1,
-      "kibanaSavedObjectMeta": {
-        "searchSourceJSON": "{\"index\":\"4a6d9090-f66e-11e8-8f42-af2e41422cf8\",\"query\":{\"language\":\"lucene\",\"query\":{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"*\",\"default_field\":\"*\"}}},\"filter\":[{\"$state\":{\"store\":\"appState\"},\"meta\":{\"alias\":\"Critical Asset\",\"disabled\":false,\"index\":\"logstash-vulnwhisperer-*\",\"key\":\"tags\",\"negate\":false,\"params\":{\"query\":\"critical_asset\",\"type\":\"phrase\"},\"type\":\"phrase\",\"value\":\"critical_asset\"},\"query\":{\"match\":{\"tags\":{\"query\":\"critical_asset\",\"type\":\"phrase\"}}}}]}"
-      }
-    }
-  },
-  {
-    "_id": "5a3c0340-3eb3-11e7-a192-93f36fbd9d05",
-    "_type": "visualization",
-    "_source": {
-      "title": "VulnWhisperer-CVSSHeatmap",
-      "visState": "{\n  \"title\": \"VulnWhisperer-CVSSHeatmap\",\n  \"type\": \"heatmap\",\n  \"params\": {\n    \"addTooltip\": true,\n    \"addLegend\": true,\n    \"enableHover\": false,\n    \"legendPosition\": \"right\",\n    \"times\": [],\n    \"colorsNumber\": 4,\n    \"colorSchema\": \"Yellow to Red\",\n    \"setColorRange\": false,\n    \"colorsRange\": [],\n    \"invertColors\": false,\n    \"percentageMode\": false,\n    \"valueAxes\": [\n      {\n        \"show\": false,\n        \"id\": \"ValueAxis-1\",\n        \"type\": \"value\",\n        \"scale\": {\n          \"type\": \"linear\",\n          \"defaultYExtents\": false\n        },\n        \"labels\": {\n          \"show\": false,\n          \"rotate\": 0,\n          \"color\": \"#555\"\n        }\n      }\n    ]\n  },\n  \"aggs\": [\n    {\n      \"id\": \"1\",\n      \"enabled\": true,\n      \"type\": \"count\",\n      \"schema\": \"metric\",\n      \"params\": {}\n    },\n    {\n      \"id\": \"2\",\n      \"enabled\": true,\n      \"type\": \"terms\",\n      \"schema\": \"segment\",\n      \"params\": {\n        \"field\": \"asset.keyword\",\n        \"size\": 50,\n        \"order\": \"desc\",\n        \"orderBy\": \"1\"\n      }\n    },\n    {\n      \"id\": \"3\",\n      \"enabled\": true,\n      \"type\": \"terms\",\n      \"schema\": \"group\",\n      \"params\": {\n        \"field\": \"cvss\",\n        \"size\": 50,\n        \"order\": \"desc\",\n        \"orderBy\": \"_term\"\n      }\n    }\n  ],\n  \"listeners\": {}\n}",
-      "uiStateJSON": "{\n  \"vis\": {\n    \"defaultColors\": {\n      \"0 - 3500\": \"rgb(255,255,204)\",\n      \"3500 - 7000\": \"rgb(254,217,118)\",\n      \"7000 - 10500\": \"rgb(253,141,60)\",\n      \"10500 - 14000\": \"rgb(227,27,28)\"\n    }\n  }\n}",
-      "description": "",
-      "version": 1,
-      "kibanaSavedObjectMeta": {
-        "searchSourceJSON": "{\n  \"index\": \"4a6d9090-f66e-11e8-8f42-af2e41422cf8\",\n  \"query\": {\n    \"query\": {\n      \"query_string\": {\n        \"query\": \"*\",\n        \"analyze_wildcard\": true\n      }\n    },\n    \"language\": \"lucene\"\n  },\n  \"filter\": []\n}"
-      }
-    }
-  },
+  
   {
     "_id": "852816e0-3eb1-11e7-90cb-918f9cb01e3d",
     "_type": "visualization",
@@ -349,20 +215,7 @@
       }
     }
   },
-  {
-    "_id": "13c7d4e0-3df3-11e7-a44e-c79ca8efb780",
-    "_type": "visualization",
-    "_source": {
-      "title": "VulnWhisperer-Solution",
-      "visState": "{\n  \"title\": \"VulnWhisperer-Solution\",\n  \"type\": \"table\",\n  \"params\": {\n    \"perPage\": 10,\n    \"showMeticsAtAllLevels\": false,\n    \"showPartialRows\": false,\n    \"showTotal\": false,\n    \"sort\": {\n      \"columnIndex\": null,\n      \"direction\": null\n    },\n    \"totalFunc\": \"sum\"\n  },\n  \"aggs\": [\n    {\n      \"id\": \"1\",\n      \"enabled\": true,\n      \"type\": \"count\",\n      \"schema\": \"metric\",\n      \"params\": {}\n    },\n    {\n      \"id\": \"2\",\n      \"enabled\": true,\n      \"type\": \"terms\",\n      \"schema\": \"bucket\",\n      \"params\": {\n        \"field\": \"solution\",\n        \"size\": 50,\n        \"order\": \"desc\",\n        \"orderBy\": \"1\",\n        \"customLabel\": \"Solution\"\n      }\n    }\n  ],\n  \"listeners\": {}\n}",
-      "uiStateJSON": "{\n  \"vis\": {\n    \"params\": {\n      \"sort\": {\n        \"columnIndex\": null,\n        \"direction\": null\n      }\n    }\n  }\n}",
-      "description": "",
-      "version": 1,
-      "kibanaSavedObjectMeta": {
-        "searchSourceJSON": "{\n  \"index\": \"4a6d9090-f66e-11e8-8f42-af2e41422cf8\",\n  \"query\": {\n    \"query\": {\n      \"query_string\": {\n        \"analyze_wildcard\": true,\n        \"query\": \"*\"\n      }\n    },\n    \"language\": \"lucene\"\n  },\n  \"filter\": []\n}"
-      }
-    }
-  },
+  
   {
     "_id": "8c9c9430-f77b-11e8-8f42-af2e41422cf8",
     "_type": "visualization",
