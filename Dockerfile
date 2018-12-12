@@ -10,13 +10,14 @@ RUN python get-pip.py
 RUN mkdir /opt/VulnWhisperer
 COPY requirements.txt /opt/VulnWhisperer
 COPY setup.py /opt/VulnWhisperer
-COPY vulnwhisp /opt/VulnWhisperer
-RUN cd /opt/VulnWhisperer && pip install -r requirements.txt
-RUN cd /opt/VulnWhisperer && python setup.py install
-RUN useradd -ms /bin/bash vulnwhisperer
-RUN mkdir /var/log/vulnwhisperer
-RUN chown vulnwhisperer: /var/log/vulnwhisperer
-RUN ln -sf /dev/stderr /var/log/vulnwhisperer/vulnwhisperer.log
+COPY vulnwhisp /opt/VulnWhisperer/vulnwhisp
+COPY bin/ /opt/VulnWhisperer/bin
+#RUN cd /opt/VulnWhisperer && pip install -r requirements.txt
+#RUN cd /opt/VulnWhisperer && python setup.py install
+#RUN useradd -ms /bin/bash vulnwhisperer
+#RUN mkdir /var/log/vulnwhisperer
+#RUN chown vulnwhisperer: /var/log/vulnwhisperer
+#RUN ln -sf /dev/stderr /var/log/vulnwhisperer/vulnwhisperer.log
 RUN chown -R vulnwhisperer: /opt/VulnWhisperer
 USER vulnwhisperer
 
