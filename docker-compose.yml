@@ -58,7 +58,7 @@ services:
         aliases:
           - vulnwhisp-ls1.local
   vulnwhisp-vulnwhisperer:
-    image: hasecuritysolutions/docker_vulnwhisperer:latest
+    image: hasecuritysolutions/vulnwhisperer:latest
     container_name: vulnwhisp-vulnwhisperer
     volumes:
       - ./data/:/opt/VulnWhisperer/data

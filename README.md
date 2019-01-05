@@ -196,29 +196,25 @@ otherwise the users running inside the docker containers will not be able to wor
 - docker/logstash.yml file will need other read/write permissions in order for logstash container to use the configuration file; youll need to run:
 ```shell
 chmod 666 docker/logstash.yml
-```
-- You will need to rebuild the vulnwhisperer Dockerfile before launching the docker-compose, as by the way it is created right now it doesn't pull the last version of the VulnWhisperer code from Github, due to docker layering inner workings. To do this, the best way is to:
-```shell
-wget https://raw.githubusercontent.com/qmontal/docker_vulnwhisperer/master/Dockerfile 
-docker build --no-cache -t hasecuritysolutions/docker_vulnwhisperer -f Dockerfile . --network=host
-```
-This will create the image hasecuritysolutions/docker_vulnwhisperer:latest from scratch with the latest updates. Will soon fix that with the next VulnWhisperer version.
+
 - The vulnwhisperer container inside of docker-compose is using network_mode=host instead of the bridge mode by default; this is due to issues encountered when the container is trying to pull data from your scanners from a different VLAN than the one you currently are. The host network mode uses the DNS and interface from the host itself, fixing those issues, but it breaks the network isolation from the container (this is due to docker creating bridge interfaces to route the traffic, blocking both container's and host's network). If you change this to bridge, you might need to add your DNS to the config in order to resolve internal hostnames.
 - ElasticSearch requires having the value vm.max_map_count with a minimum of 262144; otherwise, it will probably break at launch. Please check https://elk-docker.readthedocs.io/#prerequisites to solve that.
 - If you want to change the "data" folder for storing the results, remember to change it from both the docker-compose.yml file and the logstash files that are in the root "docker/" folder.
 - Hostnames do NOT allow _ (underscores) on it, if you change the hostname configuration from the docker-compose file and add underscores, config files from logstash will fail.
 - If you are having issues with the connection between hosts, to troubleshoot them you can spawn a shell in said host doing the following:
 ```shell
-docker ps #check the images from the containers
-docker exec -i -t 665b4a1e17b6 /bin/bash #where 665b4a1e17b6 is the container image you want to troubleshoot
+docker ps #check the container is running
+docker exec -i -t vulnwhisp-vulnwhisperer /bin/bash #where vulnwhisp-vulnwhisperer is the container name you want to troubleshoot
 ```
 You can also make sure that all ELK components are working by doing "curl -i host:9200 (elastic)/ host:5601 (kibana) /host:9600 (logstash). WARNING! It is possible that logstash is not exposing to the external network the port but it does to its internal docker network "esnet".
 - If Kibana is not showing the results, check that you are searching on the whole ES range, as by default it shows logs for the last 15 minutes (you can choose up to last 5 years)
 - X-Pack has been disabled by default due to the noise, plus being a trial version. You can enable it modifying the docker-compose.yml and docker/logstash.conf files. Logstash.conf contains the default credentials for the X-Pack enabled ES.
 - On Logstash container, "/usr/share/logstash/pipeline/" is the default path for pipelines and "/usr/share/logstash/config/" for logstash.yml file, instead of "/etc/logstash/conf.d/" and "/etc/logstash/".
-- In order to make vulnwhisperer run periodically, add to crontab the following:
+- In order to make vulnwhisperer run periodically, and only the vulnwhisperer code, add to crontab the following:
+
+
 ```shell
-0 8 * * * /usr/bin/docker-compose run vulnwhisp-vulnwhisperer
+0 8 * * * /usr/bin/docker-compose up vulnwhisp-vulnwhisperer
 ``` 
 
 To launch docker-compose, do:
@@ -237,6 +233,7 @@ Setup crontab -e with the following config (modify to your environment) - this w
 
 `30 1 * * * /usr/local/bin/vuln_whisperer -c /opt/vulnwhisp/configs/example.ini`
 
+Another option is to tell logstash to delete files after they have been processed.
 
 _For windows, you may need to type the full path of the binary in vulnWhisperer located in the bin directory._
 
