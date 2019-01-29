@@ -45,7 +45,7 @@ services:
     container_name: logstash
     volumes:
       - ./elk6/pipeline/:/usr/share/logstash/pipeline
-      - ./data/:/opt/VulnWhisperer/data
+      - ./data/:/opt/vulnwhisperer/data
     environment:
       - xpack.monitoring.enabled=false
     depends_on:
@@ -60,11 +60,11 @@ services:
     entrypoint: [
                   "vuln_whisperer",
                   "-c",
-                  "/opt/vulnwhisp/vulnwhisperer.ini"
+                  "/opt/vulnwhisperer/vulnwhisperer.ini"
     ]    
     volumes:
-      - ./data/:/opt/vulnwhisp/data
-      - ./elk6/vulnwhisperer.ini:/opt/vulnwhisp/vulnwhisperer.ini
+      - ./data/:/opt/vulnwhisperer/data
+      - ./elk6/vulnwhisperer.ini:/opt/vulnwhisperer/vulnwhisperer.ini
     network_mode: host
 volumes:
   esdata1:
