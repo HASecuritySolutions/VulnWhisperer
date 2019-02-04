@@ -1,6 +1,8 @@
 # Vulnwhisperer stuff
 data/
 logs/
+elk6/vulnwhisperer.ini
+configs/frameworks_example.ini
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
