@@ -1,7 +1,7 @@
 version: '2'
 services:
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:6.5.2
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.6.0
     container_name: elasticsearch
     environment:
       - cluster.name=vulnwhisperer
@@ -27,7 +27,7 @@ services:
         aliases:
           - elasticsearch.local
   kibana:
-    image: docker.elastic.co/kibana/kibana:6.5.2
+    image: docker.elastic.co/kibana/kibana:6.6.0
     container_name: kibana
     environment:
       SERVER_NAME: kibana
@@ -41,10 +41,11 @@ services:
         aliases:
           - kibana.local
   logstash:
-    image: docker.elastic.co/logstash/logstash:6.5.2
+    image: docker.elastic.co/logstash/logstash:6.6.0
     container_name: logstash
     volumes:
       - ./elk6/pipeline/:/usr/share/logstash/pipeline
+      #- ./elk6/logstash.yml:/usr/share/logstash/config/logstash.yml
       - ./data/:/opt/vulnwhisperer/data
     environment:
       - xpack.monitoring.enabled=false
