@@ -1,0 +1,9 @@
+node.name: logstash
+path.config: /usr/share/logstash/pipeline/
+path.data: /tmp
+queue.drain: true
+queue.type: persisted
+xpack.monitoring.elasticsearch.password: changeme
+xpack.monitoring.elasticsearch.url: elasticsearch:9200
+xpack.monitoring.elasticsearch.username: elastic
+xpack.monitoring.enabled: false
