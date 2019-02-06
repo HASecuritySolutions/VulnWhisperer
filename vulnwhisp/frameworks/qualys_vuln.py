@@ -117,6 +117,6 @@ class qualysVulnScan:
             scan_report['qid'] = scan_report['qid'].astype(int).astype(str)
         else:
             self.logger.warn('Scan ID {} has no vulnerabilities, skipping.'.format(scan_id))
-            return False
+            return scan_report
 
         return scan_report

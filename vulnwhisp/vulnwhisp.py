@@ -835,15 +835,13 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
                 )
                 self.record_insert(record_meta)
                 self.logger.info('File {filename} already exist! Updating database'.format(filename=relative_path_name))
-                self.logger.warn('no mapping')
 
             else:
                 self.logger.info('Processing report ID: {}'.format(report_id))
                 vuln_ready = self.qualys_scan.process_data(scan_id=report_id)
-                if vuln_ready:
+                if not vuln_ready.empty:
                     vuln_ready['scan_name'] = scan_name
                     vuln_ready['scan_reference'] = report_id
-                    self.logger.warn('about to map')
                     vuln_ready.rename(columns=self.COLUMN_MAPPING, inplace=True)
 
                     record_meta = (
@@ -859,7 +857,6 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
                     )
                     self.record_insert(record_meta)
 
-                    self.logger.warn('successfully mapped')
                     if output_format == 'json':
                         with open(relative_path_name, 'w') as f:
                             f.write(vuln_ready.to_json(orient='records', lines=True))
