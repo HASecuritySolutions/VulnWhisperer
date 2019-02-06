@@ -108,12 +108,15 @@ class qualysVulnScan:
 
     def process_data(self, scan_id=None):
         """Downloads a file from Qualys and normalizes it"""
-        
         self.logger.info('Downloading scan ID: {}'.format(scan_id))
         scan_report = self.qw.get_scan_details(scan_id=scan_id)
-        keep_columns = ['category', 'cve_id', 'cvss3_base', 'cvss3_temporal', 'cvss_base', 'cvss_temporal', 'dns', 'exploitability', 'fqdn', 'impact', 'ip', 'ip_status', 'netbios', 'os', 'pci_vuln', 'port', 'protocol', 'qid', 'results', 'severity', 'solution', 'ssl', 'threat', 'title', 'type', 'vendor_reference']
-        scan_report = scan_report.filter(keep_columns)
-        scan_report['severity'] = scan_report['severity'].astype(int).astype(str)
-        scan_report['qid'] = scan_report['qid'].astype(int).astype(str)
+        if not scan_report.empty:
+            keep_columns = ['category', 'cve_id', 'cvss3_base', 'cvss3_temporal', 'cvss_base', 'cvss_temporal', 'dns', 'exploitability', 'fqdn', 'impact', 'ip', 'ip_status', 'netbios', 'os', 'pci_vuln', 'port', 'protocol', 'qid', 'results', 'severity', 'solution', 'ssl', 'threat', 'title', 'type', 'vendor_reference']
+            scan_report = scan_report.filter(keep_columns)
+            scan_report['severity'] = scan_report['severity'].astype(int).astype(str)
+            scan_report['qid'] = scan_report['qid'].astype(int).astype(str)
+        else:
+            self.logger.warn('Scan ID {} has no vulnerabilities, skipping.'.format(scan_id))
+            return False
 
         return scan_report

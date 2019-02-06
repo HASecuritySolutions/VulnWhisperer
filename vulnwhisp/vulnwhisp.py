@@ -835,33 +835,39 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
                 )
                 self.record_insert(record_meta)
                 self.logger.info('File {filename} already exist! Updating database'.format(filename=relative_path_name))
+                self.logger.warn('no mapping')
 
             else:
                 self.logger.info('Processing report ID: {}'.format(report_id))
                 vuln_ready = self.qualys_scan.process_data(scan_id=report_id)
-                vuln_ready['scan_name'] = scan_name
-                vuln_ready['scan_reference'] = report_id
-                vuln_ready.rename(columns=self.COLUMN_MAPPING, inplace=True)
+                if vuln_ready:
+                    vuln_ready['scan_name'] = scan_name
+                    vuln_ready['scan_reference'] = report_id
+                    self.logger.warn('about to map')
+                    vuln_ready.rename(columns=self.COLUMN_MAPPING, inplace=True)
 
-                record_meta = (
-                    scan_name,
-                    scan_reference,
-                    launched_date,
-                    report_name,
-                    time.time(),
-                    vuln_ready.shape[0],
-                    self.CONFIG_SECTION,
-                    report_id,
-                    1,
-                )
-                self.record_insert(record_meta)
+                    record_meta = (
+                        scan_name,
+                        scan_reference,
+                        launched_date,
+                        report_name,
+                        time.time(),
+                        vuln_ready.shape[0],
+                        self.CONFIG_SECTION,
+                        report_id,
+                        1,
+                    )
+                    self.record_insert(record_meta)
 
-                if output_format == 'json':
-                    with open(relative_path_name, 'w') as f:
-                        f.write(vuln_ready.to_json(orient='records', lines=True))
-                        f.write('\n')
+                    self.logger.warn('successfully mapped')
+                    if output_format == 'json':
+                        with open(relative_path_name, 'w') as f:
+                            f.write(vuln_ready.to_json(orient='records', lines=True))
+                            f.write('\n')
 
-                self.logger.info('Report written to {}'.format(report_name))
+                    self.logger.info('Report written to {}'.format(report_name))
+                else:
+                    return False
 
         except Exception as e:
             self.logger.error('Could not process {}: {}'.format(report_id, str(e)))
