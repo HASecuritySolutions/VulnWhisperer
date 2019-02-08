@@ -16,7 +16,7 @@ Currently Supports
 
 ### Vulnerability Frameworks
 
-- [X] [Nessus (v6 & **v7**)](https://www.tenable.com/products/nessus/nessus-professional)
+- [X] [Nessus (**v6**/**v7**/**v8**)](https://www.tenable.com/products/nessus/nessus-professional)
 - [X] [Qualys Web Applications](https://www.qualys.com/apps/web-app-scanning/)
 - [X] [Qualys Vulnerability Management](https://www.qualys.com/apps/vulnerability-management/)
 - [X] [OpenVAS](http://www.openvas.org/)
