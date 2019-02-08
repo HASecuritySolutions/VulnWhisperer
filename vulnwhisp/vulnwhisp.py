@@ -318,8 +318,7 @@ class vulnWhispererNessus(vulnWhispererBase):
             all_scans = self.scan_count(scans)
             if self.uuids:
                 scan_list = [scan for scan in all_scans if scan['uuid']
-                             not in self.uuids and scan['status']
-                             == 'completed']
+                             not in self.uuids and scan['status'] in ['completed', 'imported']]
             else:
                 scan_list = all_scans
             self.logger.info('Identified {new} scans to be processed'.format(new=len(scan_list)))
