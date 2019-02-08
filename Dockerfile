@@ -16,12 +16,13 @@ COPY bin/ bin/
 COPY deps/ deps/
 COPY configs/frameworks_example.ini frameworks_example.ini
 
+RUN python setup.py clean --all
+RUN pip install -r requirements.txt
+
 WORKDIR /opt/VulnWhisperer/deps/qualysapi
 RUN python setup.py install
 
 WORKDIR /opt/VulnWhisperer
-RUN python setup.py clean --all
-RUN pip install -r requirements.txt
 RUN python setup.py install
 
 
