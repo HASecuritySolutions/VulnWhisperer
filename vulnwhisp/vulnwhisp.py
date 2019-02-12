@@ -838,32 +838,29 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
             else:
                 self.logger.info('Processing report ID: {}'.format(report_id))
                 vuln_ready = self.qualys_scan.process_data(scan_id=report_id)
-                if not vuln_ready.empty:
-                    vuln_ready['scan_name'] = scan_name
-                    vuln_ready['scan_reference'] = report_id
-                    vuln_ready.rename(columns=self.COLUMN_MAPPING, inplace=True)
+                vuln_ready['scan_name'] = scan_name
+                vuln_ready['scan_reference'] = report_id
+                vuln_ready.rename(columns=self.COLUMN_MAPPING, inplace=True)
 
-                    record_meta = (
-                        scan_name,
-                        scan_reference,
-                        launched_date,
-                        report_name,
-                        time.time(),
-                        vuln_ready.shape[0],
-                        self.CONFIG_SECTION,
-                        report_id,
-                        1,
-                    )
-                    self.record_insert(record_meta)
+                record_meta = (
+                    scan_name,
+                    scan_reference,
+                    launched_date,
+                    report_name,
+                    time.time(),
+                    vuln_ready.shape[0],
+                    self.CONFIG_SECTION,
+                    report_id,
+                    1,
+                )
+                self.record_insert(record_meta)
 
-                    if output_format == 'json':
-                        with open(relative_path_name, 'w') as f:
-                            f.write(vuln_ready.to_json(orient='records', lines=True))
-                            f.write('\n')
+                if output_format == 'json':
+                    with open(relative_path_name, 'w') as f:
+                        f.write(vuln_ready.to_json(orient='records', lines=True))
+                        f.write('\n')
 
-                    self.logger.info('Report written to {}'.format(report_name))
-                else:
-                    return False
+                self.logger.info('Report written to {}'.format(report_name))
 
         except Exception as e:
             self.logger.error('Could not process {}: {}'.format(report_id, str(e)))
