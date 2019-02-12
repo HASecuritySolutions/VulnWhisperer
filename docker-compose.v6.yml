@@ -6,7 +6,7 @@ services:
     environment:
       - cluster.name=vulnwhisperer
       - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
       - xpack.security.enabled=false
 
     ulimits:
@@ -21,7 +21,7 @@ services:
       - esdata1:/usr/share/elasticsearch/data
     ports:
       - 9200:9200
-    restart: always
+    #restart: always
     networks:
       esnet:
         aliases:

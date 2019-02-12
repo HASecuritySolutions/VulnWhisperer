@@ -39,8 +39,8 @@ class JiraAPI(object):
         for tag in tags:
             labels.append(str(tag))
 
-        self.logger.info("creating ticket for project {} title[20] {}".format(project, title[:20]))
-        self.logger.info("project {} has a component requirement: {}".format(project, self.PROJECT_COMPONENT_TABLE[project]))
+        self.logger.info("creating ticket for project {} title: {}".format(project, title[:20]))
+        self.logger.info("project {} has a component requirement: {}".format(project, components))
         project_obj = self.jira.project(project)
         components_ticket = []
         for component in components:
@@ -205,13 +205,21 @@ class JiraAPI(object):
         difference = list(set(assets).symmetric_difference(ticket_assets))
         
         comment = ''
+        added = ''
+        removed = ''
         #put a comment with the assets that have been added/removed
         for asset in difference:
             if asset in assets:
-                comment += "Asset {} have been added to the ticket as vulnerability *has been newly detected*.\n".format(asset)
+                if not added:
+                    added = 'The following assets *have been newly detected*:\n'
+                added += '* {}\n'.format(asset)
             elif asset in ticket_assets:
-                comment += "Asset {} have been removed from the ticket as vulnerability *has been resolved*.\n".format(asset)
-       
+                if not removed:
+                    removed= 'The following assets *have been resolved*:\n'
+                removed += '* {}\n'.format(asset)
+
+        comment = added + removed
+
         try:
             ticket_obj.update(description=tpl, comment=comment, fields={"labels":ticket_obj.fields.labels})
             self.logger.info("Ticket {} updated successfully".format(ticketid))
