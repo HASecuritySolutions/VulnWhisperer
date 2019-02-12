@@ -1041,8 +1041,12 @@ class vulnWhispererJIRA(vulnWhispererBase):
         risks = ['info', 'low', 'medium', 'high', 'critical'] 
         # +1 as array is 0-4, but score is 1-5
         min_risk = int([i for i,x in enumerate(risks) if x == min_critical][0])+1
-
-        data=[json.loads(line) for line in open(fullpath).readlines()] 
+        
+        try:
+            data=[json.loads(line) for line in open(fullpath).readlines()] 
+        except Exception as e:
+            self.logger.warn("Scan has no vulnerabilities, skipping.")
+            return vulnerabilities
        
         #qualys fields we want - []
         for index in range(len(data)):
@@ -1142,8 +1146,8 @@ class vulnWhispererJIRA(vulnWhispererBase):
             
             self.jira.sync(vulnerabilities, project, components)
         else:
-            self.logger.info("Vulnerabilities from {source} has not been parsed! Exiting...".format(source=source))
-            sys.exit(0)
+            self.logger.info("[{source}.{scan_name}] No vulnerabilities or vulnerabilities not parsed.".format(source=source, scan_name=scan_name))
+            return False
 
         return True
 
