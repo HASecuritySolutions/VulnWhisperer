@@ -625,7 +625,7 @@ class vulnWhispererQualys(vulnWhispererBase):
             for app in self.scans_to_process.iterrows():
                 counter += 1
                 r = app[1]
-                self.logger.debug('Processing {}/{}'.format(counter, len(self.scans_to_process)))
+                self.logger.info('Processing {}/{}'.format(counter, len(self.scans_to_process)))
                 self.whisper_reports(report_id=r['id'],
                                      launched_date=r['launchedDate'],
                                      scan_name=r['name'],
@@ -884,7 +884,7 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
             for app in self.scans_to_process.iterrows():
                 counter += 1
                 r = app[1]
-                self.logger.debug('Processing {}/{}'.format(counter, len(self.scans_to_process)))
+                self.logger.info('Processing {}/{}'.format(counter, len(self.scans_to_process)))
                 self.whisper_reports(report_id=r['id'],
                                      launched_date=r['date'],
                                      scan_name=r['name'],
