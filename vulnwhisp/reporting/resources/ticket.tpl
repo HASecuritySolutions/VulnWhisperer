@@ -29,4 +29,4 @@ Please do not delete or modify the ticket assigned tags or title, as they are us
 
 In the case of the team accepting the risk and wanting to close the ticket, please add the label "*risk_accepted*" to the ticket before closing it.
 
-If server has been decomissioned, please add the label "*server_decomission*" to the ticket before closing it.
+If server has been decommissioned, please add the label "*server_decommission*" to the ticket before closing it.
