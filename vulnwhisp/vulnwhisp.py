@@ -983,8 +983,17 @@ class vulnWhispererJIRA(vulnWhispererBase):
         if not fullpath:
             self.logger.error('Scan file path "{scan_name}" for source "{source}" has not been found.'.format(scan_name=scan_name, source=source))
             sys.exit(1)
+    
+        dns_resolv = self.config.get('jira','dns_resolv')
+        if dns_resolv in ('False', 'false', ''):
+            dns_resolv = False
+        elif dns_resolv in ('True', 'true'):
+            dns_resolv = True
+        else:
+            self.logger.error("dns_resolv variable not setup in [jira] section; will not do dns resolution")
+            dns_resolv = False
 
-        return project, components, fullpath, min_critical
+        return project, components, fullpath, min_critical, dns_resolv
 
 
     def parse_nessus_vulnerabilities(self, fullpath, source, scan_name, min_critical):
@@ -1033,7 +1042,7 @@ class vulnWhispererJIRA(vulnWhispererBase):
         
         return vulnerabilities
     
-    def parse_qualys_vuln_vulnerabilities(self, fullpath, source, scan_name, min_critical):
+    def parse_qualys_vuln_vulnerabilities(self, fullpath, source, scan_name, min_critical, dns_resolv = False):
         #parsing of the qualys vulnerabilities schema
         #parse json
         vulnerabilities = []
@@ -1070,7 +1079,7 @@ class vulnWhispererJIRA(vulnWhispererBase):
                 vuln['ips'] = []
                 #TODO ADDED DNS RESOLUTION FROM QUALYS! \n SEPARATORS INSTEAD OF \\n!
                 
-                vuln['ips'].append("{ip} - {protocol}/{port} - {dns}".format(**self.get_asset_fields(data[index])))
+                vuln['ips'].append("{ip} - {protocol}/{port} - {dns}".format(**self.get_asset_fields(data[index], dns_resolv)))
 
                 #different risk system than Nessus!
                 vuln['risk'] = risks[int(data[index]['risk'])-1]
@@ -1085,31 +1094,32 @@ class vulnWhispererJIRA(vulnWhispererBase):
                 # grouping assets by vulnerability to open on single ticket, as each asset has its own nessus entry
                 for vuln in vulnerabilities:
                     if vuln['title'] == data[index]['plugin_name']:
-                        vuln['ips'].append("{ip} - {protocol}/{port} - {dns}".format(**self.get_asset_fields(data[index])))
+                        vuln['ips'].append("{ip} - {protocol}/{port} - {dns}".format(**self.get_asset_fields(data[index], dns_resolv)))
 
         return vulnerabilities
 
-    def get_asset_fields(self, vuln):
+    def get_asset_fields(self, vuln, dns_resolv):
         values = {}
         values['ip'] = vuln['ip']
         values['protocol'] = vuln['protocol'] 
         values['port'] = vuln['port'] 
         values['dns'] = ''
-        if vuln['dns']:
-            values['dns'] = vuln['dns']
-        else:
-            if values['ip'] in self.host_resolv_cache.keys():
-                self.logger.debug("Hostname from {ip} cached, retrieving from cache.".format(ip=values['ip']))
-                values['dns'] = self.host_resolv_cache[values['ip']]
+        if dns_resolv:
+            if vuln['dns']:
+                values['dns'] = vuln['dns']
             else:
-                self.logger.debug("No hostname, trying to resolve {ip}'s  hostname.".format(ip=values['ip']))
-                try:
-                    values['dns'] = socket.gethostbyaddr(vuln['ip'])[0]
-                    self.host_resolv_cache[values['ip']] = values['dns']
-                    self.logger.debug("Hostname found: {hostname}.".format(hostname=values['dns']))
-                except:
-                    self.host_resolv_cache[values['ip']] = ''
-                    self.logger.debug("Hostname not found for: {ip}.".format(ip=values['ip']))
+                if values['ip'] in self.host_resolv_cache.keys():
+                    self.logger.debug("Hostname from {ip} cached, retrieving from cache.".format(ip=values['ip']))
+                    values['dns'] = self.host_resolv_cache[values['ip']]
+                else:
+                    self.logger.debug("No hostname, trying to resolve {ip}'s  hostname.".format(ip=values['ip']))
+                    try:
+                        values['dns'] = socket.gethostbyaddr(vuln['ip'])[0]
+                        self.host_resolv_cache[values['ip']] = values['dns']
+                        self.logger.debug("Hostname found: {hostname}.".format(hostname=values['dns']))
+                    except:
+                        self.host_resolv_cache[values['ip']] = ''
+                        self.logger.debug("Hostname not found for: {ip}.".format(ip=values['ip']))
 
         for key in values.keys():
             if not values[key]:
@@ -1127,7 +1137,7 @@ class vulnWhispererJIRA(vulnWhispererBase):
     def jira_sync(self, source, scan_name):
         self.logger.info("Jira Sync triggered for source '{source}' and scan '{scan_name}'".format(source=source, scan_name=scan_name))
 
-        project, components, fullpath, min_critical = self.get_env_variables(source, scan_name)
+        project, components, fullpath, min_critical, dns_resolv = self.get_env_variables(source, scan_name)
 
         vulnerabilities = []
 
@@ -1137,7 +1147,7 @@ class vulnWhispererJIRA(vulnWhispererBase):
 
         #***Qualys VM parsing***
         if source == "qualys_vuln":
-            vulnerabilities = self.parse_qualys_vuln_vulnerabilities(fullpath, source, scan_name, min_critical)
+            vulnerabilities = self.parse_qualys_vuln_vulnerabilities(fullpath, source, scan_name, min_critical, dns_resolv)
         
         #***JIRA sync***
         if vulnerabilities:
