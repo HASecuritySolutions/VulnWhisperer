@@ -44,8 +44,8 @@ services:
     image: docker.elastic.co/logstash/logstash:6.6.0
     container_name: logstash
     volumes:
-      - ./elk6/pipeline/:/usr/share/logstash/pipeline
-      #- ./elk6/logstash.yml:/usr/share/logstash/config/logstash.yml
+      - ./resources/elk6/pipeline/:/usr/share/logstash/pipeline
+      #- ./resources/elk6/logstash.yml:/usr/share/logstash/config/logstash.yml
       - ./data/:/opt/vulnwhisperer/data
     environment:
       - xpack.monitoring.enabled=false
@@ -65,7 +65,7 @@ services:
     ]    
     volumes:
       - ./data/:/opt/vulnwhisperer/data
-      - ./elk6/vulnwhisperer.ini:/opt/vulnwhisperer/vulnwhisperer.ini
+      - ./resources/elk6/vulnwhisperer.ini:/opt/vulnwhisperer/vulnwhisperer.ini
     network_mode: host
 volumes:
   esdata1:
