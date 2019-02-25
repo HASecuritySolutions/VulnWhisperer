@@ -29,18 +29,20 @@ class JiraAPI(object):
         self.JIRA_RESOLUTION_FIXED = "Fixed"
         self.clean_obsolete = clean_obsolete
         self.template_path = 'vulnwhisp/reporting/resources/ticket.tpl'
+        self.max_ips_ticket = 30
+        self.attachment_filename = "vulnerable_assets.txt"
         if path:
             self.download_tickets(path)
         else:
             self.logger.warn("No local path specified, skipping Jira ticket download.")
 
-    def create_ticket(self, title, desc, project="IS", components=[], tags=[]):
+    def create_ticket(self, title, desc, project="IS", components=[], tags=[], attachment_contents = []):
         labels = ['vulnerability_management']
         for tag in tags:
             labels.append(str(tag))
 
         self.logger.info("creating ticket for project {} title: {}".format(project, title[:20]))
-        self.logger.info("project {} has a component requirement: {}".format(project, components))
+        self.logger.debug("project {} has a component requirement: {}".format(project, components))
         project_obj = self.jira.project(project)
         components_ticket = []
         for component in components:
@@ -60,8 +62,12 @@ class JiraAPI(object):
                                            issuetype={'name': 'Bug'},
                                            labels=labels,
                                            components=components_ticket)
-
+        
         self.logger.info("Ticket {} created successfully".format(new_issue))
+        
+        if attachment_contents:
+            self.add_content_as_attachment(new_issue, attachment_contents)
+        
         return new_issue
     
     #Basic JIRA Metrics
@@ -108,13 +114,18 @@ class JiraAPI(object):
                 self.ticket_update_assets(vuln, ticketid, ticket_assets)
                 self.add_label(ticketid, vuln['risk'])
                 continue
-
+            attachment_contents = []
+            # if assets >30, add as attachment
+            # create local text file with assets, attach it to ticket
+            if len(vuln['ips']) > self.max_ips_ticket:
+                attachment_contents = vuln['ips']
+                vuln['ips'] = ["Affected hosts ({assets}) exceed Jira's allowed character limit, added as an attachment.".format(assets = len(attachment_contents))]
             try:
                 tpl = template(self.template_path, vuln)
             except Exception as e:
                 self.logger.error('Exception templating: {}'.format(str(e)))
                 return 0
-            self.create_ticket(title=vuln['title'], desc=tpl, project=project, components=components, tags=[vuln['source'], vuln['scan_name'], 'vulnerability', vuln['risk']])
+            self.create_ticket(title=vuln['title'], desc=tpl, project=project, components=components, tags=[vuln['source'], vuln['scan_name'], 'vulnerability', vuln['risk']], attachment_contents = attachment_contents)
         
         self.close_fixed_tickets(vulnerabilities)
         # we reinitialize so the next sync redoes the query with their specific variables
@@ -159,11 +170,71 @@ class JiraAPI(object):
         try:
             affected_assets_section = ticket.raw.get('fields', {}).get('description').encode("ascii").split("{panel:title=Affected Assets}")[1].split("{panel}")[0]
             assets = list(set(re.findall(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b", affected_assets_section)))
-        except:
-            self.logger.error("Ticket IPs regex failed. Ticket ID: {}".format(ticketid))
+             
+            if not assets:
+                #check if attachment, if so, get assets from attachment
+                affected_assets_section = self.check_ips_attachment(ticket)
+                if affected_assets_section:
+                    assets = list(set(re.findall(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b", affected_assets_section)))
+                
+        except Exception as e:
+            self.logger.error("Ticket IPs regex failed. Ticket ID: {}. Reason: {}".format(ticketid, e))
             assets = []
         
         return ticketid, title, assets
+
+    def check_ips_attachment(self, ticket):
+        affected_assets_section = []
+        try:
+            fields = self.jira.issue(ticket.key).raw.get('fields')
+            attachments = fields.get('attachment')
+            affected_assets_section = ""
+            #we will make sure we get the latest version of the file
+            latest = ''
+            attachment_id = ''
+            if attachments:
+                for item in attachments:
+                    if item.get('filename') == self.attachment_filename:
+                        if not latest:
+                            latest = item.get('created')
+                            attachment_id = item.get('id') 
+                        else:
+                            if latest < item.get('created'):
+                                latest = item.get('created')         
+                                attachment_id = item.get('id') 
+            affected_assets_section = self.jira.attachment(attachment_id).get()
+
+        except Exception as e:
+            self.logger.error("Failed to get assets from ticket attachment. Ticket ID: {}. Reason: {}".format(ticket, e))
+
+        return affected_assets_section
+
+    def clean_old_attachments(self, ticket):
+        fields = ticket.raw.get('fields')
+        attachments = fields.get('attachment')
+        if attachments:
+            for item in attachments:
+                if item.get('filename') == self.attachment_filename:
+                    self.jira.delete_attachment(item.get('id'))
+
+    def add_content_as_attachment(self, issue, contents):
+        try:
+            #Create the file locally with the data
+            attachment_file = open(self.attachment_filename, "w")
+            attachment_file.write("\n".join(contents))
+            attachment_file.close()
+            #Push the created file to the ticket
+            attachment_file = open(self.attachment_filename, "rb")
+            self.jira.add_attachment(issue, attachment_file, self.attachment_filename)
+            attachment_file.close()
+            #remove the temp file
+            os.remove(self.attachment_filename)
+            self.logger.info("Added attachment successfully.")
+        except:
+            self.logger.error("Error while attaching file to ticket.")
+            return False
+
+        return True
 
     def get_ticket_reported_assets(self, ticket):
         #[METRICS] return a list with all the affected assets for that vulnerability (including already resolved ones) 
@@ -193,12 +264,8 @@ class JiraAPI(object):
         
         if self.is_ticket_resolved(self.jira.issue(ticketid)):
             self.reopen_ticket(ticketid)
-        try:
-            tpl = template(self.template_path, vuln)
-        except Exception as e:
-            self.logger.error('Exception updating assets: {}'.format(str(e)))
-            return 0
-
+        
+        #First will do the comparison of assets
         ticket_obj = self.jira.issue(ticketid)
         ticket_obj.update()
         assets = list(set(re.findall(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b", ",".join(vuln['ips']))))
@@ -211,21 +278,40 @@ class JiraAPI(object):
         for asset in difference:
             if asset in assets:
                 if not added:
-                    added = 'The following assets *have been newly detected*:\n'
+                    added = '\nThe following assets *have been newly detected*:\n'
                 added += '* {}\n'.format(asset)
             elif asset in ticket_assets:
                 if not removed:
-                    removed= 'The following assets *have been resolved*:\n'
+                    removed= '\nThe following assets *have been resolved*:\n'
                 removed += '* {}\n'.format(asset)
 
         comment = added + removed
-
+        
+        #then will check if assets are too many that need to be added as an attachment
+        attachment_contents = []
+        if len(vuln['ips']) > self.max_ips_ticket:
+            attachment_contents = vuln['ips']
+            vuln['ips'] = ["Affected hosts ({assets}) exceed Jira's allowed character limit, added as an attachment.".format(assets = len(attachment_contents))]
+        
+        #fill the ticket description template
         try:
+            tpl = template(self.template_path, vuln)
+        except Exception as e:
+            self.logger.error('Exception updating assets: {}'.format(str(e)))
+            return 0
+
+        #proceed checking if it requires adding as an attachment
+        try:
+            #update attachment with hosts and delete the old versions
+            if attachment_contents:
+                self.clean_old_attachments(ticket_obj)
+                self.add_content_as_attachment(ticket_obj, attachment_contents)
+                
             ticket_obj.update(description=tpl, comment=comment, fields={"labels":ticket_obj.fields.labels})
             self.logger.info("Ticket {} updated successfully".format(ticketid))
             self.add_label(ticketid, 'updated')
-        except:
-            self.logger.error("Error while trying up update ticket {}".format(ticketid))
+        except Exception as e:
+            self.logger.error("Error while trying up update ticket {ticketid}.\nReason: {e}".format(ticketid = ticketid, e=e))
         return 0
 
     def add_label(self, ticketid, label):
