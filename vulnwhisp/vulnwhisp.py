@@ -679,6 +679,8 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
         if debug:
             self.logger.setLevel(logging.DEBUG)
 
+
+        self.directory_check()
         self.port = int(self.config.get(self.CONFIG_SECTION, 'port'))
         self.develop = True
         self.purge = purge
