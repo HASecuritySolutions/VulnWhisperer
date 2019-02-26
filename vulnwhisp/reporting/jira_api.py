@@ -317,14 +317,15 @@ class JiraAPI(object):
     def add_label(self, ticketid, label):
         ticket_obj = self.jira.issue(ticketid)
         
-        if label not in ticket_obj.fields.labels:
-                ticket_obj.fields.labels.append(label)
+        if label not in [x.encode('utf8') for x in ticket_obj.fields.labels]:
+            ticket_obj.fields.labels.append(label)
         
-        try:
-            ticket_obj.update(fields={"labels":ticket_obj.fields.labels})
-            self.logger.info("Added label {label} to ticket {ticket}".format(label=label, ticket=ticketid))
-        except:
-            self.logger.error("Error while trying to add label {label} to ticket {ticket}".format(label=label, ticket=ticketid))
+            try:
+                ticket_obj.update(fields={"labels":ticket_obj.fields.labels})
+                self.logger.info("Added label {label} to ticket {ticket}".format(label=label, ticket=ticketid))
+            except:
+                self.logger.error("Error while trying to add label {label} to ticket {ticket}".format(label=label, ticket=ticketid))
+        
         return 0
 
     def close_fixed_tickets(self, vulnerabilities):
