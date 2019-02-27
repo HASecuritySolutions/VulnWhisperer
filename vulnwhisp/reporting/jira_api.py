@@ -151,9 +151,9 @@ class JiraAPI(object):
         #WARNING: function IGNORES DUPLICATES, after finding a "duplicate" will just return it exists
         #it wont iterate over the rest of tickets looking for other possible duplicates/similar issues
         self.logger.info("Comparing Vulnerabilities to created tickets")
-        for index in range(len(self.all_tickets)-1):
+        for index in range(len(self.all_tickets)):
             checking_ticketid, checking_title, checking_assets = self.ticket_get_unique_fields(self.all_tickets[index])
-            if title == checking_title: 
+            if title.encode('ascii') == checking_title.encode('ascii'): 
                 difference = list(set(assets).symmetric_difference(checking_assets))
                 #to check intersection - set(assets) & set(checking_assets)
                 if difference: 
