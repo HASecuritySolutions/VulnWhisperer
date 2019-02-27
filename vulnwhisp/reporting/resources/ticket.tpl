@@ -30,3 +30,5 @@ Please do not delete or modify the ticket assigned tags or title, as they are us
 In the case of the team accepting the risk and wanting to close the ticket, please add the label "*risk_accepted*" to the ticket before closing it.
 
 If server has been decommissioned, please add the label "*server_decommission*" to the ticket before closing it.
+
+If when checking the vulnerability it looks like a false positive, _+please elaborate in a comment+_ and add the label "*false_positive*" before closing it; we will review it and report it to the vendor.

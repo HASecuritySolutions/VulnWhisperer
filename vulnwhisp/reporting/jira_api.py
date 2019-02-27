@@ -385,6 +385,9 @@ class JiraAPI(object):
                 elif "server_decommission" in labels:
                     self.logger.warn("Ticket {} server decommissioned, will be ignored".format(ticket_obj))
                     return True
+                elif "false_positive" in labels:
+                    self.logger.warn("Ticket {} flagged false positive, will be ignored".format(ticket_obj))
+                    return True
         self.logger.info("Ticket {} risk has not been accepted".format(ticket_obj))
         return False
 
@@ -398,8 +401,10 @@ class JiraAPI(object):
                 try:
                     if self.is_ticket_reopenable(ticket_obj):
                         comment = '''This ticket has been reopened due to the vulnerability not having been fixed (if multiple assets are affected, all need to be fixed; if the server is down, lastest known vulnerability might be the one reported).
-                        In the case of the team accepting the risk and wanting to close the ticket, please add the label "*risk_accepted*" to the ticket before closing it.
-                        If server has been decommissioned, please add the label "*server_decommission*" to the ticket before closing it.
+                        - In the case of the team accepting the risk and wanting to close the ticket, please add the label "*risk_accepted*" to the ticket before closing it.
+                        - If server has been decommissioned, please add the label "*server_decommission*" to the ticket before closing it.
+                        - If when checking the vulnerability it looks like a false positive, _+please elaborate in a comment+_ and add the label "*false_positive*" before closing it; we will review it and report it to the vendor.
+                        
                         If you have further doubts, please contact the Security Team.'''
                         error = self.jira.transition_issue(issue=ticketid, transition=self.JIRA_REOPEN_ISSUE, comment = comment)
                         self.logger.info("Ticket {} reopened successfully".format(ticketid))
