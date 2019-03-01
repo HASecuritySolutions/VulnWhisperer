@@ -262,11 +262,19 @@ class JiraAPI(object):
         # correct description will always be in the vulnerability to report, only needed to update description to new one
         self.logger.info("Ticket {} exists, UPDATE requested".format(ticketid))
         
-        if self.is_ticket_resolved(self.jira.issue(ticketid)):
+        #for now, if a vulnerability has been accepted ('accepted_risk'), ticket is completely ignored and not updated (no new assets)
+
+        #TODO when vulnerability accepted, create a new ticket with only the non-accepted vulnerable assets
+        #this would require go through the downloaded tickets, check duplicates/accepted ones, and if so,
+        #check on their assets to exclude them from the new ticket
+        risk_accepted = False
+        ticket_obj = self.jira.issue(ticketid)
+        if self.is_ticket_resolved(ticket_obj):
+            if self.is_risk_accepted(ticket_obj):
+                return 0
             self.reopen_ticket(ticketid)
         
         #First will do the comparison of assets
-        ticket_obj = self.jira.issue(ticketid)
         ticket_obj.update()
         assets = list(set(re.findall(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b", ",".join(vuln['ips']))))
         difference = list(set(assets).symmetric_difference(ticket_assets))
