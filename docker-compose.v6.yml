@@ -40,13 +40,24 @@ services:
       esnet:
         aliases:
           - kibana.local
+  kibana-config:
+    image: alpine
+    container_name: kibana-config
+    volumes:
+      - ./resources/elk6/init_kibana.sh:/opt/init_kibana.sh
+      - ./resources/elk6/kibana_APIonly.json:/opt/kibana_APIonly.json
+    command: sh -c "apk add --no-cache curl bash && chmod +x /opt/init_kibana.sh && chmod +r /opt/kibana_APIonly.json && cd /opt/ && /bin/bash /opt/init_kibana.sh" # /opt/kibana_APIonly.json"
+    networks:
+      esnet:
+        aliases:
+          - kibana-config.local
   logstash:
     image: docker.elastic.co/logstash/logstash:6.6.0
     container_name: logstash
     volumes:
       - ./resources/elk6/pipeline/:/usr/share/logstash/pipeline
-      #- ./resources/elk6/logstash.yml:/usr/share/logstash/config/logstash.yml
       - ./data/:/opt/vulnwhisperer/data
+      #- ./resources/elk6/logstash.yml:/usr/share/logstash/config/logstash.yml
     environment:
       - xpack.monitoring.enabled=false
     depends_on:
@@ -64,6 +75,7 @@ services:
                   "/opt/vulnwhisperer/vulnwhisperer.ini"
     ]    
     volumes:
+      - /opt/vulnwhisperer/data/:/opt/vulnwhisperer/data
       - ./data/:/opt/vulnwhisperer/data
       - ./resources/elk6/vulnwhisperer.ini:/opt/vulnwhisperer/vulnwhisperer.ini
     network_mode: host
