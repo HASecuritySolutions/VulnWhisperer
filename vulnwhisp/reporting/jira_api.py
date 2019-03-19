@@ -9,7 +9,7 @@ from bottle import template
 import re
 
 class JiraAPI(object):
-    def __init__(self, hostname=None, username=None, password=None, path="", debug=False, clean_obsolete=True, max_time_window=12):
+    def __init__(self, hostname=None, username=None, password=None, path="", debug=False, clean_obsolete=True, max_time_window=12, decommission_time_window=3):
         self.logger = logging.getLogger('JiraAPI')
         if debug:
             self.logger.setLevel(logging.DEBUG)
@@ -23,11 +23,8 @@ class JiraAPI(object):
         self.all_tickets = []
         self.JIRA_REOPEN_ISSUE = "Reopen Issue"
         self.JIRA_CLOSE_ISSUE = "Close Issue"
-        self.max_time_tracking = max_time_window #in months
-        #<JIRA Resolution: name=u'Obsolete', id=u'11'>
         self.JIRA_RESOLUTION_OBSOLETE = "Obsolete"
         self.JIRA_RESOLUTION_FIXED = "Fixed"
-        self.clean_obsolete = clean_obsolete
         self.template_path = 'vulnwhisp/reporting/resources/ticket.tpl'
         self.max_ips_ticket = 30
         self.attachment_filename = "vulnerable_assets.txt"
@@ -35,6 +32,20 @@ class JiraAPI(object):
             self.download_tickets(path)
         else:
             self.logger.warn("No local path specified, skipping Jira ticket download.")
+        self.max_time_tracking = max_time_window #in months
+        self.max_decommission_time = decommission_time_window #in months
+        # [HIGIENE] close tickets older than 12 months as obsolete (max_time_window defined)
+        if clean_obsolete:
+            self.close_obsolete_tickets()
+        # deletes the tag "server_decommission" from those tickets closed <=3 months ago
+        self.decommission_cleanup()
+        
+        self.jira_still_vulnerable_comment = '''This ticket has been reopened due to the vulnerability not having been fixed (if multiple assets are affected, all need to be fixed; if the server is down, lastest known vulnerability might be the one reported).
+        - In the case of the team accepting the risk and wanting to close the ticket, please add the label "*risk_accepted*" to the ticket before closing it.
+        - If server has been decommissioned, please add the label "*server_decommission*" to the ticket before closing it.
+        - If when checking the vulnerability it looks like a false positive, _+please elaborate in a comment+_ and add the label "*false_positive*" before closing it; we will review it and report it to the vendor.
+        
+        If you have further doubts, please contact the Security Team.'''
 
     def create_ticket(self, title, desc, project="IS", components=[], tags=[], attachment_contents = []):
         labels = ['vulnerability_management']
@@ -88,11 +99,6 @@ class JiraAPI(object):
         #JIRA structure of each vulnerability: [source, scan_name, title, diagnosis, consequence, solution, ips, risk, references]
         self.logger.info("JIRA Sync started")
 
-        # [HIGIENE] close tickets older than 12 months as obsolete
-        # Higiene clean up affects to all tickets created by the module, filters by label 'vulnerability_management'
-        if self.clean_obsolete:
-            self.close_obsolete_tickets()
-
         for vuln in vulnerabilities:
             # JIRA doesn't allow labels with spaces, so making sure that the scan_name doesn't have spaces
             # if it has, they will be replaced by "_"
@@ -107,7 +113,7 @@ class JiraAPI(object):
 
             if exists:
                 # If ticket "resolved" -> reopen, as vulnerability is still existent
-                self.reopen_ticket(ticketid)
+                self.reopen_ticket(ticketid=ticketid, comment=self.jira_still_vulnerable_comment)
                 self.add_label(ticketid, vuln['risk'])
                 continue
             elif to_update:
@@ -251,7 +257,6 @@ class JiraAPI(object):
             
             start = datetime(created[0],created[1],created[2],created[3],created[4],created[5])
             end = datetime(resolved[0],resolved[1],resolved[2],resolved[3],resolved[4],resolved[5])
-            
             return (end-start).days
         else:
             self.logger.error("Ticket {ticket} is not resolved, can't calculate resolution time".format(ticket=ticket))
@@ -272,7 +277,7 @@ class JiraAPI(object):
         if self.is_ticket_resolved(ticket_obj):
             if self.is_risk_accepted(ticket_obj):
                 return 0
-            self.reopen_ticket(ticketid)
+            self.reopen_ticket(ticketid=ticketid, comment=self.jira_still_vulnerable_comment)
         
         #First will do the comparison of assets
         ticket_obj.update()
@@ -336,8 +341,27 @@ class JiraAPI(object):
         
         return 0
 
+    def remove_label(self, ticketid, label):
+        ticket_obj = self.jira.issue(ticketid)
+        
+        if label in [x.encode('utf8') for x in ticket_obj.fields.labels]:
+            ticket_obj.fields.labels.remove(label)
+        
+            try:
+                ticket_obj.update(fields={"labels":ticket_obj.fields.labels})
+                self.logger.info("Removed label {label} from ticket {ticket}".format(label=label, ticket=ticketid))
+            except:
+                self.logger.error("Error while trying to remove label {label} to ticket {ticket}".format(label=label, ticket=ticketid))
+        else:
+            self.logger.error("Error: label {label} not in ticket {ticket}".format(label=label, ticket=ticketid))
+        
+        return 0
+
     def close_fixed_tickets(self, vulnerabilities):
-        # close tickets which vulnerabilities have been resolved and are still open
+        '''
+        Close tickets which vulnerabilities have been resolved and are still open.
+        Higiene clean up affects to all tickets created by the module, filters by label 'vulnerability_management'
+        '''
         found_vulns = []
         for vuln in vulnerabilities:
             found_vulns.append(vuln['title'])
@@ -399,24 +423,19 @@ class JiraAPI(object):
         self.logger.info("Ticket {} risk has not been accepted".format(ticket_obj))
         return False
 
-    def reopen_ticket(self, ticketid):
+    def reopen_ticket(self, ticketid, ignore_labels=False, comment=""):
         self.logger.debug("Ticket {} exists, REOPEN requested".format(ticketid))
         # this will reopen a ticket by ticketid
         ticket_obj = self.jira.issue(ticketid)
         
         if self.is_ticket_resolved(ticket_obj):
-            if not self.is_risk_accepted(ticket_obj):
+            if (not self.is_risk_accepted(ticket_obj) or ignore_labels):
                 try:
                     if self.is_ticket_reopenable(ticket_obj):
-                        comment = '''This ticket has been reopened due to the vulnerability not having been fixed (if multiple assets are affected, all need to be fixed; if the server is down, lastest known vulnerability might be the one reported).
-                        - In the case of the team accepting the risk and wanting to close the ticket, please add the label "*risk_accepted*" to the ticket before closing it.
-                        - If server has been decommissioned, please add the label "*server_decommission*" to the ticket before closing it.
-                        - If when checking the vulnerability it looks like a false positive, _+please elaborate in a comment+_ and add the label "*false_positive*" before closing it; we will review it and report it to the vendor.
-                        
-                        If you have further doubts, please contact the Security Team.'''
                         error = self.jira.transition_issue(issue=ticketid, transition=self.JIRA_REOPEN_ISSUE, comment = comment)
                         self.logger.info("Ticket {} reopened successfully".format(ticketid))
-                        self.add_label(ticketid, 'reopened')
+                        if not ignore_labels:
+                            self.add_label(ticketid, 'reopened')
                         return 1
                 except Exception as e:
                     # continue with ticket data so that a new ticket is created in place of the "lost" one
@@ -449,8 +468,8 @@ class JiraAPI(object):
         jql = "labels=vulnerability_management AND created <startOfMonth(-{}) and resolution=Unresolved".format(self.max_time_tracking)
         tickets_to_close = self.jira.search_issues(jql, maxResults=0)
         
-        comment = '''This ticket is being closed for hygiene, as it is more than 12 months old.
-        If the vulnerability still exists, a new ticket will be opened.'''
+        comment = '''This ticket is being closed for hygiene, as it is more than {} months old.
+        If the vulnerability still exists, a new ticket will be opened.'''.format(self.max_time_tracking)
         
         for ticket in tickets_to_close:
                 self.close_ticket(ticket, self.JIRA_RESOLUTION_OBSOLETE, comment)
@@ -466,7 +485,9 @@ class JiraAPI(object):
         return False
 
     def download_tickets(self, path):
-        #saves all tickets locally, local snapshot of vulnerability_management ticktes
+        '''
+        saves all tickets locally, local snapshot of vulnerability_management ticktes
+        '''
         #check if file already exists
         check_date = str(date.today())
         fname = '{}jira_{}.json'.format(path, check_date) 
@@ -490,3 +511,26 @@ class JiraAPI(object):
             self.logger.error("Tickets could not be saved locally: {}.".format(e))
         
         return False 
+
+    def decommission_cleanup(self):
+        '''
+        deletes the server_decomission tag from those tickets that have been 
+        closed already for more than x months (default is 3 months) in order to clean solved issues
+        for statistics purposes
+        '''
+        self.logger.info("Deleting 'server_decommission' tag from tickets closed more than {} months ago".format(self.max_decommission_time))
+
+        jql = "labels=vulnerability_management AND labels=server_decommission and resolutiondate <=startOfMonth(-{})".format(self.max_decommission_time)
+        decommissioned_tickets = self.jira.search_issues(jql, maxResults=0)
+        
+        comment = '''This ticket is having deleted the *server_decommission* tag deleted, as it is more than {} months old and is expected to already have been decommissioned.
+        If that is not the case and the vulnerability still exists, the vulnerability will be opened again.'''.format(self.max_decommission_time)
+        
+        for ticket in decommissioned_tickets:
+            #we open first the ticket, as we want to make sure the process is not blocked due to 
+            #an unexisting jira workflow or unallowed edit from closed tickets
+            self.reopen_ticket(ticketid=ticket, ignore_labels=True)
+            self.remove_label(ticket, 'server_decommission')
+            self.close_ticket(ticket, self.JIRA_RESOLUTION_FIXED, comment)
+        
+        return 0
