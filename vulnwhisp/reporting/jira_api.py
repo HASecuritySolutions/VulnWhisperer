@@ -28,11 +28,11 @@ class JiraAPI(object):
         self.template_path = 'vulnwhisp/reporting/resources/ticket.tpl'
         self.max_ips_ticket = 30
         self.attachment_filename = "vulnerable_assets.txt"
+        self.max_time_tracking = max_time_window #in months
         if path:
             self.download_tickets(path)
         else:
             self.logger.warn("No local path specified, skipping Jira ticket download.")
-        self.max_time_tracking = max_time_window #in months
         self.max_decommission_time = decommission_time_window #in months
         # [HIGIENE] close tickets older than 12 months as obsolete (max_time_window defined)
         if clean_obsolete:
