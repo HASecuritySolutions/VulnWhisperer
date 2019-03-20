@@ -43,7 +43,7 @@ class qualysWhisperAPI(object):
             self.logger.error('Could not connect to Qualys: {}'.format(str(e)))
         self.headers = {
             "content-type": "text/xml"}
-        self.config_parse = qcconf.QualysConnectConfig(config)
+        self.config_parse = qcconf.QualysConnectConfig(config, 'qualys_web')
         try:
             self.template_id = self.config_parse.get_template_id()
         except:
