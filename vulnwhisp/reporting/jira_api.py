@@ -523,7 +523,7 @@ class JiraAPI(object):
         jql = "labels=vulnerability_management AND labels=server_decommission and resolutiondate <=startOfMonth(-{})".format(self.max_decommission_time)
         decommissioned_tickets = self.jira.search_issues(jql, maxResults=0)
         
-        comment = '''This ticket is having deleted the *server_decommission* tag deleted, as it is more than {} months old and is expected to already have been decommissioned.
+        comment = '''This ticket is having deleted the *server_decommission* tag, as it is more than {} months old and is expected to already have been decommissioned.
         If that is not the case and the vulnerability still exists, the vulnerability will be opened again.'''.format(self.max_decommission_time)
         
         for ticket in decommissioned_tickets:
