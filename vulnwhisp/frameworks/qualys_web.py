@@ -74,7 +74,7 @@ class qualysWhisperAPI(object):
                 E.filters(
                     E.Criteria({'field': 'status', 'operator': 'EQUALS'}, status))))
         xml_output = self.qgc.request(self.COUNT_WASSCAN, parameters)
-        root = objectify.fromstring(xml_output)
+        root = objectify.fromstring(xml_output.encode('utf-8'))
         return root.count.text
 
     def get_reports(self):
@@ -127,17 +127,21 @@ class qualysWhisperAPI(object):
         qualys_api_limit = limit
         dataframes = []
         _records = []
-        total = int(self.get_was_scan_count(status=status))
-        self.logger.info('Retrieving information for {} scans'.format(total))
-        for i in range(0, total):
-            if i % limit == 0:
-                if (total - i) < limit:
-                    qualys_api_limit = total - i
-                self.logger.info('Making a request with a limit of {} at offset {}'.format((str(qualys_api_limit), str(i + 1))))
-                scan_info = self.get_scan_info(limit=qualys_api_limit, offset=i + 1, status=status)
-                _records.append(scan_info)
-        self.logger.debug('Converting XML to DataFrame')
-        dataframes = [self.xml_parser(xml) for xml in _records]
+        try:
+            total = int(self.get_was_scan_count(status=status))
+            self.logger.error('Already have WAS scan count')
+            self.logger.info('Retrieving information for {} scans'.format(total))
+            for i in range(0, total):
+                if i % limit == 0:
+                    if (total - i) < limit:
+                        qualys_api_limit = total - i
+                    self.logger.info('Making a request with a limit of {} at offset {}'.format((str(qualys_api_limit), str(i + 1))))
+                    scan_info = self.get_scan_info(limit=qualys_api_limit, offset=i + 1, status=status)
+                    _records.append(scan_info)
+            self.logger.debug('Converting XML to DataFrame')
+            dataframes = [self.xml_parser(xml) for xml in _records]
+        except Exception as e:
+            self.logger.error("Couldn't process all scans: {}".format(e))
 
         return pd.concat(dataframes, axis=0).reset_index().drop('index', axis=1)
 
