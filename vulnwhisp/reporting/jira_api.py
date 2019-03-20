@@ -21,6 +21,7 @@ class JiraAPI(object):
         self.jira = JIRA(options={'server': hostname}, basic_auth=(self.username, self.password))
         self.logger.info("Created vjira service for {}".format(hostname))
         self.all_tickets = []
+        self.excluded_tickets = []
         self.JIRA_REOPEN_ISSUE = "Reopen Issue"
         self.JIRA_CLOSE_ISSUE = "Close Issue"
         self.JIRA_RESOLUTION_OBSOLETE = "Obsolete"
@@ -52,7 +53,7 @@ class JiraAPI(object):
         for tag in tags:
             labels.append(str(tag))
 
-        self.logger.info("creating ticket for project {} title: {}".format(project, title[:20]))
+        self.logger.info("Creating ticket for project {} title: {}".format(project, title[:20]))
         self.logger.debug("project {} has a component requirement: {}".format(project, components))
         project_obj = self.jira.project(project)
         components_ticket = []
@@ -105,40 +106,87 @@ class JiraAPI(object):
             if " " in  vuln['scan_name']:
                 vuln['scan_name'] = "_".join(vuln['scan_name'].split(" "))
             
-            exists = False
-            to_update = False
-            ticketid = ""
-            ticket_assets = []
-            exists, to_update, ticketid, ticket_assets = self.check_vuln_already_exists(vuln)
+            # we exclude from the vulnerabilities to report those assets that already exist with *risk_accepted*/*server_decommission*
+            vuln = self.exclude_accepted_assets(vuln)
+            
+            # make sure after exclusion of risk_accepted assets there are still assets
+            if vuln['ips']:
+                exists = False
+                to_update = False
+                ticketid = ""
+                ticket_assets = []
+                exists, to_update, ticketid, ticket_assets = self.check_vuln_already_exists(vuln)
 
-            if exists:
-                # If ticket "resolved" -> reopen, as vulnerability is still existent
-                self.reopen_ticket(ticketid=ticketid, comment=self.jira_still_vulnerable_comment)
-                self.add_label(ticketid, vuln['risk'])
-                continue
-            elif to_update:
-                self.ticket_update_assets(vuln, ticketid, ticket_assets)
-                self.add_label(ticketid, vuln['risk'])
-                continue
-            attachment_contents = []
-            # if assets >30, add as attachment
-            # create local text file with assets, attach it to ticket
-            if len(vuln['ips']) > self.max_ips_ticket:
-                attachment_contents = vuln['ips']
-                vuln['ips'] = ["Affected hosts ({assets}) exceed Jira's allowed character limit, added as an attachment.".format(assets = len(attachment_contents))]
-            try:
-                tpl = template(self.template_path, vuln)
-            except Exception as e:
-                self.logger.error('Exception templating: {}'.format(str(e)))
-                return 0
-            self.create_ticket(title=vuln['title'], desc=tpl, project=project, components=components, tags=[vuln['source'], vuln['scan_name'], 'vulnerability', vuln['risk']], attachment_contents = attachment_contents)
+                if exists:
+                    # If ticket "resolved" -> reopen, as vulnerability is still existent
+                    self.reopen_ticket(ticketid=ticketid, comment=self.jira_still_vulnerable_comment)
+                    self.add_label(ticketid, vuln['risk'])
+                    continue
+                elif to_update:
+                    self.ticket_update_assets(vuln, ticketid, ticket_assets)
+                    self.add_label(ticketid, vuln['risk'])
+                    continue
+                attachment_contents = []
+                # if assets >30, add as attachment
+                # create local text file with assets, attach it to ticket
+                if len(vuln['ips']) > self.max_ips_ticket:
+                    attachment_contents = vuln['ips']
+                    vuln['ips'] = ["Affected hosts ({assets}) exceed Jira's allowed character limit, added as an attachment.".format(assets = len(attachment_contents))]
+                try:
+                    tpl = template(self.template_path, vuln)
+                except Exception as e:
+                    self.logger.error('Exception templating: {}'.format(str(e)))
+                    return 0
+                self.create_ticket(title=vuln['title'], desc=tpl, project=project, components=components, tags=[vuln['source'], vuln['scan_name'], 'vulnerability', vuln['risk']], attachment_contents = attachment_contents)
+            else:
+                self.logger.info("Ignoring vulnerability as all assets are already reported in a risk_accepted ticket")
         
         self.close_fixed_tickets(vulnerabilities)
         # we reinitialize so the next sync redoes the query with their specific variables
         self.all_tickets = []
+        self.excluded_tickets = []
         return True
+    
+    def exclude_accepted_assets(self, vuln):
+        # we want to check JIRA tickets with risk_accepted/server_decommission or false_positive labels sharing the same source
+        # will exclude tickets older than 12 months, old tickets will get closed for higiene and recreated if still vulnerable
+        labels = [vuln['source'], vuln['scan_name'], 'vulnerability_management', 'vulnerability'] 
+        
+        if not self.excluded_tickets:
+            jql = "{} AND labels in (risk_accepted,server_decommission, false_positive) AND NOT labels=advisory AND created >=startOfMonth(-{})".format(" AND ".join(["labels={}".format(label) for label in labels]), self.max_time_tracking)
+            self.excluded_tickets = self.jira.search_issues(jql, maxResults=0)
+
+        title = vuln['title']
+        #WARNING: function IGNORES DUPLICATES, after finding a "duplicate" will just return it exists
+        #it wont iterate over the rest of tickets looking for other possible duplicates/similar issues
+        self.logger.info("Comparing vulnerability to risk_accepted tickets")
+        assets_to_exclude = []
+        tickets_excluded_assets = []
+        for index in range(len(self.excluded_tickets)):
+            checking_ticketid, checking_title, checking_assets = self.ticket_get_unique_fields(self.excluded_tickets[index])
+            if title.encode('ascii') == checking_title.encode('ascii'):
+                if checking_assets:
+                    #checking_assets is a list, we add to our full list for later delete all assets
+                    assets_to_exclude+=checking_assets
+                    tickets_excluded_assets.append(checking_ticketid)
+       
+        if assets_to_exclude:
+            self.logger.warn("Vulnerable Assets seen on an already existing risk_accepted Jira ticket: {}".format(', '.join(tickets_excluded_assets)))
+            #assets in vulnerability have the structure "ip - hostname - port", so we need to match by partial 
+            for exclusion in assets_to_exclude:
+                for asset in vuln['ips']:
+                    if exclusion in asset:
+                        #self.logger.error("Assets before deleting risk_accepted assets: {}".format(vuln['ips']))
+                        self.logger.debug("Deleting asset {} from vulnerability {}, seen in risk_accepted.".format(asset,title))
+                        vuln['ips'].remove(asset)
+
+        return vuln
 
     def check_vuln_already_exists(self, vuln):
+        '''
+        This function compares a vulnerability with a collection of tickets.
+        Returns [exists (bool), is equal (bool), ticketid (str), assets (array)]
+        '''
         # we need to return if the vulnerability has already been reported and the ID of the ticket for further processing
         #function returns array [duplicated(bool), update(bool), ticketid, ticket_assets]
         title = vuln['title']
@@ -159,7 +207,8 @@ class JiraAPI(object):
         self.logger.info("Comparing Vulnerabilities to created tickets")
         for index in range(len(self.all_tickets)):
             checking_ticketid, checking_title, checking_assets = self.ticket_get_unique_fields(self.all_tickets[index])
-            if title.encode('ascii') == checking_title.encode('ascii'): 
+            # added "not risk_accepted", as if it is risk_accepted, we will create a new ticket excluding the accepted assets
+            if title.encode('ascii') == checking_title.encode('ascii') and not self.is_risk_accepted(self.jira.issue(checking_ticketid)): 
                 difference = list(set(assets).symmetric_difference(checking_assets))
                 #to check intersection - set(assets) & set(checking_assets)
                 if difference: 
@@ -173,27 +222,31 @@ class JiraAPI(object):
     def ticket_get_unique_fields(self, ticket):
         title = ticket.raw.get('fields', {}).get('summary').encode("ascii").strip()
         ticketid = ticket.key.encode("ascii")
+        assets = []
         try:
             affected_assets_section = ticket.raw.get('fields', {}).get('description').encode("ascii").split("{panel:title=Affected Assets}")[1].split("{panel}")[0]
             assets = list(set(re.findall(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b", affected_assets_section)))
-             
+        
+        except Exception as e:
+            self.logger.error("Ticket IPs regex failed. Ticket ID: {}. Reason: {}".format(ticketid, e))
+            assets = []
+        
+        try:     
             if not assets:
                 #check if attachment, if so, get assets from attachment
                 affected_assets_section = self.check_ips_attachment(ticket)
                 if affected_assets_section:
                     assets = list(set(re.findall(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b", affected_assets_section)))
-                
         except Exception as e:
-            self.logger.error("Ticket IPs regex failed. Ticket ID: {}. Reason: {}".format(ticketid, e))
-            assets = []
-        
+            self.logger.error("Ticket IPs Attachment regex failed. Ticket ID: {}. Reason: {}".format(ticketid, e))
+                
         return ticketid, title, assets
 
     def check_ips_attachment(self, ticket):
         affected_assets_section = []
         try:
-            fields = self.jira.issue(ticket.key).raw.get('fields')
-            attachments = fields.get('attachment')
+            fields = self.jira.issue(ticket.key).raw.get('fields', {})
+            attachments = fields.get('attachment', {})
             affected_assets_section = ""
             #we will make sure we get the latest version of the file
             latest = ''
