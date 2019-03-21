@@ -171,14 +171,18 @@ class JiraAPI(object):
                     tickets_excluded_assets.append(checking_ticketid)
        
         if assets_to_exclude:
+            assets_to_remove = []
             self.logger.warn("Vulnerable Assets seen on an already existing risk_accepted Jira ticket: {}".format(', '.join(tickets_excluded_assets)))
+            self.logger.debug("Original assets: {}".format(vuln['ips']))
             #assets in vulnerability have the structure "ip - hostname - port", so we need to match by partial 
             for exclusion in assets_to_exclude:
-                for asset in vuln['ips']:
-                    if exclusion in asset:
-                        #self.logger.error("Assets before deleting risk_accepted assets: {}".format(vuln['ips']))
-                        self.logger.debug("Deleting asset {} from vulnerability {}, seen in risk_accepted.".format(asset,title))
-                        vuln['ips'].remove(asset)
+                # for efficiency, we walk the backwards the array of ips from the scanners, as we will be popping out the matches 
+                # and we don't want it to affect the rest of the processing (otherwise, it would miss the asset right after the removed one)
+                for index in range(len(vuln['ips']))[::-1]:
+                    if exclusion == vuln['ips'][index].split(" - ")[0]:
+                        self.logger.debug("Deleting asset {} from vulnerability {}, seen in risk_accepted.".format(vuln['ips'][index], title))
+                        vuln['ips'].pop(index)
+            self.logger.debug("Modified assets: {}".format(vuln['ips']))
 
         return vuln
 
