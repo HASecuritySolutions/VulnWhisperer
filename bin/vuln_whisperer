@@ -41,7 +41,13 @@ def main():
         stream=sys.stdout,
         level=logging.DEBUG if args.debug else logging.INFO
     )
-    logger = logging.getLogger(name='main')
+    logger = logging.getLogger()
+    # we set up the logger to log as well to file
+    fh = logging.FileHandler('vulnwhisperer.log')
+    fh.setLevel(logging.DEBUG if args.debug else logging.INFO)
+    fh.setFormatter(logging.Formatter("%(asctime)s - %(name)s:%(levelname)s:%(message)s", "%Y-%m-%d %H:%M:%S"))
+    logger.addHandler(fh)
+
     if args.fancy:
         import coloredlogs
         coloredlogs.install(level='DEBUG' if args.debug else 'INFO')
@@ -68,6 +74,7 @@ def main():
 
             	vw.whisper_vulnerabilities()
             # TODO: fix this to NOT be exit 1 unless in error
+            close_logging_handlers()
 	    sys.exit(1)
 
         else:
@@ -82,6 +89,7 @@ def main():
 
             vw.whisper_vulnerabilities()
             # TODO: fix this to NOT be exit 1 unless in error
+            close_logging_handlers()
             sys.exit(1)
 
     except Exception as e:
@@ -90,8 +98,15 @@ def main():
             logger.error('{}'.format(str(e)))
             print('ERROR: {error}'.format(error=e))
         # TODO: fix this to NOT be exit 2 unless in error
+        close_logging_handlers()
         sys.exit(2)
 
+    close_logging_handlers()
+
+def close_logging_handlers():
+    for handler in logger.handlers:
+        handler.close()
+        logger.removeFilter(handler)
 
 if __name__ == '__main__':
     main()
