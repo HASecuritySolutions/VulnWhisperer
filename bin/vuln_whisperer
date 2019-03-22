@@ -45,7 +45,7 @@ def main():
     # we set up the logger to log as well to file
     fh = logging.FileHandler('vulnwhisperer.log')
     fh.setLevel(logging.DEBUG if args.debug else logging.INFO)
-    fh.setFormatter(logging.Formatter("%(asctime)s - %(name)s:%(levelname)s:%(message)s", "%Y-%m-%d %H:%M:%S"))
+    fh.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(name)s - %(funcName)s:%(message)s", "%Y-%m-%d %H:%M:%S"))
     logger.addHandler(fh)
 
     if args.fancy:
