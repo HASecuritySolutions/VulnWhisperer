@@ -164,11 +164,11 @@ class vulnWhispererBase(object):
         if not os.path.exists(self.write_path):
             os.makedirs(self.write_path)
             self.logger.info('Directory created at {scan} - Skipping creation'.format(
-                scan=self.write_path))
+                scan=self.write_path.encode('utf8')))
         else:
             os.path.exists(self.write_path)
             self.logger.info('Directory already exist for {scan} - Skipping creation'.format(
-                scan=self.write_path))
+                scan=self.write_path.encode('utf8')))
 
     def get_latest_results(self, source, scan_name):
         try:
@@ -302,7 +302,6 @@ class vulnWhispererNessus(vulnWhispererBase):
                         scan_records.append(record.copy())
                 except Exception as e:
                     # Generates error each time nonetype is encountered.
-
                     pass
 
         if completed:
@@ -338,8 +337,7 @@ class vulnWhispererNessus(vulnWhispererBase):
                 else:
                     os.path.exists(self.path_check(f['name']))
                     self.logger.info('Directory already exist for {scan} - Skipping creation'.format(
-                        scan=self.path_check(f['name'
-                                             ])))
+                        scan=self.path_check(f['name']).encode('utf8')))
 
             # try download and save scans into each folder the belong to
 
