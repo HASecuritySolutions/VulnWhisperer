@@ -30,7 +30,7 @@ class qualysWhisperAPI(object):
 
     def scan_xml_parser(self, xml):
         all_records = []
-        root = ET.XML(xml)
+        root = ET.XML(xml.encode("utf-8"))
         for child in root.find('.//SCAN_LIST'):
             all_records.append({
                 'name': child.find('TITLE').text,

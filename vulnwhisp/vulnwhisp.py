@@ -401,10 +401,9 @@ class vulnWhispererNessus(vulnWhispererBase):
                             self.nessus.download_scan(scan_id=scan_id, history=history_id,
                                                       export_format='csv', profile=self.CONFIG_SECTION)
                         clean_csv = \
-                            pd.read_csv(io.StringIO(file_req.decode('utf-8'
-                                                                    )))
+                            pd.read_csv(io.StringIO(file_req.decode('utf-8')))
                         if len(clean_csv) > 2:
-                            self.logger.info('Processing {}/{} for scan: {}'.format(scan_count, len(scan_list), scan_name))
+                            self.logger.info('Processing {}/{} for scan: {}'.format(scan_count, len(scan_list), scan_name.encode('utf8')))
                             columns_to_cleanse = ['CVSS','CVE','Description','Synopsis','Solution','See Also','Plugin Output']
 
                             for col in columns_to_cleanse:
@@ -424,7 +423,7 @@ class vulnWhispererNessus(vulnWhispererBase):
                             )
                             self.record_insert(record_meta)
                             self.logger.info('{filename} records written to {path} '.format(filename=clean_csv.shape[0],
-                                                                                            path=file_name))
+                                                                                            path=file_name.encode('utf8')))
                         else:
                             record_meta = (
                                 scan_name,
