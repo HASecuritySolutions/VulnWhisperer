@@ -368,7 +368,6 @@ class vulnWhispererNessus(vulnWhispererBase):
                 # TODO Create directory sync function which scans the directory for files that exist already and populates the database
 
                 folder_id = s['folder_id']
-                scan_history = self.nessus.get_scan_history(scan_id)
                 if self.CONFIG_SECTION == 'tenable':
                     folder_name = ''
                 else:
