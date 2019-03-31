@@ -312,7 +312,7 @@ class vulnWhispererNessus(vulnWhispererBase):
 
     def whisper_nessus(self):
         if self.nessus_connect:
-            scan_data = self.nessus.get_scans()
+            scan_data = self.nessus.scans
             folders = scan_data['folders']
             scans = scan_data['scans'] if scan_data['scans'] else []
             all_scans = self.scan_count(scans)
