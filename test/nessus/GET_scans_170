@@ -1,0 +1,1759 @@
+{
+    "comphosts": [],
+    "hosts": [
+        {
+            "totalchecksconsidered": 103620,
+            "numchecksconsidered": 103620,
+            "scanprogresstotal": 100,
+            "scanprogresscurrent": 100,
+            "host_index": 0,
+            "score": 46750,
+            "severitycount": {
+                "item": [
+                    {
+                        "count": 120,
+                        "severitylevel": 0
+                    },
+                    {
+                        "count": 13,
+                        "severitylevel": 1
+                    },
+                    {
+                        "count": 45,
+                        "severitylevel": 2
+                    },
+                    {
+                        "count": 12,
+                        "severitylevel": 3
+                    },
+                    {
+                        "count": 3,
+                        "severitylevel": 4
+                    },
+                    {
+                        "count": 0,
+                        "severitylevel": 5
+                    },
+                    {
+                        "count": 0,
+                        "severitylevel": 6
+                    },
+                    {
+                        "count": 0,
+                        "severitylevel": 7
+                    },
+                    {
+                        "count": 0,
+                        "severitylevel": 8
+                    },
+                    {
+                        "count": 0,
+                        "severitylevel": 9
+                    }
+                ]
+            },
+            "progress": "100-100/103620-103620",
+            "offline_critical": 0,
+            "offline_high": 0,
+            "offline_medium": 0,
+            "offline_low": 0,
+            "offline_info": 0,
+            "critical": 3,
+            "high": 12,
+            "medium": 45,
+            "low": 13,
+            "info": 120,
+            "severity": 193,
+            "host_id": 2,
+            "hostname": "176.28.50.165"
+        }
+    ],
+    "notes": null,
+    "remediations": {
+        "remediations": [
+            {
+                "remediation": "PHP 5.3.x < 5.3.29 Multiple Vulnerabilities: Upgrade to PHP version 5.3.29 or later.",
+                "hosts": 1,
+                "value": "3f0cf46797214e93b05ced0f9da2e635",
+                "vulns": 23
+            }
+        ],
+        "num_hosts": 1,
+        "num_cves": 72,
+        "num_impacted_hosts": 1,
+        "num_remediated_cves": 23
+    },
+    "vulnerabilities": [
+        {
+            "count": 1,
+            "vuln_index": 151,
+            "plugin_name": "Web Site Cross-Domain Policy File Detection",
+            "severity": 0,
+            "plugin_id": 32318,
+            "severity_index": 0,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "CGI abuses",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 150,
+            "plugin_name": "Web Site Client Access Policy File Detection",
+            "severity": 0,
+            "plugin_id": 72427,
+            "severity_index": 1,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "CGI abuses",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 148,
+            "plugin_name": "Traceroute Information",
+            "severity": 0,
+            "plugin_id": 10287,
+            "severity_index": 2,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "General",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 146,
+            "plugin_name": "TCP/IP Timestamps Supported",
+            "severity": 0,
+            "plugin_id": 25220,
+            "severity_index": 3,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "General",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 124,
+            "plugin_name": "SSH Server Type and Version Information",
+            "severity": 0,
+            "plugin_id": 10267,
+            "severity_index": 4,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "Service detection",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 122,
+            "plugin_name": "SSH Protocol Versions Supported",
+            "severity": 0,
+            "plugin_id": 10881,
+            "severity_index": 5,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "General",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 121,
+            "plugin_name": "SSH Algorithms and Languages Supported",
+            "severity": 0,
+            "plugin_id": 70657,
+            "severity_index": 6,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "Misc.",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 120,
+            "plugin_name": "SMTP Service STARTTLS Command Support",
+            "severity": 0,
+            "plugin_id": 42088,
+            "severity_index": 7,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "SMTP problems",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 115,
+            "plugin_name": "POP3 Service STLS Command Support",
+            "severity": 0,
+            "plugin_id": 42087,
+            "severity_index": 8,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "Misc.",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 112,
+            "plugin_name": "PHP Version Detection",
+            "severity": 0,
+            "plugin_id": 48243,
+            "severity_index": 9,
+            "cpe": "cpe:/a:php:php",
+            "offline": false,
+            "plugin_family": "Web Servers",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 98,
+            "plugin_name": "Patch Report",
+            "severity": 0,
+            "plugin_id": 66334,
+            "severity_index": 10,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "General",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 97,
+            "plugin_name": "OS Identification",
+            "severity": 0,
+            "plugin_id": 11936,
+            "severity_index": 11,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "General",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 95,
+            "plugin_name": "No Credentials Provided",
+            "severity": 0,
+            "plugin_id": 110723,
+            "severity_index": 12,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "Settings",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 94,
+            "plugin_name": "nginx HTTP Server Detection",
+            "severity": 0,
+            "plugin_id": 106375,
+            "severity_index": 13,
+            "cpe": "cpe:/a:igor_sysoev:nginx",
+            "offline": false,
+            "plugin_family": "Web Servers",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 92,
+            "plugin_name": "Nessus Scan Information",
+            "severity": 0,
+            "plugin_id": 19506,
+            "severity_index": 14,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "Settings",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 91,
+            "plugin_name": "Local Checks Not Enabled (info)",
+            "severity": 0,
+            "plugin_id": 117886,
+            "severity_index": 15,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "Settings",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 90,
+            "plugin_name": "IMAP Service STARTTLS Command Support",
+            "severity": 0,
+            "plugin_id": 42085,
+            "severity_index": 16,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "Misc.",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 88,
+            "plugin_name": "ICMP Timestamp Request Remote Date Disclosure",
+            "severity": 0,
+            "plugin_id": 10114,
+            "severity_index": 17,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "General",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 84,
+            "plugin_name": "Host Fully Qualified Domain Name (FQDN) Resolution",
+            "severity": 0,
+            "plugin_id": 12053,
+            "severity_index": 18,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "General",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 83,
+            "plugin_name": "FTP Server Detection",
+            "severity": 0,
+            "plugin_id": 10092,
+            "severity_index": 19,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "Service detection",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 82,
+            "plugin_name": "DNS Server Version Detection",
+            "severity": 0,
+            "plugin_id": 72779,
+            "severity_index": 20,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "DNS",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 81,
+            "plugin_name": "DNS Server hostname.bind Map Hostname Disclosure",
+            "severity": 0,
+            "plugin_id": 35371,
+            "severity_index": 21,
+            "cpe": "cpe:/a:isc:bind",
+            "offline": false,
+            "plugin_family": "DNS",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 79,
+            "plugin_name": "Device Type",
+            "severity": 0,
+            "plugin_id": 54615,
+            "severity_index": 22,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "General",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 78,
+            "plugin_name": "Common Platform Enumeration (CPE)",
+            "severity": 0,
+            "plugin_id": 45590,
+            "severity_index": 23,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "General",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 77,
+            "plugin_name": "Backported Security Patch Detection (SSH)",
+            "severity": 0,
+            "plugin_id": 39520,
+            "severity_index": 24,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "General",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 76,
+            "plugin_name": "Backported Security Patch Detection (FTP)",
+            "severity": 0,
+            "plugin_id": 39519,
+            "severity_index": 25,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "General",
+            "snoozed": 0
+        },
+        {
+            "count": 2,
+            "vuln_index": 137,
+            "plugin_name": "SSL Perfect Forward Secrecy Cipher Suites Supported",
+            "severity": 0,
+            "plugin_id": 57041,
+            "severity_index": 26,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "General",
+            "snoozed": 0
+        },
+        {
+            "count": 2,
+            "vuln_index": 118,
+            "plugin_name": "SMTP Server Detection",
+            "severity": 0,
+            "plugin_id": 10263,
+            "severity_index": 27,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "Service detection",
+            "snoozed": 0
+        },
+        {
+            "count": 2,
+            "vuln_index": 117,
+            "plugin_name": "SMTP Authentication Methods",
+            "severity": 0,
+            "plugin_id": 54580,
+            "severity_index": 28,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "SMTP problems",
+            "snoozed": 0
+        },
+        {
+            "count": 2,
+            "vuln_index": 113,
+            "plugin_name": "POP Server Detection",
+            "severity": 0,
+            "plugin_id": 10185,
+            "severity_index": 29,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "Service detection",
+            "snoozed": 0
+        },
+        {
+            "count": 2,
+            "vuln_index": 89,
+            "plugin_name": "IMAP Service Banner Retrieval",
+            "severity": 0,
+            "plugin_id": 11414,
+            "severity_index": 30,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "Service detection",
+            "snoozed": 0
+        },
+        {
+            "count": 2,
+            "vuln_index": 85,
+            "plugin_name": "HTTP Methods Allowed (per directory)",
+            "severity": 0,
+            "plugin_id": 43111,
+            "severity_index": 31,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "Web Servers",
+            "snoozed": 0
+        },
+        {
+            "count": 2,
+            "vuln_index": 80,
+            "plugin_name": "DNS Server Detection",
+            "severity": 0,
+            "plugin_id": 11002,
+            "severity_index": 32,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "DNS",
+            "snoozed": 0
+        },
+        {
+            "count": 3,
+            "vuln_index": 87,
+            "plugin_name": "HyperText Transfer Protocol (HTTP) Information",
+            "severity": 0,
+            "plugin_id": 24260,
+            "severity_index": 33,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "Web Servers",
+            "snoozed": 0
+        },
+        {
+            "count": 3,
+            "vuln_index": 86,
+            "plugin_name": "HTTP Server Type and Version",
+            "severity": 0,
+            "plugin_id": 10107,
+            "severity_index": 34,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "Web Servers",
+            "snoozed": 0
+        },
+        {
+            "count": 4,
+            "vuln_index": 140,
+            "plugin_name": "SSL Session Resume Supported",
+            "severity": 0,
+            "plugin_id": 51891,
+            "severity_index": 35,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "General",
+            "snoozed": 0
+        },
+        {
+            "count": 6,
+            "vuln_index": 147,
+            "plugin_name": "TLS Version 1.0 Protocol Detection",
+            "severity": 0,
+            "plugin_id": 104743,
+            "severity_index": 36,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "Service detection",
+            "snoozed": 0
+        },
+        {
+            "count": 6,
+            "vuln_index": 134,
+            "plugin_name": "SSL Cipher Suites Supported",
+            "severity": 0,
+            "plugin_id": 21643,
+            "severity_index": 37,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "General",
+            "snoozed": 0
+        },
+        {
+            "count": 6,
+            "vuln_index": 133,
+            "plugin_name": "SSL Cipher Block Chaining Cipher Suites Supported",
+            "severity": 0,
+            "plugin_id": 70544,
+            "severity_index": 38,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "General",
+            "snoozed": 0
+        },
+        {
+            "count": 6,
+            "vuln_index": 132,
+            "plugin_name": "SSL Certificate Information",
+            "severity": 0,
+            "plugin_id": 10863,
+            "severity_index": 39,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "General",
+            "snoozed": 0
+        },
+        {
+            "count": 6,
+            "vuln_index": 129,
+            "plugin_name": "SSL Certificate 'commonName' Mismatch",
+            "severity": 0,
+            "plugin_id": 45410,
+            "severity_index": 40,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "General",
+            "snoozed": 0
+        },
+        {
+            "count": 6,
+            "vuln_index": 127,
+            "plugin_name": "SSL / TLS Versions Supported",
+            "severity": 0,
+            "plugin_id": 56984,
+            "severity_index": 41,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "General",
+            "snoozed": 0
+        },
+        {
+            "count": 6,
+            "vuln_index": 96,
+            "plugin_name": "OpenSSL Detection",
+            "severity": 0,
+            "plugin_id": 50845,
+            "severity_index": 42,
+            "cpe": "cpe:/a:openssl:openssl",
+            "offline": false,
+            "plugin_family": "Service detection",
+            "snoozed": 0
+        },
+        {
+            "count": 13,
+            "vuln_index": 93,
+            "plugin_name": "Nessus SYN scanner",
+            "severity": 0,
+            "plugin_id": 11219,
+            "severity_index": 43,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "Port scanners",
+            "snoozed": 0
+        },
+        {
+            "count": 15,
+            "vuln_index": 116,
+            "plugin_name": "Service Detection",
+            "severity": 0,
+            "plugin_id": 22964,
+            "severity_index": 44,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "Service detection",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 143,
+            "plugin_name": "SSL/TLS EXPORT_DHE <= 512-bit Export Cipher Suites Supported (Logjam)",
+            "severity": 1,
+            "plugin_id": 83738,
+            "severity_index": 45,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "Misc.",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 126,
+            "plugin_name": "SSH Weak MAC Algorithms Enabled",
+            "severity": 1,
+            "plugin_id": 71049,
+            "severity_index": 46,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "Misc.",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 123,
+            "plugin_name": "SSH Server CBC Mode Ciphers Enabled",
+            "severity": 1,
+            "plugin_id": 70658,
+            "severity_index": 47,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "Misc.",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 119,
+            "plugin_name": "SMTP Service Cleartext Login Permitted",
+            "severity": 1,
+            "plugin_id": 54582,
+            "severity_index": 48,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "SMTP problems",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 114,
+            "plugin_name": "POP3 Cleartext Logins Permitted",
+            "severity": 1,
+            "plugin_id": 15855,
+            "severity_index": 49,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "Misc.",
+            "snoozed": 0
+        },
+        {
+            "count": 2,
+            "vuln_index": 128,
+            "plugin_name": "SSL Anonymous Cipher Suites Supported",
+            "severity": 1,
+            "plugin_id": 31705,
+            "severity_index": 50,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "Service detection",
+            "snoozed": 0
+        },
+        {
+            "count": 6,
+            "vuln_index": 138,
+            "plugin_name": "SSL RC4 Cipher Suites Supported (Bar Mitzvah)",
+            "severity": 1,
+            "plugin_id": 65821,
+            "severity_index": 51,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "General",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 125,
+            "plugin_name": "SSH Weak Algorithms Supported",
+            "severity": 2,
+            "plugin_id": 90317,
+            "severity_index": 52,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "Misc.",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 110,
+            "plugin_name": "PHP PHP_RSHUTDOWN_FUNCTION Security Bypass",
+            "severity": 2,
+            "plugin_id": 73289,
+            "severity_index": 53,
+            "cpe": "cpe:/a:php:php",
+            "offline": false,
+            "plugin_family": "CGI abuses",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 105,
+            "plugin_name": "PHP 5.3.x < 5.3.27 Multiple Vulnerabilities",
+            "severity": 2,
+            "plugin_id": 67259,
+            "severity_index": 54,
+            "cpe": "cpe:/a:php:php",
+            "offline": false,
+            "plugin_family": "CGI abuses",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 104,
+            "plugin_name": "PHP 5.3.x < 5.3.26 Multiple Vulnerabilities",
+            "severity": 2,
+            "plugin_id": 66842,
+            "severity_index": 55,
+            "cpe": "cpe:/a:php:php",
+            "offline": false,
+            "plugin_family": "CGI abuses",
+            "snoozed": 0
+        },
+        {
+            "count": 3,
+            "vuln_index": 135,
+            "plugin_name": "SSL DROWN Attack Vulnerability (Decrypting RSA with Obsolete and Weakened eNcryption)",
+            "severity": 2,
+            "plugin_id": 89058,
+            "severity_index": 56,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "Misc.",
+            "snoozed": 0
+        },
+        {
+            "count": 4,
+            "vuln_index": 145,
+            "plugin_name": "SSLv3 Padding Oracle On Downgraded Legacy Encryption Vulnerability (POODLE)",
+            "severity": 2,
+            "plugin_id": 78479,
+            "severity_index": 57,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "General",
+            "snoozed": 0
+        },
+        {
+            "count": 5,
+            "vuln_index": 144,
+            "plugin_name": "SSL/TLS EXPORT_RSA <= 512-bit Cipher Suites Supported (FREAK)",
+            "severity": 2,
+            "plugin_id": 81606,
+            "severity_index": 58,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "Misc.",
+            "snoozed": 0
+        },
+        {
+            "count": 5,
+            "vuln_index": 142,
+            "plugin_name": "SSL Weak Cipher Suites Supported",
+            "severity": 2,
+            "plugin_id": 26928,
+            "severity_index": 59,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "General",
+            "snoozed": 0
+        },
+        {
+            "count": 6,
+            "vuln_index": 139,
+            "plugin_name": "SSL Self-Signed Certificate",
+            "severity": 2,
+            "plugin_id": 57582,
+            "severity_index": 60,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "General",
+            "snoozed": 0
+        },
+        {
+            "count": 6,
+            "vuln_index": 136,
+            "plugin_name": "SSL Medium Strength Cipher Suites Supported (SWEET32)",
+            "severity": 2,
+            "plugin_id": 42873,
+            "severity_index": 61,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "General",
+            "snoozed": 0
+        },
+        {
+            "count": 6,
+            "vuln_index": 131,
+            "plugin_name": "SSL Certificate Expiry",
+            "severity": 2,
+            "plugin_id": 15901,
+            "severity_index": 62,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "General",
+            "snoozed": 0
+        },
+        {
+            "count": 6,
+            "vuln_index": 130,
+            "plugin_name": "SSL Certificate Cannot Be Trusted",
+            "severity": 2,
+            "plugin_id": 51192,
+            "severity_index": 63,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "General",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 109,
+            "plugin_name": "PHP < 5.3.12 / 5.4.2 CGI Query String Code Execution",
+            "severity": 3,
+            "plugin_id": 58988,
+            "severity_index": 64,
+            "cpe": "cpe:/a:php:php",
+            "offline": false,
+            "plugin_family": "CGI abuses",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 108,
+            "plugin_name": "PHP < 5.3.11 Multiple Vulnerabilities",
+            "severity": 3,
+            "plugin_id": 58966,
+            "severity_index": 65,
+            "cpe": "cpe:/a:php:php",
+            "offline": false,
+            "plugin_family": "CGI abuses",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 107,
+            "plugin_name": "PHP 5.3.x < 5.3.29 Multiple Vulnerabilities",
+            "severity": 3,
+            "plugin_id": 77285,
+            "severity_index": 66,
+            "cpe": "cpe:/a:php:php",
+            "offline": false,
+            "plugin_family": "CGI abuses",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 106,
+            "plugin_name": "PHP 5.3.x < 5.3.28 Multiple OpenSSL Vulnerabilities",
+            "severity": 3,
+            "plugin_id": 71426,
+            "severity_index": 67,
+            "cpe": "cpe:/a:php:php",
+            "offline": false,
+            "plugin_family": "CGI abuses",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 103,
+            "plugin_name": "PHP 5.3.x < 5.3.23 Multiple Vulnerabilities",
+            "severity": 3,
+            "plugin_id": 66584,
+            "severity_index": 68,
+            "cpe": "cpe:/a:php:php",
+            "offline": false,
+            "plugin_family": "CGI abuses",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 102,
+            "plugin_name": "PHP 5.3.x < 5.3.22 Multiple Vulnerabilities",
+            "severity": 3,
+            "plugin_id": 64992,
+            "severity_index": 69,
+            "cpe": "cpe:/a:php:php",
+            "offline": false,
+            "plugin_family": "CGI abuses",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 100,
+            "plugin_name": "PHP 5.3.x < 5.3.14 Multiple Vulnerabilities",
+            "severity": 3,
+            "plugin_id": 59529,
+            "severity_index": 70,
+            "cpe": "cpe:/a:php:php",
+            "offline": false,
+            "plugin_family": "CGI abuses",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 99,
+            "plugin_name": "PHP 5.3.x < 5.3.13 CGI Query String Code Execution",
+            "severity": 3,
+            "plugin_id": 59056,
+            "severity_index": 71,
+            "cpe": "cpe:/a:php:php",
+            "offline": false,
+            "plugin_family": "CGI abuses",
+            "snoozed": 0
+        },
+        {
+            "count": 4,
+            "vuln_index": 141,
+            "plugin_name": "SSL Version 2 and 3 Protocol Detection",
+            "severity": 3,
+            "plugin_id": 20007,
+            "severity_index": 72,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "Service detection",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 149,
+            "plugin_name": "Unix Operating System Unsupported Version Detection",
+            "severity": 4,
+            "plugin_id": 33850,
+            "severity_index": 73,
+            "cpe": null,
+            "offline": false,
+            "plugin_family": "General",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 111,
+            "plugin_name": "PHP Unsupported Version Detection",
+            "severity": 4,
+            "plugin_id": 58987,
+            "severity_index": 74,
+            "cpe": "cpe:/a:php:php",
+            "offline": false,
+            "plugin_family": "CGI abuses",
+            "snoozed": 0
+        },
+        {
+            "count": 1,
+            "vuln_index": 101,
+            "plugin_name": "PHP 5.3.x < 5.3.15 Multiple Vulnerabilities",
+            "severity": 4,
+            "plugin_id": 60085,
+            "severity_index": 75,
+            "cpe": "cpe:/a:php:php",
+            "offline": false,
+            "plugin_family": "CGI abuses",
+            "snoozed": 0
+        }
+    ],
+    "filters": [
+        {
+            "operators": [
+                "eq",
+                "neq",
+                "match",
+                "nmatch"
+            ],
+            "control": {
+                "readable_regex": "NUMBER",
+                "type": "entry",
+                "regex": "^[0-9]+$"
+            },
+            "name": "bid",
+            "readable_name": "Bugtraq ID"
+        },
+        {
+            "operators": [
+                "eq",
+                "neq"
+            ],
+            "control": {
+                "type": "dropdown",
+                "list": [
+                    "true",
+                    "false"
+                ]
+            },
+            "name": "exploit_framework_canvas",
+            "readable_name": "CANVAS Exploit Framework"
+        },
+        {
+            "operators": [
+                "eq",
+                "neq"
+            ],
+            "control": {
+                "type": "dropdown",
+                "list": [
+                    "CANVAS",
+                    "D2ExploitPack",
+                    "White_Phosphorus"
+                ]
+            },
+            "name": "canvas_package",
+            "readable_name": "CANVAS Package"
+        },
+        {
+            "operators": [
+                "eq",
+                "neq",
+                "match",
+                "nmatch"
+            ],
+            "control": {
+                "readable_regex": "Cert VU reference (ie: 10031)",
+                "type": "entry",
+                "regex": "^[0-9]+$"
+            },
+            "name": "cert",
+            "readable_name": "CERT Vulnerability ID"
+        },
+        {
+            "operators": [
+                "eq",
+                "neq"
+            ],
+            "control": {
+                "type": "dropdown",
+                "list": [
+                    "true",
+                    "false"
+                ]
+            },
+            "name": "exploit_framework_core",
+            "readable_name": "CORE Exploit Framework"
+        },
+        {
+            "operators": [
+                "eq",
+                "neq",
+                "match",
+                "nmatch"
+            ],
+            "control": {
+                "readable_regex": "TEXT",
+                "type": "entry",
+                "regex": ".*"
+            },
+            "name": "cpe",
+            "readable_name": "CPE"
+        },
+        {
+            "operators": [
+                "eq",
+                "neq",
+                "match",
+                "nmatch"
+            ],
+            "control": {
+                "readable_regex": "CVE-YYYY-ID (ie: CVE-2011-0018)",
+                "type": "entry",
+                "regex": "^(CVE|CAN)-(1999|20[01][0-9])-[0-9]{4,}$"
+            },
+            "name": "cve",
+            "readable_name": "CVE"
+        },
+        {
+            "operators": [
+                "lt",
+                "gt",
+                "eq",
+                "neq",
+                "match",
+                "nmatch"
+            ],
+            "control": {
+                "readable_regex": "7.5",
+                "type": "entry",
+                "regex": "^[0-9]+(\\.[0-9]+)?$"
+            },
+            "name": "cvss_base_score",
+            "readable_name": "CVSS Base Score"
+        },
+        {
+            "operators": [
+                "lt",
+                "gt",
+                "eq",
+                "neq",
+                "match",
+                "nmatch"
+            ],
+            "control": {
+                "readable_regex": "4.2",
+                "type": "entry",
+                "regex": "^[0-9]+(\\.[0-9]+)$"
+            },
+            "name": "cvss_temporal_score",
+            "readable_name": "CVSS Temporal Score"
+        },
+        {
+            "operators": [
+                "eq",
+                "neq",
+                "match",
+                "nmatch"
+            ],
+            "control": {
+                "readable_regex": "TEXT",
+                "type": "entry",
+                "regex": ".*"
+            },
+            "name": "cvss_temporal_vector",
+            "readable_name": "CVSS Temporal Vector"
+        },
+        {
+            "operators": [
+                "eq",
+                "neq",
+                "match",
+                "nmatch"
+            ],
+            "control": {
+                "readable_regex": "TEXT",
+                "type": "entry",
+                "regex": ".*"
+            },
+            "name": "cvss_vector",
+            "readable_name": "CVSS Vector"
+        },
+        {
+            "operators": [
+                "lt",
+                "gt",
+                "eq",
+                "neq",
+                "match",
+                "nmatch"
+            ],
+            "control": {
+                "readable_regex": "7.5",
+                "type": "entry",
+                "regex": "^[0-9]+(\\.[0-9]+)?$"
+            },
+            "name": "cvss3_base_score",
+            "readable_name": "CVSS v3.0 Base Score"
+        },
+        {
+            "operators": [
+                "lt",
+                "gt",
+                "eq",
+                "neq",
+                "match",
+                "nmatch"
+            ],
+            "control": {
+                "readable_regex": "4.2",
+                "type": "entry",
+                "regex": "^[0-9]+(\\.[0-9]+)$"
+            },
+            "name": "cvss3_temporal_score",
+            "readable_name": "CVSS v3.0 Temporal Score"
+        },
+        {
+            "operators": [
+                "eq",
+                "neq",
+                "match",
+                "nmatch"
+            ],
+            "control": {
+                "readable_regex": "TEXT",
+                "type": "entry",
+                "regex": ".*"
+            },
+            "name": "cvss3_temporal_vector",
+            "readable_name": "CVSS v3.0 Temporal Vector"
+        },
+        {
+            "operators": [
+                "eq",
+                "neq",
+                "match",
+                "nmatch"
+            ],
+            "control": {
+                "readable_regex": "TEXT",
+                "type": "entry",
+                "regex": ".*"
+            },
+            "name": "cvss3_vector",
+            "readable_name": "CVSS v3.0 Vector"
+        },
+        {
+            "operators": [
+                "eq",
+                "neq",
+                "match",
+                "nmatch"
+            ],
+            "control": {
+                "readable_regex": "CWE reference (ie: 200)",
+                "type": "entry",
+                "regex": "^([0-9]+)$"
+            },
+            "name": "cwe",
+            "readable_name": "CWE"
+        },
+        {
+            "operators": [
+                "eq",
+                "neq"
+            ],
+            "control": {
+                "type": "dropdown",
+                "list": [
+                    "true",
+                    "false"
+                ]
+            },
+            "name": "exploit_available",
+            "readable_name": "Exploit Available"
+        },
+        {
+            "operators": [
+                "eq",
+                "neq",
+                "match",
+                "nmatch"
+            ],
+            "control": {
+                "readable_regex": "NUMBER",
+                "type": "entry",
+                "regex": "^[0-9]+$"
+            },
+            "name": "edb-id",
+            "readable_name": "Exploit Database ID"
+        },
+        {
+            "operators": [
+                "eq",
+                "neq"
+            ],
+            "control": {
+                "type": "dropdown",
+                "list": [
+                    "Exploits are available",
+                    "No exploit is required",
+                    "No known exploits are available"
+                ]
+            },
+            "name": "exploitability_ease",
+            "readable_name": "Exploitability Ease"
+        },
+        {
+            "operators": [
+                "eq",
+                "neq"
+            ],
+            "control": {
+                "type": "dropdown",
+                "list": [
+                    "true",
+                    "false"
+                ]
+            },
+            "name": "exploited_by_malware",
+            "readable_name": "Exploited By Malware"
+        },
+        {
+            "operators": [
+                "eq",
+                "neq"
+            ],
+            "control": {
+                "type": "dropdown",
+                "list": [
+                    "true",
+                    "false"
+                ]
+            },
+            "name": "exploited_by_nessus",
+            "readable_name": "Exploited By Nessus"
+        },
+        {
+            "operators": [
+                "eq",
+                "neq",
+                "match",
+                "nmatch"
+            ],
+            "control": {
+                "readable_regex": "TEXT",
+                "type": "entry",
+                "regex": ".*"
+            },
+            "name": "hostname",
+            "readable_name": "Hostname"
+        },
+        {
+            "operators": [
+                "eq",
+                "neq"
+            ],
+            "control": {
+                "type": "dropdown",
+                "list": [
+                    "true",
+                    "false"
+                ]
+            },
+            "name": "in_the_news",
+            "readable_name": "In The News"
+        },
+        {
+            "operators": [
+                "eq",
+                "neq"
+            ],
+            "control": {
+                "type": "dropdown",
+                "list": [
+                    "true",
+                    "false"
+                ]
+            },
+            "name": "exploit_framework_metasploit",
+            "readable_name": "Metasploit Exploit Framework"
+        },
+        {
+            "operators": [
+                "eq",
+                "neq",
+                "match",
+                "nmatch"
+            ],
+            "control": {
+                "readable_regex": "TEXT",
+                "type": "entry",
+                "regex": ".*"
+            },
+            "name": "metasploit_name",
+            "readable_name": "Metasploit Name"
+        },
+        {
+            "operators": [
+                "date-lt",
+                "date-gt",
+                "date-eq",
+                "date-neq",
+                "match",
+                "nmatch"
+            ],
+            "control": {
+                "readable_regex": "YYYY-MM-DD",
+                "type": "datefield",
+                "regex": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+            },
+            "name": "patch_publication_date",
+            "readable_name": "Patch Publication Date"
+        },
+        {
+            "operators": [
+                "match",
+                "nmatch"
+            ],
+            "control": {
+                "readable_regex": "TEXT",
+                "type": "entry",
+                "regex": ".*"
+            },
+            "name": "description",
+            "readable_name": "Plugin Description"
+        },
+        {
+            "operators": [
+                "eq",
+                "neq"
+            ],
+            "control": {
+                "type": "dropdown",
+                "list": [
+                    "AIX Local Security Checks",
+                    "Amazon Linux Local Security Checks",
+                    "Backdoors",
+                    "CGI abuses",
+                    "CGI abuses : XSS",
+                    "CISCO",
+                    "CentOS Local Security Checks",
+                    "DNS",
+                    "Databases",
+                    "Debian Local Security Checks",
+                    "Default Unix Accounts",
+                    "Denial of Service",
+                    "F5 Networks Local Security Checks",
+                    "FTP",
+                    "Fedora Local Security Checks",
+                    "Firewalls",
+                    "FreeBSD Local Security Checks",
+                    "Gain a shell remotely",
+                    "General",
+                    "Gentoo Local Security Checks",
+                    "HP-UX Local Security Checks",
+                    "Huawei Local Security Checks",
+                    "Junos Local Security Checks",
+                    "MacOS X Local Security Checks",
+                    "Mandriva Local Security Checks",
+                    "Misc.",
+                    "Mobile Devices",
+                    "Netware",
+                    "Oracle Linux Local Security Checks",
+                    "OracleVM Local Security Checks",
+                    "Palo Alto Local Security Checks",
+                    "Peer-To-Peer File Sharing",
+                    "PhotonOS Local Security Checks",
+                    "Policy Compliance",
+                    "Port scanners",
+                    "RPC",
+                    "Red Hat Local Security Checks",
+                    "SCADA",
+                    "SMTP problems",
+                    "SNMP",
+                    "Scientific Linux Local Security Checks",
+                    "Service detection",
+                    "Settings",
+                    "Slackware Local Security Checks",
+                    "Solaris Local Security Checks",
+                    "SuSE Local Security Checks",
+                    "Ubuntu Local Security Checks",
+                    "VMware ESX Local Security Checks",
+                    "Virtuozzo Local Security Checks",
+                    "Web Servers",
+                    "Windows",
+                    "Windows : Microsoft Bulletins",
+                    "Windows : User management"
+                ]
+            },
+            "name": "plugin_family",
+            "readable_name": "Plugin Family"
+        },
+        {
+            "operators": [
+                "eq",
+                "neq",
+                "match",
+                "nmatch"
+            ],
+            "control": {
+                "readable_regex": "NUMBER",
+                "type": "entry",
+                "regex": "^[0-9, ]+$"
+            },
+            "name": "plugin_id",
+            "readable_name": "Plugin ID"
+        },
+        {
+            "operators": [
+                "date-lt",
+                "date-gt",
+                "date-eq",
+                "date-neq",
+                "match",
+                "nmatch"
+            ],
+            "control": {
+                "readable_regex": "YYYY-MM-DD",
+                "type": "datefield",
+                "regex": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+            },
+            "name": "plugin_modification_date",
+            "readable_name": "Plugin Modification Date"
+        },
+        {
+            "operators": [
+                "eq",
+                "neq",
+                "match",
+                "nmatch"
+            ],
+            "control": {
+                "readable_regex": "TEXT",
+                "type": "entry",
+                "regex": ".*"
+            },
+            "name": "plugin_name",
+            "readable_name": "Plugin Name"
+        },
+        {
+            "operators": [
+                "eq",
+                "neq",
+                "match",
+                "nmatch"
+            ],
+            "control": {
+                "readable_regex": "TEXT",
+                "type": "entry",
+                "regex": ".*"
+            },
+            "name": "plugin_output",
+            "readable_name": "Plugin Output"
+        },
+        {
+            "operators": [
+                "date-lt",
+                "date-gt",
+                "date-eq",
+                "date-neq",
+                "match",
+                "nmatch"
+            ],
+            "control": {
+                "readable_regex": "YYYY-MM-DD",
+                "type": "datefield",
+                "regex": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+            },
+            "name": "plugin_publication_date",
+            "readable_name": "Plugin Publication Date"
+        },
+        {
+            "operators": [
+                "eq",
+                "neq"
+            ],
+            "control": {
+                "type": "dropdown",
+                "list": [
+                    "local",
+                    "remote"
+                ]
+            },
+            "name": "plugin_type",
+            "readable_name": "Plugin Type"
+        },
+        {
+            "operators": [
+                "eq",
+                "neq",
+                "match",
+                "nmatch"
+            ],
+            "control": {
+                "readable_regex": "80",
+                "type": "entry",
+                "regex": "^[0-9]+$"
+            },
+            "name": "port",
+            "readable_name": "Port"
+        },
+        {
+            "operators": [
+                "eq",
+                "neq"
+            ],
+            "control": {
+                "type": "dropdown",
+                "list": [
+                    "tcp",
+                    "udp",
+                    "icmp"
+                ]
+            },
+            "name": "protocol",
+            "readable_name": "Protocol"
+        },
+        {
+            "operators": [
+                "eq",
+                "neq"
+            ],
+            "control": {
+                "type": "dropdown",
+                "list": [
+                    "None",
+                    "Low",
+                    "Medium",
+                    "High",
+                    "Critical"
+                ]
+            },
+            "name": "risk_factor",
+            "readable_name": "Risk Factor"
+        },
+        {
+            "operators": [
+                "eq",
+                "neq",
+                "match",
+                "nmatch"
+            ],
+            "control": {
+                "readable_regex": "TEXT",
+                "type": "entry",
+                "regex": ".*"
+            },
+            "name": "see_also",
+            "readable_name": "See Also"
+        },
+        {
+            "operators": [
+                "match",
+                "nmatch"
+            ],
+            "control": {
+                "readable_regex": "TEXT",
+                "type": "entry",
+                "regex": ".*"
+            },
+            "name": "solution",
+            "readable_name": "Solution"
+        },
+        {
+            "operators": [
+                "match",
+                "nmatch"
+            ],
+            "control": {
+                "readable_regex": "TEXT",
+                "type": "entry",
+                "regex": ".*"
+            },
+            "name": "synopsis",
+            "readable_name": "Synopsis"
+        },
+        {
+            "operators": [
+                "eq",
+                "neq"
+            ],
+            "control": {
+                "type": "dropdown",
+                "list": [
+                    "true",
+                    "false"
+                ]
+            },
+            "name": "unsupported_by_vendor",
+            "readable_name": "Unsupported By Vendor"
+        },
+        {
+            "operators": [
+                "date-lt",
+                "date-gt",
+                "date-eq",
+                "date-neq",
+                "match",
+                "nmatch"
+            ],
+            "control": {
+                "readable_regex": "YYYY-MM-DD",
+                "type": "datefield",
+                "regex": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+            },
+            "name": "vuln_publication_date",
+            "readable_name": "Vulnerability Publication Date"
+        }
+    ],
+    "history": [
+        {
+            "alt_targets_used": false,
+            "scheduler": 0,
+            "schedule_type": "manual",
+            "status": "completed",
+            "type": "local",
+            "uuid": "3deeae69-ce47-5e42-38a6-83db65d7413e0d32c89c4746ca81",
+            "last_modification_date": 1553945088,
+            "creation_date": 1553943579,
+            "owner_id": 19,
+            "history_id": 1
+        }
+    ],
+    "compliance": [],
+    "info": {
+        "acls": [
+            {
+                "permissions": 0,
+                "owner": null,
+                "display_name": null,
+                "name": null,
+                "id": null,
+                "type": "default"
+            },
+            {
+                "permissions": 128,
+                "owner": 1,
+                "display_name": "Generic Assurance Scan Account",
+                "name": "assure_scan",
+                "id": 19,
+                "type": "user"
+            }
+        ],
+        "edit_allowed": true,
+        "alt_targets_used": false,
+        "status": "completed",
+        "scanner_start": 1553943579,
+        "policy": "Basic Network Scan",
+        "pci-can-upload": false,
+        "hasaudittrail": true,
+        "scan_start": 1553943579,
+        "user_permissions": 128,
+        "folder_id": 137,
+        "no_target": false,
+        "targets": "176.28.50.165",
+        "control": true,
+        "timestamp": 1553945088,
+        "offline": false,
+        "object_id": 170,
+        "scanner_name": "Local Scanner",
+        "haskb": true,
+        "uuid": "3deeae69-ce47-5e42-38a6-83db65d7413e0d32c89c4746ca81",
+        "scanner_end": 1553945084,
+        "hostcount": 1,
+        "scan_end": 1553945088,
+        "scan_type": "local",
+        "migrated": 0,
+        "name": "VulnWhisperer - vulnweb.com ñ A"
+    }
+}

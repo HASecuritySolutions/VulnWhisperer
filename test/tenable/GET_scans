@@ -1,0 +1,65 @@
+{
+    "folders": [
+        {
+            "unread_count": 0,
+            "custom": 0,
+            "default_tag": 0,
+            "type": "trash",
+            "name": "Trash",
+            "id": 45
+        },
+        {
+            "unread_count": 1,
+            "custom": 0,
+            "default_tag": 1,
+            "type": "main",
+            "name": "My Scans",
+            "id": 46
+        }
+    ],
+    "scans": [
+        {
+            "legacy": false,
+            "permissions": 128,
+            "type": "ps",
+            "read": true,
+            "last_modification_date": 1553942744,
+            "creation_date": 1553941167,
+            "status": "completed",
+            "uuid": "4cae26ca-776e-449e-a93e-b65bed99ec95",
+            "shared": false,
+            "user_permissions": 128,
+            "owner": "pemontto",
+            "schedule_uuid": "template-a07c6a8d-fef1-7289-2235-130b75107c6038270ffd5b97f064",
+            "timezone": null,
+            "rrules": null,
+            "starttime": null,
+            "enabled": false,
+            "control": true,
+            "name": "VulnWhisperer - vulnweb.com é Tenable A",
+            "id": 68
+        },
+        {
+            "legacy": false,
+            "permissions": 128,
+            "type": "ps",
+            "read": true,
+            "last_modification_date": 1553942744,
+            "creation_date": 1553941167,
+            "status": "completed",
+            "uuid": "4cae26ca-776e-449e-a93e-b65bed99ec95",
+            "shared": false,
+            "user_permissions": 128,
+            "owner": "pemontto",
+            "schedule_uuid": "template-a07c6a8d-fef1-7289-2235-130b75107c6038270ffd5b97f064",
+            "timezone": null,
+            "rrules": null,
+            "starttime": null,
+            "enabled": false,
+            "control": true,
+            "name": "VulnWhisperer - vulnweb.com é Tenable B",
+            "id": 69
+        }
+    ],
+    "timestamp": 1554076379
+}
