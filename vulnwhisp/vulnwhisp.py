@@ -311,7 +311,7 @@ class vulnWhispererNessus(vulnWhispererBase):
 
     def whisper_nessus(self):
         if self.nessus_connect:
-            scan_data = self.nessus.get_scans()
+            scan_data = self.nessus.scans
             folders = scan_data['folders']
             scans = scan_data['scans'] if scan_data['scans'] else []
             all_scans = self.scan_count(scans)
@@ -366,7 +366,6 @@ class vulnWhispererNessus(vulnWhispererBase):
                 # TODO Create directory sync function which scans the directory for files that exist already and populates the database
 
                 folder_id = s['folder_id']
-                scan_history = self.nessus.get_scan_history(scan_id)
                 if self.CONFIG_SECTION == 'tenable':
                     folder_name = ''
                 else:

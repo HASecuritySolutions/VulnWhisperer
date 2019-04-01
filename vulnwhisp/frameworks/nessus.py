@@ -53,6 +53,7 @@ class NessusAPI(object):
         }
 
         self.login()
+        self.scans = self.get_scans()
         self.scan_ids = self.get_scan_ids()
 
     def login(self):
@@ -113,7 +114,7 @@ class NessusAPI(object):
         return scans
 
     def get_scan_ids(self):
-        scans = self.get_scans()
+        scans = self.scans
         scan_ids = [scan_id['id'] for scan_id in scans['scans']] if scans['scans'] else []
         self.logger.debug('Found {} scan_ids'.format(len(scan_ids)))
         return scan_ids
