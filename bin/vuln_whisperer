@@ -74,7 +74,7 @@ def main():
 
             	vw.whisper_vulnerabilities()
             # TODO: fix this to NOT be exit 1 unless in error
-            close_logging_handlers()
+            close_logging_handlers(logger)
 	    sys.exit(1)
 
         else:
@@ -89,7 +89,7 @@ def main():
 
             vw.whisper_vulnerabilities()
             # TODO: fix this to NOT be exit 1 unless in error
-            close_logging_handlers()
+            close_logging_handlers(logger)
             sys.exit(1)
 
     except Exception as e:
@@ -98,12 +98,12 @@ def main():
             logger.error('{}'.format(str(e)))
             print('ERROR: {error}'.format(error=e))
         # TODO: fix this to NOT be exit 2 unless in error
-        close_logging_handlers()
+        close_logging_handlers(logger)
         sys.exit(2)
 
-    close_logging_handlers()
+    close_logging_handlers(logger)
 
-def close_logging_handlers():
+def close_logging_handlers(logger):
     for handler in logger.handlers:
         handler.close()
         logger.removeFilter(handler)
