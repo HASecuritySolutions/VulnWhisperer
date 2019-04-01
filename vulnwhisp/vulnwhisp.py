@@ -164,11 +164,11 @@ class vulnWhispererBase(object):
         if not os.path.exists(self.write_path):
             os.makedirs(self.write_path)
             self.logger.info('Directory created at {scan} - Skipping creation'.format(
-                scan=self.write_path))
+                scan=self.write_path.encode('utf8')))
         else:
             os.path.exists(self.write_path)
             self.logger.info('Directory already exist for {scan} - Skipping creation'.format(
-                scan=self.write_path))
+                scan=self.write_path.encode('utf8')))
 
     def get_latest_results(self, source, scan_name):
         try:
@@ -302,7 +302,6 @@ class vulnWhispererNessus(vulnWhispererBase):
                         scan_records.append(record.copy())
                 except Exception as e:
                     # Generates error each time nonetype is encountered.
-
                     pass
 
         if completed:
@@ -338,8 +337,7 @@ class vulnWhispererNessus(vulnWhispererBase):
                 else:
                     os.path.exists(self.path_check(f['name']))
                     self.logger.info('Directory already exist for {scan} - Skipping creation'.format(
-                        scan=self.path_check(f['name'
-                                             ])))
+                        scan=self.path_check(f['name']).encode('utf8')))
 
             # try download and save scans into each folder the belong to
 
@@ -400,10 +398,9 @@ class vulnWhispererNessus(vulnWhispererBase):
                             self.nessus.download_scan(scan_id=scan_id, history=history_id,
                                                       export_format='csv', profile=self.CONFIG_SECTION)
                         clean_csv = \
-                            pd.read_csv(io.StringIO(file_req.decode('utf-8'
-                                                                    )))
+                            pd.read_csv(io.StringIO(file_req.decode('utf-8')))
                         if len(clean_csv) > 2:
-                            self.logger.info('Processing {}/{} for scan: {}'.format(scan_count, len(scan_list), scan_name))
+                            self.logger.info('Processing {}/{} for scan: {}'.format(scan_count, len(scan_list), scan_name.encode('utf8')))
                             columns_to_cleanse = ['CVSS','CVE','Description','Synopsis','Solution','See Also','Plugin Output']
 
                             for col in columns_to_cleanse:
@@ -423,7 +420,7 @@ class vulnWhispererNessus(vulnWhispererBase):
                             )
                             self.record_insert(record_meta)
                             self.logger.info('{filename} records written to {path} '.format(filename=clean_csv.shape[0],
-                                                                                            path=file_name))
+                                                                                            path=file_name.encode('utf8')))
                         else:
                             record_meta = (
                                 scan_name,
