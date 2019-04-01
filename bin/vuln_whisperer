@@ -34,6 +34,7 @@ def main():
     parser.add_argument('-p', '--password', dest='password', required=False, default=None, type=lambda x: x.strip(), help='The NESSUS password')
     parser.add_argument('-F', '--fancy', action='store_true', help='Enable colourful logging output')
     parser.add_argument('-d', '--debug', action='store_true', help='Enable debugging messages')
+    parser.add_argument('--mock', action='store_true', help='Enable mocked API responses')
     args = parser.parse_args()
 
     # First setup logging
@@ -52,9 +53,11 @@ def main():
         import coloredlogs
         coloredlogs.install(level='DEBUG' if args.debug else 'INFO')
 
+    if args.mock:
+        import vulnwhisp.test.mock
+
     try:
         if args.config and not args.section:
-	    
             # this remains a print since we are in the main binary
             print('WARNING: {warning}'.format(warning='No section was specified, vulnwhisperer will scrape enabled modules from config file. \
 						    \nPlease specify a section using -s. \
