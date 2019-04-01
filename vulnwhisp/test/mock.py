@@ -17,8 +17,8 @@ def get_files(path):
     dir, subdirs, files = next(os.walk(path))
     return files
 
-def create_nessus_resource(framework, path):
-    for filename in get_files(path):
+def create_nessus_resource(framework):
+    for filename in get_files('{}/{}'.format(tests_path, framework)):
         method, resource = filename.split('_',1)
         resource = resource.replace('_', '/')
         logger.debug('Adding mocked {} endpoint {} {}'.format(framework, method, resource))
@@ -51,20 +51,19 @@ def create_qualys_vuln_resource(framework):
     # Create health check endpoint
     logger.debug('Adding mocked {} endpoint {} {}'.format(framework, 'GET', 'msp/about.php'))
     httpretty.register_uri(
-            getattr(httpretty, 'GET'),
+            httpretty.GET,
             'https://{}:443/{}'.format(framework, 'msp/about.php'),
-            body=''
-        )
+            body='')
     
     logger.debug('Adding mocked {} endpoint {} {}'.format(framework, 'POST', 'api/2.0/fo/scan'))
     httpretty.register_uri(
-        getattr(httpretty, 'POST'), 'https://{}:443/{}'.format(framework, 'api/2.0/fo/scan/'),
+        httpretty.POST, 'https://{}:443/{}'.format(framework, 'api/2.0/fo/scan/'),
         body=qualys_vuln_callback)
 
 for framework in get_directories(tests_path):
     if framework in ['nessus', 'tenable']:
-        create_nessus_resource(framework, tests_path + '/' + framework)
-    if framework == 'qualys_vuln':
+        create_nessus_resource(framework)
+    elif framework == 'qualys_vuln':
         qualys_vuln_path = tests_path + '/' + framework
         create_qualys_vuln_resource(framework)
 
