@@ -1,9 +1,13 @@
 import os
+import logging
 import httpretty
-import requests
-from pprint import pprint as pp
+
+logger = logging.getLogger('mock-http')
+logger.setLevel(logging.DEBUG)
 
 tests_path = '/'.join(__file__.split('/')[:-3]) + '/test'
+
+logger.info('Tests path resolved as {}'.format(tests_path))
 
 def get_directories(path):
     dir, subdirs, files = next(os.walk(path))
@@ -17,13 +21,14 @@ def create_nessus_resource(framework, path):
     for filename in get_files(path):
         method, resource = filename.split('_',1)
         resource = resource.replace('_', '/')
-        print 'Adding {} endpoint {} {}'.format(framework, method, resource)
+        logger.debug('Adding mocked {} endpoint {} {}'.format(framework, method, resource))
         httpretty.register_uri(
             getattr(httpretty, method), 'https://{}:443/{}'.format(framework, resource),
             body=open('{}/{}/{}'.format(tests_path, framework, filename)).read()
         )
 
 def qualys_vuln_callback(request, uri, response_headers):
+    logger.info('Simulating response for {}'.format(uri))
     # print '\n\nURI:{}\nHeaders\n{line}\n{}\nContent\n{line}\n{}'.format(uri, request.headers, request.body, line='-' * 80)
     if 'list' in request.parsed_body['action']:
         return [ 200,
@@ -44,14 +49,14 @@ def qualys_vuln_callback(request, uri, response_headers):
 
 def create_qualys_vuln_resource(framework):
     # Create health check endpoint
-    print 'Adding {} endpoint {} {}'.format(framework, 'GET', 'msp/about.php')
+    logger.debug('Adding mocked {} endpoint {} {}'.format(framework, 'GET', 'msp/about.php'))
     httpretty.register_uri(
             getattr(httpretty, 'GET'),
             'https://{}:443/{}'.format(framework, 'msp/about.php'),
             body=''
         )
     
-    print 'Adding {} endpoint {} {}'.format(framework, 'POST', 'api/2.0/fo/scan')
+    logger.debug('Adding mocked {} endpoint {} {}'.format(framework, 'POST', 'api/2.0/fo/scan'))
     httpretty.register_uri(
         getattr(httpretty, 'POST'), 'https://{}:443/{}'.format(framework, 'api/2.0/fo/scan/'),
         body=qualys_vuln_callback)
