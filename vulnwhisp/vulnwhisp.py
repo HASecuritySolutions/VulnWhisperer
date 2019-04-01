@@ -102,6 +102,7 @@ class vulnWhispererBase(object):
             'source',
             'uuid',
             'processed',
+            'reported',
         ]
 
         self.init()
@@ -115,7 +116,7 @@ class vulnWhispererBase(object):
             'CREATE TABLE IF NOT EXISTS scan_history (id INTEGER PRIMARY KEY,'
             ' scan_name TEXT, scan_id INTEGER, last_modified DATE, filename TEXT,'
             ' download_time DATE, record_count INTEGER, source TEXT,'
-            ' uuid TEXT, processed INTEGER)'
+            ' uuid TEXT, processed INTEGER, reported INTEGER)'
             )
         self.conn.commit()
 
@@ -142,10 +143,35 @@ class vulnWhispererBase(object):
         return data
 
     def record_insert(self, record):
-        self.cur.execute('insert into scan_history({table_columns}) values (?,?,?,?,?,?,?,?,?)'.format(
-            table_columns=', '.join(self.table_columns)),
-                         record)
-        self.conn.commit()
+        #for backwards compatibility with older versions without "reported" field
+        
+        try:
+            #-1 to get the latest column, 1 to get the column name (old version would be "processed", new "reported")
+            #TODO delete backward compatibility check after some versions
+            last_column_table = self.cur.execute('PRAGMA table_info(scan_history)').fetchall()[-1][1]
+            if last_column_table == self.table_columns[-1]:
+                self.cur.execute('insert into scan_history({table_columns}) values (?,?,?,?,?,?,?,?,?,?)'.format(
+                    table_columns=', '.join(self.table_columns)), record)
+
+            else:
+                self.cur.execute('insert into scan_history({table_columns}) values (?,?,?,?,?,?,?,?,?)'.format(
+                    table_columns=', '.join(self.table_columns[:-1])), record[:-1])
+            self.conn.commit()
+        except Exception as e:
+            self.logger.error("Failed to insert record in database. Error: {}".format(e))
+            sys.exit(1)
+
+    def set_latest_scan_processed(self, filename):
+        #the reason to use the filename instead of the source/scan_name is because the filename already belongs to
+        #that latest scan, and we maintain integrity making sure that it is the exact scan we checked
+        try:
+            self.cur.execute('UPDATE scan_history SET processed = 1 WHERE filename="{}";'.format(filename))
+            self.logger.debug('Scan {} marked as successfully processed.'.format(filename))
+            return True
+        except Exception as e:
+            self.logger.error('Failed while setting scan with file {} as processed'.format(filename))
+            
+        return False
 
     def retrieve_uuids(self):
         """
@@ -171,17 +197,26 @@ class vulnWhispererBase(object):
                 scan=self.write_path.encode('utf8')))
 
     def get_latest_results(self, source, scan_name):
+        processed = 0
+        results = []
+        
         try:
             self.conn.text_factory = str
             self.cur.execute('SELECT filename FROM scan_history WHERE source="{}" AND scan_name="{}" ORDER BY last_modified DESC LIMIT 1;'.format(source, scan_name))
             #should always return just one filename
             results = [r[0] for r in self.cur.fetchall()][0]
-        except:
-            results = []
-        return results
 
-        return True
+            #-1 to get the latest column, 1 to get the column name (old version would be "processed", new "reported")
+            #TODO delete backward compatibility check after some versions
+            last_column_table = self.cur.execute('PRAGMA table_info(scan_history)').fetchall()[-1][1]
+            if results and last_column_table == self.table_columns[-1]:
+                processed = self.cur.execute('SELECT processed FROM scan_history WHERE filename="{}"'.format(results)).fetchall()[0][0]
+                if processed:
+                    self.logger.debug("Last downloaded scan from source {source} scan_name {scan_name} has already been processed".format(source=source, scan_name=scan_name))
 
+        except Exception as e:
+            self.logger.error("Error when getting latest results from {}.{} : {}".format(source, scan_name, e))
+        return results, processed
         
     def get_scan_profiles(self):
         # Returns a list of source.scan_name elements from the database
@@ -390,6 +425,7 @@ class vulnWhispererNessus(vulnWhispererBase):
                                 self.CONFIG_SECTION,
                                 uuid,
                                 1,
+                                0,
                             )
                             self.record_insert(record_meta)
                             self.logger.info('File {filename} already exist! Updating database'.format(filename=relative_path_name))
@@ -417,6 +453,7 @@ class vulnWhispererNessus(vulnWhispererBase):
                                 self.CONFIG_SECTION,
                                 uuid,
                                 1,
+                                0,
                             )
                             self.record_insert(record_meta)
                             self.logger.info('{filename} records written to {path} '.format(filename=clean_csv.shape[0],
@@ -432,6 +469,7 @@ class vulnWhispererNessus(vulnWhispererBase):
                                 self.CONFIG_SECTION,
                                 uuid,
                                 1,
+                                0,
                             )
                             self.record_insert(record_meta)
                             self.logger.warn('{} has no host available... Updating database and skipping!'.format(file_name))
@@ -550,6 +588,7 @@ class vulnWhispererQualys(vulnWhispererBase):
                     self.CONFIG_SECTION,
                     report_id,
                     1,
+                    0,
                 )
                 self.record_insert(record_meta)
                 self.logger.info('File {filename} already exist! Updating database'.format(filename=relative_path_name))
@@ -579,6 +618,7 @@ class vulnWhispererQualys(vulnWhispererBase):
                         self.CONFIG_SECTION,
                         report_id,
                         1,
+                        0,
                     )
                     self.record_insert(record_meta)
 
@@ -712,6 +752,7 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
                     self.CONFIG_SECTION,
                     report_id,
                     1,
+                    0,
                 )
                 self.record_insert(record_meta)
                 self.logger.info('File {filename} already exist! Updating database'.format(filename=relative_path_name))
@@ -829,6 +870,7 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
                     self.CONFIG_SECTION,
                     report_id,
                     1,
+                    0,
                 )
                 self.record_insert(record_meta)
                 self.logger.info('File {filename} already exist! Updating database'.format(filename=relative_path_name))
@@ -850,6 +892,7 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
                     self.CONFIG_SECTION,
                     report_id,
                     1,
+                    0,
                 )
                 self.record_insert(record_meta)
 
@@ -970,7 +1013,7 @@ class vulnWhispererJIRA(vulnWhispererBase):
             sys.exit(0)
             
         #datafile path
-        filename = self.get_latest_results(source, scan_name)
+        filename, processed = self.get_latest_results(source, scan_name)
         fullpath = ""
         
         # search data files under user specified directory
@@ -978,8 +1021,12 @@ class vulnWhispererJIRA(vulnWhispererBase):
             if filename in filenames:
                 fullpath = "{}/{}".format(root,filename)
         
+        if processed:
+            self.logger.warn('Last Scan of "{scan_name}" for source "{source}" has already been processed; will be skipped.'.format(scan_name=scan_name, source=source))
+            return [False] * 5
+
         if not fullpath:
-            self.logger.error('Scan file path "{scan_name}" for source "{source}" has not been found.'.format(scan_name=scan_name, source=source))
+            self.logger.error('Scan of "{scan_name}" for source "{source}" has not been found. Please check that the scanner data files are in place.'.format(scan_name=scan_name, source=source))
             sys.exit(1)
     
         dns_resolv = self.config.get('jira','dns_resolv')
@@ -1137,6 +1184,10 @@ class vulnWhispererJIRA(vulnWhispererBase):
 
         project, components, fullpath, min_critical, dns_resolv = self.get_env_variables(source, scan_name)
 
+        if not project:
+            self.logger.debug("Skipping scan for source '{source}' and scan '{scan_name}'".format(source=source, scan_name=scan_name))
+            return False
+
         vulnerabilities = []
 
         #***Nessus parsing***
@@ -1155,8 +1206,10 @@ class vulnWhispererJIRA(vulnWhispererBase):
             self.jira.sync(vulnerabilities, project, components)
         else:
             self.logger.info("[{source}.{scan_name}] No vulnerabilities or vulnerabilities not parsed.".format(source=source, scan_name=scan_name))
+            self.set_latest_scan_processed(fullpath.split("/")[-1])
             return False
 
+        self.set_latest_scan_processed(fullpath.split("/")[-1])
         return True
 
     def sync_all(self):
