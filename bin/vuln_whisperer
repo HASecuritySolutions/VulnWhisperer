@@ -39,6 +39,8 @@ def main():
     # First setup logging
     logging.basicConfig(
         stream=sys.stdout,
+        #format only applies when not using -F flag for colouring
+        format='%(levelname)s:%(name)s:%(funcName)s:%(message)s',
         level=logging.DEBUG if args.debug else logging.INFO
     )
     logger = logging.getLogger()
