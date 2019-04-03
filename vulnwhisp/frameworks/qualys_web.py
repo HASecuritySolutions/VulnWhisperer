@@ -135,7 +135,7 @@ class qualysWhisperAPI(object):
                 if i % limit == 0:
                     if (total - i) < limit:
                         qualys_api_limit = total - i
-                    self.logger.info('Making a request with a limit of {} at offset {}'.format((str(qualys_api_limit), str(i + 1))))
+                    self.logger.info('Making a request with a limit of {} at offset {}'.format((str(qualys_api_limit)), str(i + 1)))
                     scan_info = self.get_scan_info(limit=qualys_api_limit, offset=i + 1, status=status)
                     _records.append(scan_info)
             self.logger.debug('Converting XML to DataFrame')
