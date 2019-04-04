@@ -25,8 +25,7 @@ class qualysWhisperAPI(object):
             self.logger.info('Connected to Qualys at {}'.format(self.qgc.server))
         except Exception as e:
             self.logger.error('Could not connect to Qualys: {}'.format(str(e)))
-            # FIXME: exit(1) does not exist: either it's exit() or sys.exit(CODE)
-            exit(1)
+            sys.exit(1)
 
     def scan_xml_parser(self, xml):
         all_records = []
