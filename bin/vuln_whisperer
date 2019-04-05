@@ -5,6 +5,7 @@ __author__ = 'Austin Taylor'
 
 from vulnwhisp.vulnwhisp import vulnWhisperer
 from vulnwhisp.base.config import vwConfig
+from vulnwhisp.test.mock import mockAPI
 import os
 import argparse
 import sys
@@ -34,6 +35,9 @@ def main():
     parser.add_argument('-p', '--password', dest='password', required=False, default=None, type=lambda x: x.strip(), help='The NESSUS password')
     parser.add_argument('-F', '--fancy', action='store_true', help='Enable colourful logging output')
     parser.add_argument('-d', '--debug', action='store_true', help='Enable debugging messages')
+    parser.add_argument('--mock', action='store_true', help='Enable mocked API responses')
+    parser.add_argument('--mock_dir', dest='mock_dir', required=False, default='test',
+                        help='Path of test directory')
     args = parser.parse_args()
 
     # First setup logging
@@ -54,9 +58,12 @@ def main():
         import coloredlogs
         coloredlogs.install(level='DEBUG' if args.debug else 'INFO')
 
+    if args.mock:
+        mock_api = mockAPI(args.mock_dir, args.verbose)
+        mock_api.mock_endpoints()
+
     try:
         if args.config and not args.section:
-	    
             # this remains a print since we are in the main binary
             print('WARNING: {warning}'.format(warning='No section was specified, vulnwhisperer will scrape enabled modules from config file. \
 						    \nPlease specify a section using -s. \
@@ -74,10 +81,10 @@ def main():
                                source=args.source,
                                scanname=args.scanname)
 
-            	vw.whisper_vulnerabilities()
+                exit_code = vw.whisper_vulnerabilities()
             # TODO: fix this to NOT be exit 1 unless in error
             close_logging_handlers(logger)
-	    sys.exit(1)
+	    sys.exit(exit_code)
 
         else:
             logger.info('Running vulnwhisperer for section {}'.format(args.section))
@@ -89,10 +96,10 @@ def main():
                                source=args.source,
                                scanname=args.scanname)
 
-            vw.whisper_vulnerabilities()
+            exit_code = vw.whisper_vulnerabilities()
             # TODO: fix this to NOT be exit 1 unless in error
             close_logging_handlers(logger)
-            sys.exit(1)
+            sys.exit(exit_code)
 
     except Exception as e:
         if args.verbose:

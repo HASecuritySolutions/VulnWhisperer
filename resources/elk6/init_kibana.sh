@@ -14,7 +14,7 @@ until [ "`curl -I "$kibana_url"/status | head -n1 |cut -d$' ' -f2`" == "200" ]; 
     echo "Waiting for Kibana"
     sleep 5
 done
-	
+
 echo "Loading VulnWhisperer Saved Objects"
 echo $add_saved_objects$saved_objects_file
 eval $(echo $add_saved_objects$saved_objects_file)

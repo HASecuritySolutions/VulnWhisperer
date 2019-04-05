@@ -26,16 +26,16 @@ class vwConfig(object):
         return self.config.getboolean(section, option)
 
     def get_sections_with_attribute(self, attribute):
-	sections = []
+        sections = []
         # TODO: does this not also need the "yes" case?
-	check = ["true", "True", "1"]
-	for section in self.config.sections():
+        check = ["true", "True", "1"]
+        for section in self.config.sections():
             try:
                 if self.get(section, attribute) in check:
                     sections.append(section)	
             except:
                 self.logger.warn("Section {} has no option '{}'".format(section, attribute))
-	return sections
+        return sections
 
     def exists_jira_profiles(self, profiles):
         # get list of profiles source_scanner.scan_name
