@@ -3,12 +3,9 @@
 __author__ = 'Nathan Young'
 
 import xml.etree.ElementTree as ET
-import pandas as pd
-import qualysapi
-import requests
-import sys
 import logging
-import os
+import qualysapi
+import pandas as pd
 import dateutil.parser as dp
 
 
@@ -60,11 +57,12 @@ class qualysWhisperAPI(object):
             'scan_ref': scan_id
         }
         scan_json = self.qgc.request(self.SCANS, parameters)
-        
+
         # First two columns are metadata we already have
         # Last column corresponds to "target_distribution_across_scanner_appliances" element
         # which doesn't follow the schema and breaks the pandas data manipulation
         return pd.read_json(scan_json).iloc[2:-1]
+
 
 class qualysUtils:
     def __init__(self):
@@ -77,15 +75,15 @@ class qualysUtils:
 
 
 class qualysVulnScan:
-   
+
     def __init__(
-            self,
-            config=None,
-            file_in=None,
-            file_stream=False,
-            delimiter=',',
-            quotechar='"',
-        ):
+                self,
+                config=None,
+                file_in=None,
+                file_stream=False,
+                delimiter=',',
+                quotechar='"',
+            ):
         self.logger = logging.getLogger('qualysVulnScan')
         self.file_in = file_in
         self.file_stream = file_stream
