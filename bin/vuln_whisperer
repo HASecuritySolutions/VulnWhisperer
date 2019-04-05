@@ -59,8 +59,7 @@ def main():
         coloredlogs.install(level='DEBUG' if args.debug else 'INFO')
 
     if args.mock:
-        print args.debug, args.verbose
-        mock_api = mockAPI(args.mock_dir, args.debug or args.verbose)
+        mock_api = mockAPI(args.mock_dir, args.verbose)
         mock_api.mock_endpoints()
 
     try:

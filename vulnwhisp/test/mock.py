@@ -10,12 +10,12 @@ class mockAPI(object):
             self.mock_dir = '/'.join(__file__.split('/')[:-3]) + '/test'
         
         self.logger = logging.getLogger('mockAPI')
+
         if debug:
             self.logger.setLevel(logging.DEBUG)
 
-        print '{}__file__: {}'.format('\n'*2, self.mock_dir)
-        print 'mock_dir: {}{}'.format(self.mock_dir, '\n'*2)
-        self.logger.info('Tests path resolved as {}'.format(self.mock_dir))
+        self.logger.info('mockAPI initialised, API requests will be mocked'.format(self.mock_dir))
+        self.logger.debug('Test path resolved as {}'.format(self.mock_dir))
 
     def get_directories(self, path):
         dir, subdirs, files = next(os.walk(path))
@@ -26,8 +26,7 @@ class mockAPI(object):
         return files
 
     def qualys_vuln_callback(self, request, uri, response_headers):
-        self.logger.info('Simulating response for {}'.format(uri))
-        # print '\n\nURI:{}\nHeaders\n{line}\n{}\nContent\n{line}\n{}'.format(uri, request.headers, request.body, line='-' * 80)
+        self.logger.debug('Simulating response for {} ({})'.format(uri, request.body))
         if 'list' in request.parsed_body['action']:
             return [ 200,
                     response_headers,
