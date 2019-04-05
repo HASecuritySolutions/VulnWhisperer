@@ -106,13 +106,6 @@ class NessusAPI(object):
         self.logger.debug('Found {} scan_ids'.format(len(scan_ids)))
         return scan_ids
 
-    def count_scan(self, scans, folder_id):
-        count = 0
-        for scan in scans:
-            if scan['folder_id'] == folder_id:
-                count = count + 1
-        return count
-
     def get_scan_history(self, scan_id):
         data = self.request(self.SCAN_ID.format(scan_id=scan_id), method='GET', json=True)
         return data['history']
