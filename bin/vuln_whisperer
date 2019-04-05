@@ -82,10 +82,10 @@ def main():
                                source=args.source,
                                scanname=args.scanname)
 
-            	vw.whisper_vulnerabilities()
+                exit_code = vw.whisper_vulnerabilities()
             # TODO: fix this to NOT be exit 1 unless in error
             close_logging_handlers(logger)
-	    sys.exit(1)
+	    sys.exit(exit_code)
 
         else:
             logger.info('Running vulnwhisperer for section {}'.format(args.section))
@@ -97,10 +97,10 @@ def main():
                                source=args.source,
                                scanname=args.scanname)
 
-            vw.whisper_vulnerabilities()
+            exit_code = vw.whisper_vulnerabilities()
             # TODO: fix this to NOT be exit 1 unless in error
             close_logging_handlers(logger)
-            sys.exit(1)
+            sys.exit(exit_code)
 
     except Exception as e:
         if args.verbose:
