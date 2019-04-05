@@ -18,7 +18,8 @@ before_script:
     # exit-zero treats all errors as warnings.  The GitHub editor is 127 chars wide
     - flake8 . --count --exit-zero --exclude=deps/qualysapi --max-complexity=10 --max-line-length=127 --statistics
 script:
-    - true  # pytest --capture=sys  # add other tests here
+    - python setup.py install
+    - vuln_whisperer -c configs/test.ini --mock --mock_dir test
 notifications:
     on_success: change
     on_failure: change  # `always` will be the setting once code changes slow down
