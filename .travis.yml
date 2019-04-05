@@ -29,6 +29,12 @@ script:
     # Test two failed scans
     - rm -f test/qualys_vuln/scan_1553941061.87241
     - vuln_whisperer -c configs/test.ini --mock --mock_dir test; [[ $? -eq 2 ]]
+    - rm -rf /tmp/VulnWhisperer
+    # Test only nessus
+    - vuln_whisperer -c configs/test.ini -s nessus --mock --mock_dir test; [[ $? -eq 1 ]]
+    - rm -rf /tmp/VulnWhisperer
+    # Test only qualy_vuln
+    - vuln_whisperer -c configs/test.ini -s qualys_vuln --mock --mock_dir test; [[ $? -eq 1 ]]
 notifications:
     on_success: change
     on_failure: change  # `always` will be the setting once code changes slow down
