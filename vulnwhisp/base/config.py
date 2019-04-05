@@ -1,9 +1,8 @@
-import os
 import sys
 import logging
 
 # Support for python3
-if (sys.version_info > (3, 0)):
+if sys.version_info > (3, 0):
     import configparser as cp
 else:
     import ConfigParser as cp
@@ -45,7 +44,6 @@ class vwConfig(object):
                 return False
         return True
 
-
     def update_jira_profiles(self, profiles):
         # create JIRA profiles in the ini config file 
         self.logger.debug('Updating Jira profiles: {}'.format(str(profiles)))
@@ -59,27 +57,27 @@ class vwConfig(object):
             except:
                 self.logger.warn("Creating config section for '{}'".format(section_name))
                 self.config.add_section(section_name)
-                self.config.set(section_name,'source',profile.split('.')[0])
+                self.config.set(section_name, 'source', profile.split('.')[0])
                 # in case any scan name contains '.' character
-                self.config.set(section_name,'scan_name','.'.join(profile.split('.')[1:]))
-                self.config.set(section_name,'jira_project', '')
-                self.config.set(section_name,'; if multiple components, separate by ","')
-                self.config.set(section_name,'components', '')
-                self.config.set(section_name,'; minimum criticality to report (low, medium, high or critical)')
-                self.config.set(section_name,'min_critical_to_report', 'high')
-                self.config.set(section_name,'; automatically report, boolean value ')
-                self.config.set(section_name,'autoreport', 'false')
+                self.config.set(section_name, 'scan_name', '.'.join(profile.split('.')[1:]))
+                self.config.set(section_name, 'jira_project', '')
+                self.config.set(section_name, '; if multiple components, separate by ","')
+                self.config.set(section_name, 'components', '')
+                self.config.set(section_name, '; minimum criticality to report (low, medium, high or critical)')
+                self.config.set(section_name, 'min_critical_to_report', 'high')
+                self.config.set(section_name, '; automatically report, boolean value ')
+                self.config.set(section_name, 'autoreport', 'false')
         
         # TODO: try/catch this
         # writing changes back to file
         with open(self.config_in, 'w') as configfile:
             self.config.write(configfile)
             self.logger.debug('Written configuration to {}'.format(self.config_in))
-        
+
         # FIXME: this is the same as return None, that is the default return for return-less functions
         return
 
     def normalize_section(self, profile):
-        profile = "jira.{}".format(profile.lower().replace(" ","_"))
+        profile = "jira.{}".format(profile.lower().replace(" ", "_"))
         self.logger.debug('Normalized profile as: {}'.format(profile))
         return profile

@@ -19,7 +19,22 @@ before_script:
     - flake8 . --count --exit-zero --exclude=deps/qualysapi --max-complexity=10 --max-line-length=127 --statistics
 script:
     - python setup.py install
+    # Test successful scan download and parsing
     - vuln_whisperer -c configs/test.ini --mock --mock_dir test
+    - rm -rf /tmp/VulnWhisperer
+    # Test one failed scan
+    - rm -f test/nessus/GET_scans_exports_164_download
+    - vuln_whisperer -c configs/test.ini --mock --mock_dir test; [[ $? -eq 1 ]]
+    - rm -rf /tmp/VulnWhisperer
+    # Test two failed scans
+    - rm -f test/qualys_vuln/scan_1553941061.87241
+    - vuln_whisperer -c configs/test.ini --mock --mock_dir test; [[ $? -eq 2 ]]
+    - rm -rf /tmp/VulnWhisperer
+    # Test only nessus
+    - vuln_whisperer -c configs/test.ini -s nessus --mock --mock_dir test; [[ $? -eq 1 ]]
+    - rm -rf /tmp/VulnWhisperer
+    # Test only qualy_vuln
+    - vuln_whisperer -c configs/test.ini -s qualys_vuln --mock --mock_dir test; [[ $? -eq 1 ]]
 notifications:
     on_success: change
     on_failure: change  # `always` will be the setting once code changes slow down
