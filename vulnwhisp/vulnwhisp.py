@@ -433,9 +433,9 @@ class vulnWhispererNessus(vulnWhispererBase):
                             self.logger.info('File {filename} already exist! Updating database'.format(filename=relative_path_name))
                     else:
                         try:
-                        file_req = \
-                            self.nessus.download_scan(scan_id=scan_id, history=history_id,
-                                                      export_format='csv', profile=self.CONFIG_SECTION)
+                            file_req = \
+                                self.nessus.download_scan(scan_id=scan_id, history=history_id,
+                                                        export_format='csv', profile=self.CONFIG_SECTION)
                         except Exception as e:
                             self.logger.error('Could not download {} scan {}: {}'.format(self.CONFIG_SECTION, scan_id, str(e)))
                             self.exit_code += 1
@@ -882,16 +882,16 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
                 self.logger.info('File {filename} already exist! Updating database'.format(filename=relative_path_name))
 
             else:
-            try:
-                self.logger.info('Processing report ID: {}'.format(report_id))
-                vuln_ready = self.qualys_scan.process_data(scan_id=report_id)
-                vuln_ready['scan_name'] = scan_name
-                vuln_ready['scan_reference'] = report_id
-                vuln_ready.rename(columns=self.COLUMN_MAPPING, inplace=True)
-            except Exception as e:
-                self.logger.error('Could not process {}: {}'.format(report_id, str(e)))
-                self.exit_code += 1
-                return self.exit_code
+                try:
+                    self.logger.info('Processing report ID: {}'.format(report_id))
+                    vuln_ready = self.qualys_scan.process_data(scan_id=report_id)
+                    vuln_ready['scan_name'] = scan_name
+                    vuln_ready['scan_reference'] = report_id
+                    vuln_ready.rename(columns=self.COLUMN_MAPPING, inplace=True)
+                except Exception as e:
+                    self.logger.error('Could not process {}: {}'.format(report_id, str(e)))
+                    self.exit_code += 1
+                    return self.exit_code
 
                 record_meta = (
                     scan_name,
