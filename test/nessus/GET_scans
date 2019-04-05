@@ -1,0 +1,63 @@
+{
+    "folders": [
+        {
+            "unread_count": null,
+            "custom": 0,
+            "default_tag": 0,
+            "type": "trash",
+            "name": "Trash",
+            "id": 136
+        },
+        {
+            "unread_count": 0,
+            "custom": 0,
+            "default_tag": 1,
+            "type": "main",
+            "name": "My Scans",
+            "id": 137
+        }
+    ],
+    "scans": [
+        {
+            "folder_id": 137,
+            "type": "local",
+            "read": true,
+            "last_modification_date": 1553945088,
+            "creation_date": 1553943579,
+            "status": "completed",
+            "uuid": "1337-A",
+            "shared": false,
+            "user_permissions": 128,
+            "owner": "assure_scan",
+            "timezone": null,
+            "rrules": null,
+            "starttime": null,
+            "enabled": false,
+            "control": true,
+            "live_results": 0,
+            "name": "VulnWhisperer - vulnweb.com ñ Nessus A",
+            "id": 170
+        },
+        {
+            "folder_id": 137,
+            "type": "local",
+            "read": true,
+            "last_modification_date": 1553481200,
+            "creation_date": 1553480333,
+            "status": "completed",
+            "uuid": "1337-B",
+            "shared": false,
+            "user_permissions": 128,
+            "owner": "assure_scan",
+            "timezone": null,
+            "rrules": null,
+            "starttime": null,
+            "enabled": false,
+            "control": true,
+            "live_results": 0,
+            "name": "VulnWhisperer - vulnweb.com ñ Nessus B",
+            "id": 164
+        }
+    ],
+    "timestamp": 1554072671
+}
