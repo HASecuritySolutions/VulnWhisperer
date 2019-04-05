@@ -439,7 +439,7 @@ class vulnWhispererNessus(vulnWhispererBase):
                         except Exception as e:
                             self.logger.error('Could not download {} scan {}: {}'.format(self.CONFIG_SECTION, scan_id, str(e)))
                             self.exit_code += 1
-                            return self.exit_code
+                            continue
                             
                         clean_csv = \
                             pd.read_csv(io.StringIO(file_req.decode('utf-8')))
