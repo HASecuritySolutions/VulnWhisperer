@@ -478,8 +478,9 @@ class vulnWhispererNessus(vulnWhispererBase):
             self.conn.close()
             self.logger.info('Scan aggregation complete! Connection to database closed.')
         else:
-
             self.logger.error('Failed to use scanner at {host}:{port}'.format(host=self.hostname, port=self.nessus_port))
+            return 1
+        return 0
 
 
 class vulnWhispererQualys(vulnWhispererBase):
@@ -1244,6 +1245,7 @@ class vulnWhisperer(object):
         self.verbose = verbose
         self.source = source
         self.scanname = scanname
+        self.exit_code = 0
 
 
     def whisper_vulnerabilities(self):
@@ -1254,15 +1256,15 @@ class vulnWhisperer(object):
                                      password=self.password,
                                      verbose=self.verbose,
                                      profile=self.profile)
-            vw.whisper_nessus()
+            self.exit_code += vw.whisper_nessus()
 
         elif self.profile == 'qualys_web':
             vw = vulnWhispererQualys(config=self.config)
-            vw.process_web_assets()
+            self.exit_code += vw.process_web_assets()
 
         elif self.profile == 'openvas':
             vw_openvas = vulnWhispererOpenVAS(config=self.config)
-            vw_openvas.process_openvas_scans()
+            self.exit_code += vw_openvas.process_openvas_scans()
 
         elif self.profile == 'tenable':
             vw = vulnWhispererNessus(config=self.config,
@@ -1270,11 +1272,11 @@ class vulnWhisperer(object):
                                      password=self.password,
                                      verbose=self.verbose,
                                      profile=self.profile)
-            vw.whisper_nessus()
+            self.exit_code += vw.whisper_nessus()
 
         elif self.profile == 'qualys_vuln':
             vw = vulnWhispererQualysVuln(config=self.config)
-            vw.process_vuln_scans()
+            self.exit_code += vw.process_vuln_scans()
         
         elif self.profile == 'jira':
             #first we check config fields are created, otherwise we create them
@@ -1288,3 +1290,5 @@ class vulnWhisperer(object):
                     return 0
             else:
                 vw.jira_sync(self.source, self.scanname)
+
+        return self.exit_code
