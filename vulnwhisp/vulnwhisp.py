@@ -1242,7 +1242,6 @@ class vulnWhisperer(object):
                  scanname=None):
 
         self.logger = logging.getLogger('vulnWhisperer')
-        self.exit_code = 0
         if verbose:
             self.logger.setLevel(logging.DEBUG)
         self.profile = profile
@@ -1252,6 +1251,7 @@ class vulnWhisperer(object):
         self.verbose = verbose
         self.source = source
         self.scanname = scanname
+        self.exit_code = 0
 
 
     def whisper_vulnerabilities(self):
