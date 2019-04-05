@@ -1,17 +1,12 @@
+from datetime import datetime
+import sys
+import time
+import json
+import logging
+import pytz
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-
-import pytz
-from datetime import datetime
-import json
-import sys
-import time
-import logging
-
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
-requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-
 
 
 class NessusAPI(object):
@@ -58,7 +53,7 @@ class NessusAPI(object):
 
     def login(self):
         resp = self.get_token()
-        if resp.status_code is 200:
+        if resp.status_code == 200:
             self.headers['X-Cookie'] = 'token={token}'.format(token=resp.json()['token'])
         else:
             raise Exception('[FAIL] Could not login to Nessus')
@@ -101,14 +96,6 @@ class NessusAPI(object):
         token = self.request(self.SESSION, data=auth, json=False)
         return token
 
-    def logout(self):
-        self.logger.debug('Logging out')
-        self.request(self.SESSION, method='DELETE')
-
-    def get_folders(self):
-        folders = self.request(self.FOLDERS, method='GET', json=True)
-        return folders
-
     def get_scans(self):
         scans = self.request(self.SCANS, method='GET', json=True)
         return scans
@@ -122,43 +109,13 @@ class NessusAPI(object):
     def count_scan(self, scans, folder_id):
         count = 0
         for scan in scans:
-            if scan['folder_id'] == folder_id: count = count + 1
+            if scan['folder_id'] == folder_id:
+                count = count + 1
         return count
-
-    def print_scans(self, data):
-        for folder in data['folders']:
-            self.logger.info("\\{0} - ({1})\\".format(folder['name'], self.count_scan(data['scans'], folder['id'])))
-            for scan in data['scans']:
-                if scan['folder_id'] == folder['id']:
-                    self.logger.info("\t\"{0}\" - sid:{1} - uuid: {2}".format(scan['name'].encode('utf-8'), scan['id'], scan['uuid']))
-
-    def get_scan_details(self, scan_id):
-        data = self.request(self.SCAN_ID.format(scan_id=scan_id), method='GET', json=True)
-        return data
 
     def get_scan_history(self, scan_id):
         data = self.request(self.SCAN_ID.format(scan_id=scan_id), method='GET', json=True)
         return data['history']
-
-    def get_scan_hosts(self, scan_id):
-        data = self.request(self.SCAN_ID.format(scan_id=scan_id), method='GET', json=True)
-        return data['hosts']
-
-    def get_host_vulnerabilities(self, scan_id, host_id):
-        query = self.HOST_VULN.format(scan_id=scan_id, host_id=host_id)
-        data = self.request(query, method='GET', json=True)
-        return data
-
-    def get_plugin_info(self, scan_id, host_id, plugin_id):
-        query = self.PLUGINS.format(scan_id=scan_id, host_id=host_id, plugin_id=plugin_id)
-        data = self.request(query, method='GET', json=True)
-        return data
-
-    def export_scan(self, scan_id, history_id):
-        data = {'format': 'csv'}
-        query = self.EXPORT_REPORT.format(scan_id=scan_id, history_id=history_id)
-        req = self.request(query, data=data, method='POST')
-        return req
 
     def download_scan(self, scan_id=None, history=None, export_format="", chapters="", dbpasswd="", profile=""):
         running = True
@@ -194,17 +151,6 @@ class NessusAPI(object):
         else:
             content = self.request(self.EXPORT_TOKEN_DOWNLOAD.format(token_id=token_id), method='GET', download=True)
         return content
-
-    @staticmethod
-    def merge_dicts(self, *dict_args):
-        """
-        Given any number of dicts, shallow copy and merge into a new dict,
-        precedence goes to key value pairs in latter dicts.
-        """
-        result = {}
-        for dictionary in dict_args:
-            result.update(dictionary)
-        return result
 
     def get_utc_from_local(self, date_time, local_tz=None, epoch=True):
         date_time = datetime.fromtimestamp(date_time)

@@ -43,10 +43,10 @@ class vulnWhispererBase(object):
         if self.CONFIG_SECTION is None:
                 raise Exception('Implementing class must define CONFIG_SECTION')
 
+        self.exit_code = 0
         self.db_name = db_name
         self.purge = purge
         self.develop = develop
-
 
         if config is not None:
             self.config = vwConfig(config_in=config)
@@ -361,7 +361,7 @@ class vulnWhispererNessus(vulnWhispererBase):
 
             if not scan_list:
                 self.logger.warn('No new scans to process. Exiting...')
-                return 0
+                return self.exit_code
 
             # Create scan subfolders
 
@@ -432,9 +432,15 @@ class vulnWhispererNessus(vulnWhispererBase):
                             self.record_insert(record_meta)
                             self.logger.info('File {filename} already exist! Updating database'.format(filename=relative_path_name))
                     else:
+                        try:
                         file_req = \
                             self.nessus.download_scan(scan_id=scan_id, history=history_id,
                                                       export_format='csv', profile=self.CONFIG_SECTION)
+                        except Exception as e:
+                            self.logger.error('Could not download {} scan {}: {}'.format(self.CONFIG_SECTION, scan_id, str(e)))
+                            self.exit_code += 1
+                            return self.exit_code
+                            
                         clean_csv = \
                             pd.read_csv(io.StringIO(file_req.decode('utf-8')))
                         if len(clean_csv) > 2:
@@ -479,8 +485,8 @@ class vulnWhispererNessus(vulnWhispererBase):
             self.logger.info('Scan aggregation complete! Connection to database closed.')
         else:
             self.logger.error('Failed to use scanner at {host}:{port}'.format(host=self.hostname, port=self.nessus_port))
-            return 1
-        return 0
+            self.exit_code += 1
+        return self.exit_code
 
 
 class vulnWhispererQualys(vulnWhispererBase):
@@ -550,7 +556,6 @@ class vulnWhispererQualys(vulnWhispererBase):
         if debug:
             self.logger.setLevel(logging.DEBUG)
         
-
         self.qualys_scan = qualysScanReport(config=config)
         self.latest_scans = self.qualys_scan.qw.get_all_scans()
         self.directory_check()
@@ -672,7 +677,7 @@ class vulnWhispererQualys(vulnWhispererBase):
         else:
             self.logger.info('No new scans to process. Exiting...')
         self.conn.close()
-        return 0
+        return self.exit_code
 
 
 class vulnWhispererOpenVAS(vulnWhispererBase):
@@ -717,7 +722,6 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
         self.logger = logging.getLogger('vulnWhispererOpenVAS')
         if debug:
             self.logger.setLevel(logging.DEBUG)
-
 
         self.directory_check()
         self.port = int(self.config.get(self.CONFIG_SECTION, 'port'))
@@ -809,7 +813,7 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
         else:
             self.logger.info('No new scans to process. Exiting...')
         self.conn.close()
-        return 0
+        return self.exit_code
 
 
 class vulnWhispererQualysVuln(vulnWhispererBase):
@@ -850,7 +854,6 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
                         scan_reference=None,
                         output_format='json',
                         cleanup=True):
-        try:
             launched_date
             if 'Z' in launched_date:
                 launched_date = self.qualys_scan.utils.iso_to_epoch(launched_date)
@@ -879,11 +882,16 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
                 self.logger.info('File {filename} already exist! Updating database'.format(filename=relative_path_name))
 
             else:
+            try:
                 self.logger.info('Processing report ID: {}'.format(report_id))
                 vuln_ready = self.qualys_scan.process_data(scan_id=report_id)
                 vuln_ready['scan_name'] = scan_name
                 vuln_ready['scan_reference'] = report_id
                 vuln_ready.rename(columns=self.COLUMN_MAPPING, inplace=True)
+            except Exception as e:
+                self.logger.error('Could not process {}: {}'.format(report_id, str(e)))
+                self.exit_code += 1
+                return self.exit_code
 
                 record_meta = (
                     scan_name,
@@ -905,9 +913,7 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
                         f.write('\n')
 
                 self.logger.info('Report written to {}'.format(report_name))
-
-        except Exception as e:
-            self.logger.error('Could not process {}: {}'.format(report_id, str(e)))
+            return self.exit_code
 
 
     def identify_scans_to_process(self):
@@ -929,14 +935,14 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
                 counter += 1
                 r = app[1]
                 self.logger.info('Processing {}/{}'.format(counter, len(self.scans_to_process)))
-                self.whisper_reports(report_id=r['id'],
+                self.exit_code += self.whisper_reports(report_id=r['id'],
                                      launched_date=r['date'],
                                      scan_name=r['name'],
                                      scan_reference=r['type'])
         else:
             self.logger.info('No new scans to process. Exiting...')
         self.conn.close()
-        return 0
+        return self.exit_code
 
 
 class vulnWhispererJIRA(vulnWhispererBase):
@@ -1236,6 +1242,7 @@ class vulnWhisperer(object):
                  scanname=None):
 
         self.logger = logging.getLogger('vulnWhisperer')
+        self.exit_code = 0
         if verbose:
             self.logger.setLevel(logging.DEBUG)
         self.profile = profile
@@ -1245,7 +1252,6 @@ class vulnWhisperer(object):
         self.verbose = verbose
         self.source = source
         self.scanname = scanname
-        self.exit_code = 0
 
 
     def whisper_vulnerabilities(self):
