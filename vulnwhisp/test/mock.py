@@ -2,69 +2,75 @@ import os
 import logging
 import httpretty
 
-logger = logging.getLogger('mock-http')
-logger.setLevel(logging.DEBUG)
+class mockAPI(object):
+    def __init__(self, mock_dir=None, debug=False):
+        self.mock_dir = mock_dir
+        if not self.mock_dir:
+            # Try to guess the mock_dir if python setup.py develop was used
+            self.mock_dir = '/'.join(__file__.split('/')[:-3]) + '/test'
+        
+        self.logger = logging.getLogger('mockAPI')
+        if debug:
+            self.logger.setLevel(logging.DEBUG)
 
-tests_path = '/'.join(__file__.split('/')[:-3]) + '/test'
+        print '{}__file__: {}'.format('\n'*2, self.mock_dir)
+        print 'mock_dir: {}{}'.format(self.mock_dir, '\n'*2)
+        self.logger.info('Tests path resolved as {}'.format(self.mock_dir))
 
-logger.info('Tests path resolved as {}'.format(tests_path))
+    def get_directories(self, path):
+        dir, subdirs, files = next(os.walk(path))
+        return subdirs
 
-def get_directories(path):
-    dir, subdirs, files = next(os.walk(path))
-    return subdirs
+    def get_files(self, path):
+        dir, subdirs, files = next(os.walk(path))
+        return files
 
-def get_files(path):
-    dir, subdirs, files = next(os.walk(path))
-    return files
+    def qualys_vuln_callback(self, request, uri, response_headers):
+        self.logger.info('Simulating response for {}'.format(uri))
+        # print '\n\nURI:{}\nHeaders\n{line}\n{}\nContent\n{line}\n{}'.format(uri, request.headers, request.body, line='-' * 80)
+        if 'list' in request.parsed_body['action']:
+            return [ 200,
+                    response_headers,
+                    open('{}/{}'.format(self.qualys_vuln_path, 'scans')).read()]
+        elif 'fetch' in request.parsed_body['action']:
+            try:
+                response_body = open('{}/{}'.format(
+                                        self.qualys_vuln_path, 
+                                        request.parsed_body['scan_ref'][0].replace('/', '_'))
+                                    ).read()
+            except:
+                # Can't find the file, just send an empty response
+                response_body = ''
+            return [200, response_headers, response_body] 
 
-def create_nessus_resource(framework):
-    for filename in get_files('{}/{}'.format(tests_path, framework)):
-        method, resource = filename.split('_',1)
-        resource = resource.replace('_', '/')
-        logger.debug('Adding mocked {} endpoint {} {}'.format(framework, method, resource))
+    def create_nessus_resource(self, framework):
+        for filename in self.get_files('{}/{}'.format(self.mock_dir, framework)):
+            method, resource = filename.split('_',1)
+            resource = resource.replace('_', '/')
+            self.logger.debug('Adding mocked {} endpoint {} {}'.format(framework, method, resource))
+            httpretty.register_uri(
+                getattr(httpretty, method), 'https://{}:443/{}'.format(framework, resource),
+                body=open('{}/{}/{}'.format(self.mock_dir, framework, filename)).read()
+            )
+
+    def create_qualys_vuln_resource(self, framework):
+        # Create health check endpoint
+        self.logger.debug('Adding mocked {} endpoint {} {}'.format(framework, 'GET', 'msp/about.php'))
         httpretty.register_uri(
-            getattr(httpretty, method), 'https://{}:443/{}'.format(framework, resource),
-            body=open('{}/{}/{}'.format(tests_path, framework, filename)).read()
-        )
+                httpretty.GET,
+                'https://{}:443/{}'.format(framework, 'msp/about.php'),
+                body='')
+        
+        self.logger.debug('Adding mocked {} endpoint {} {}'.format(framework, 'POST', 'api/2.0/fo/scan'))
+        httpretty.register_uri(
+            httpretty.POST, 'https://{}:443/{}'.format(framework, 'api/2.0/fo/scan/'),
+            body=self.qualys_vuln_callback)
 
-def qualys_vuln_callback(request, uri, response_headers):
-    logger.info('Simulating response for {}'.format(uri))
-    # print '\n\nURI:{}\nHeaders\n{line}\n{}\nContent\n{line}\n{}'.format(uri, request.headers, request.body, line='-' * 80)
-    if 'list' in request.parsed_body['action']:
-        return [ 200,
-                 response_headers,
-                 open('{}/{}'.format(qualys_vuln_path, 'scans')).read()
-               ]
-
-    elif 'fetch' in request.parsed_body['action']:
-        try:
-            response_body = open('{}/{}'.format(
-                                    qualys_vuln_path, 
-                                    request.parsed_body['scan_ref'][0].replace('/', '_'))
-                                ).read()
-        except:
-            # Can't find the file, just send an empty response
-            response_body = ''
-        return [200, response_headers, response_body] 
-
-def create_qualys_vuln_resource(framework):
-    # Create health check endpoint
-    logger.debug('Adding mocked {} endpoint {} {}'.format(framework, 'GET', 'msp/about.php'))
-    httpretty.register_uri(
-            httpretty.GET,
-            'https://{}:443/{}'.format(framework, 'msp/about.php'),
-            body='')
-    
-    logger.debug('Adding mocked {} endpoint {} {}'.format(framework, 'POST', 'api/2.0/fo/scan'))
-    httpretty.register_uri(
-        httpretty.POST, 'https://{}:443/{}'.format(framework, 'api/2.0/fo/scan/'),
-        body=qualys_vuln_callback)
-
-for framework in get_directories(tests_path):
-    if framework in ['nessus', 'tenable']:
-        create_nessus_resource(framework)
-    elif framework == 'qualys_vuln':
-        qualys_vuln_path = tests_path + '/' + framework
-        create_qualys_vuln_resource(framework)
-
-httpretty.enable()
+    def mock_endpoints(self):
+        for framework in self.get_directories(self.mock_dir):
+            if framework in ['nessus', 'tenable']:
+                self.create_nessus_resource(framework)
+            elif framework == 'qualys_vuln':
+                self.qualys_vuln_path = self.mock_dir + '/' + framework
+                self.create_qualys_vuln_resource(framework)
+        httpretty.enable()

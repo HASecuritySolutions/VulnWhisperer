@@ -5,6 +5,7 @@ __author__ = 'Austin Taylor'
 
 from vulnwhisp.vulnwhisp import vulnWhisperer
 from vulnwhisp.base.config import vwConfig
+from vulnwhisp.test.mock import mockAPI
 import os
 import argparse
 import sys
@@ -35,6 +36,8 @@ def main():
     parser.add_argument('-F', '--fancy', action='store_true', help='Enable colourful logging output')
     parser.add_argument('-d', '--debug', action='store_true', help='Enable debugging messages')
     parser.add_argument('--mock', action='store_true', help='Enable mocked API responses')
+    parser.add_argument('--mock_dir', dest='mock_dir', required=False, default='test',
+                        help='Path of test directory')
     args = parser.parse_args()
 
     # First setup logging
@@ -56,7 +59,9 @@ def main():
         coloredlogs.install(level='DEBUG' if args.debug else 'INFO')
 
     if args.mock:
-        import vulnwhisp.test.mock
+        print args.debug, args.verbose
+        mock_api = mockAPI(args.mock_dir, args.debug or args.verbose)
+        mock_api.mock_endpoints()
 
     try:
         if args.config and not args.section:
