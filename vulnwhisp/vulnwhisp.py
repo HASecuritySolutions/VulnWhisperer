@@ -407,7 +407,7 @@ class vulnWhispererNessus(vulnWhispererBase):
                     folder_name = ''
                 else:
                     folder_name = next(f['name'] for f in folders if f['id'] == folder_id)
-                if status == 'completed':
+                if status in ['completed', 'imported']:
                     file_name = '%s_%s_%s_%s.%s' % (scan_name, scan_id,
                                                     history_id, norm_time, 'csv')
                     repls = (('\\', '_'), ('/', '_'), ('/', '_'), (' ', '_'))
