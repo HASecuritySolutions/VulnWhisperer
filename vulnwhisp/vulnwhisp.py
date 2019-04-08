@@ -410,7 +410,7 @@ class vulnWhispererNessus(vulnWhispererBase):
                 if status in ['completed', 'imported']:
                     file_name = '%s_%s_%s_%s.%s' % (scan_name, scan_id,
                                                     history_id, norm_time, 'csv')
-                    repls = (('\\', '_'), ('/', '_'), ('/', '_'), (' ', '_'))
+                    repls = (('\\', '_'), ('/', '_'), (' ', '_'))
                     file_name = reduce(lambda a, kv: a.replace(*kv), repls, file_name)
                     relative_path_name = self.path_check(folder_name + '/' + file_name)
 
