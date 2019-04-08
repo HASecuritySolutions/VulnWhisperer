@@ -143,8 +143,8 @@ class NessusAPI(object):
             if counter % 60 == 0:
                 self.logger.info("Completed: {}".format(counter))
         self.logger.info("Done: {}".format(counter))
-        if profile=='tenable':
-            content = self.request(self.EXPORT_FILE_DOWNLOAD.format(scan_id=scan_id, file_id=file_id), method='GET', download=True)
+        if profile == 'tenable':
+            content = self.request(self.EXPORT_FILE_DOWNLOAD.format(file_id=file_id), method='GET', download=True)
         else:
             content = self.request(self.EXPORT_TOKEN_DOWNLOAD.format(token_id=token_id), method='GET', download=True)
         return content
