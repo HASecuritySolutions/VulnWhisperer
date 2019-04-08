@@ -6,12 +6,12 @@ import httpretty
 class mockAPI(object):
     def __init__(self, mock_dir=None, debug=False):
         self.mock_dir = mock_dir
+
         if not self.mock_dir:
             # Try to guess the mock_dir if python setup.py develop was used
-            self.mock_dir = '/'.join(__file__.split('/')[:-3]) + '/test'
+            self.mock_dir = '/'.join(__file__.split('/')[:-3]) + '/tests/data'
 
         self.logger = logging.getLogger('mockAPI')
-
         if debug:
             self.logger.setLevel(logging.DEBUG)
 

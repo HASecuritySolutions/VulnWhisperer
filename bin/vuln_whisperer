@@ -37,10 +37,13 @@ def main():
                         help='The NESSUS username', type=lambda x: x.strip())
     parser.add_argument('-p', '--password', dest='password', required=False, default=None,
                         help='The NESSUS password', type=lambda x: x.strip())
-    parser.add_argument('-F', '--fancy', action='store_true', help='Enable colourful logging output')
-    parser.add_argument('-d', '--debug', action='store_true', help='Enable debugging messages')
-    parser.add_argument('--mock', action='store_true', help='Enable mocked API responses')
-    parser.add_argument('--mock_dir', dest='mock_dir', required=False, default='test',
+    parser.add_argument('-F', '--fancy', action='store_true',
+                        help='Enable colourful logging output')
+    parser.add_argument('-d', '--debug', action='store_true',
+                        help='Enable debugging messages')
+    parser.add_argument('--mock', action='store_true',
+                        help='Enable mocked API responses')
+    parser.add_argument('--mock_dir', dest='mock_dir', required=False, default=None,
                         help='Path of test directory')
     args = parser.parse_args()
 
