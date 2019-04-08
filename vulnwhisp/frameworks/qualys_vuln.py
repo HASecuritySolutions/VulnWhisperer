@@ -3,6 +3,7 @@
 __author__ = 'Nathan Young'
 
 import xml.etree.ElementTree as ET
+import sys
 import logging
 import qualysapi
 import pandas as pd
