@@ -1,11 +1,13 @@
-from datetime import datetime
-import sys
-import time
 import json
 import logging
+import sys
+import time
+from datetime import datetime
+
 import pytz
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
+
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 

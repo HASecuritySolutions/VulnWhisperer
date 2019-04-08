@@ -2,12 +2,13 @@
 # -*- coding: utf-8 -*-
 __author__ = 'Nathan Young'
 
-import xml.etree.ElementTree as ET
-import sys
 import logging
-import qualysapi
-import pandas as pd
+import sys
+import xml.etree.ElementTree as ET
+
 import dateutil.parser as dp
+import pandas as pd
+import qualysapi
 
 
 class qualysWhisperAPI(object):
