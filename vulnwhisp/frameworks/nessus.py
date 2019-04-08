@@ -34,7 +34,10 @@ class NessusAPI(object):
         self.base = 'https://{hostname}:{port}'.format(hostname=hostname, port=port)
         self.verbose = verbose
 
-        self.headers = {
+        self.session = requests.Session()
+        self.session.verify = False
+        self.session.stream = True
+        self.session.headers = {
             'Origin': self.base,
             'Accept-Encoding': 'gzip, deflate, br',
             'Accept-Language': 'en-US,en;q=0.8',
@@ -52,27 +55,24 @@ class NessusAPI(object):
         self.scan_ids = self.get_scan_ids()
 
     def login(self):
-        resp = self.get_token()
+        auth = '{"username":"%s", "password":"%s"}' % (self.user, self.password)
+        resp = self.request(self.SESSION, data=auth, json_output=False)
         if resp.status_code == 200:
-            self.headers['X-Cookie'] = 'token={token}'.format(token=resp.json()['token'])
+            self.session.headers['X-Cookie'] = 'token={token}'.format(token=resp.json()['token'])
         else:
             raise Exception('[FAIL] Could not login to Nessus')
 
-    def request(self, url, data=None, headers=None, method='POST', download=False, json=False):
-        if headers is None:
-            headers = self.headers
+    def request(self, url, data=None, headers=None, method='POST', download=False, json_output=False):
         timeout = 0
         success = False
-
+        
+        method = method.lower()
         url = self.base + url
         self.logger.debug('Requesting to url {}'.format(url))
-        methods = {'GET': requests.get,
-                   'POST': requests.post,
-                   'DELETE': requests.delete}
 
         while (timeout <= 10) and (not success):
-            data = methods[method](url, data=data, headers=self.headers, verify=False)
-            if data.status_code == 401:
+            response = getattr(self.session, method)(url, data=data)
+            if response.status_code == 401:
                 if url == self.base + self.SESSION:
                     break
                 try:
@@ -84,20 +84,15 @@ class NessusAPI(object):
             else:
                 success = True
 
-        if json:
-            data = data.json()
+        if json_output:
+            return response.json()
         if download:
             self.logger.debug('Returning data.content')
-            return data.content
-        return data
-
-    def get_token(self):
-        auth = '{"username":"%s", "password":"%s"}' % (self.user, self.password)
-        token = self.request(self.SESSION, data=auth, json=False)
-        return token
+            return response.content
+        return response
 
     def get_scans(self):
-        scans = self.request(self.SCANS, method='GET', json=True)
+        scans = self.request(self.SCANS, method='GET', json_output=True)
         return scans
 
     def get_scan_ids(self):
@@ -107,10 +102,10 @@ class NessusAPI(object):
         return scan_ids
 
     def get_scan_history(self, scan_id):
-        data = self.request(self.SCAN_ID.format(scan_id=scan_id), method='GET', json=True)
+        data = self.request(self.SCAN_ID.format(scan_id=scan_id), method='GET', json_output=True)
         return data['history']
 
-    def download_scan(self, scan_id=None, history=None, export_format="", chapters="", dbpasswd="", profile=""):
+    def download_scan(self, scan_id=None, history=None, export_format="", profile=""):
         running = True
         counter = 0
 
@@ -120,7 +115,7 @@ class NessusAPI(object):
         else:
             query = self.EXPORT_HISTORY.format(scan_id=scan_id, history_id=history)
             scan_id = str(scan_id)
-        req = self.request(query, data=json.dumps(data), method='POST', json=True)
+        req = self.request(query, data=json.dumps(data), method='POST', json_output=True)
         try:
             file_id = req['file']
             token_id = req['token'] if 'token' in req else req['temp_token']
@@ -131,7 +126,7 @@ class NessusAPI(object):
             time.sleep(2)
             counter += 2
             report_status = self.request(self.EXPORT_STATUS.format(scan_id=scan_id, file_id=file_id), method='GET',
-                                         json=True)
+                                         json_output=True)
             running = report_status['status'] != 'ready'
             sys.stdout.write(".")
             sys.stdout.flush()
