@@ -4,7 +4,7 @@
 <p align="center" style="width:400px"><img src="https://github.com/austin-taylor/vulnwhisperer/blob/master/docs/source/vulnWhispererWebApplications.png" style="width:400px"></p>
 
 
-VulnWhisperer is a vulnerability management tool and report aggregator. VulnWhisperer will pull all the reports from the different Vulnerability scanners and create a file with a unique filename for each one, using that data later to sync with Jira and feed Logstash. Jira does a closed cycle full Sync with the data provided by the Scanenrs, while Logstash indexes and tags all of the information inside the report (see logstash files at /resources/elk6/pipeline/). Data is then shipped to ElasticSearch to be indexed, and ends up in a visual and searchable format in Kibana with already defined dashboards.
+VulnWhisperer is a vulnerability management tool and report aggregator. VulnWhisperer will pull all the reports from the different Vulnerability scanners and create a file with a unique filename for each one, using that data later to sync with Jira and feed Logstash. Jira does a closed cycle full Sync with the data provided by the Scanners, while Logstash indexes and tags all of the information inside the report (see logstash files at /resources/elk6/pipeline/). Data is then shipped to ElasticSearch to be indexed, and ends up in a visual and searchable format in Kibana with already defined dashboards.
 
 [![Build Status](https://travis-ci.org/HASecuritySolutions/VulnWhisperer.svg?branch=master)](https://travis-ci.org/HASecuritySolutions/VulnWhisperer)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](http://choosealicense.com/licenses/mit/)
@@ -96,8 +96,8 @@ There are a few configuration steps to setting up VulnWhisperer:
 -----
 To run, fill out the configuration file with your vulnerability scanner settings. Then you can execute from the command line.
 ```python
-
-vuln_whisperer -c configs/frameworks_example.ini -s nessus
+(optional flag: -F -> provides "Fancy" log colouring, good for comprehension when manually executing VulnWhisperer)
+vuln_whisperer -c configs/frameworks_example.ini -s nessus 
 or
 vuln_whisperer -c configs/frameworks_example.ini -s qualys
 
