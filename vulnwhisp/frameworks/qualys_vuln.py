@@ -86,6 +86,8 @@ class qualysVulnScan:
         'ip_status': 'state',
         'os': 'operating_system',
         'qid': 'plugin_id',
+        'results': 'plugin_output',
+        'threat': 'description',
         'title': 'plugin_name'
     }
 
