@@ -11,6 +11,7 @@ import pandas as pd
 import qualysapi
 
 
+
 class qualysWhisperAPI(object):
     SCANS = 'api/2.0/fo/scan'
 
@@ -78,6 +79,15 @@ class qualysUtils:
 
 class qualysVulnScan:
 
+    COLUMN_MAPPING = {
+        'cve_id': 'cve',
+        'cvss_base': 'cvss',
+        'cvss3_base': 'cvss3',
+        'ip_status': 'state',
+        'os': 'operating_system',
+        'qid': 'plugin_id'
+    }
+
     def __init__(
         self,
         config=None,
@@ -122,3 +132,76 @@ class qualysVulnScan:
             return scan_report
 
         return scan_report
+
+    def normalise(self, dataframe):
+        self.logger.debug('Normalising data')
+        self.map_fields(dataframe)
+        self.transform_values(dataframe)
+        return dataframe
+
+    def map_fields(self, dataframe):
+        self.logger.info('Mapping fields')
+
+        # Map fields from COLUMN_MAPPING
+        fields = [x.lower() for x in dataframe.columns]
+        for field, replacement in self.COLUMN_MAPPING.iteritems():
+            if field in fields:
+                self.logger.info('Renaming "{}" to "{}"'.format(field, replacement))
+                fields[fields.index(field)] = replacement
+
+        fields = [x.replace(' ', '_') for x in fields]
+        dataframe.columns = fields
+
+        return dataframe
+    
+    def transform_values(self, dataframe):
+        self.logger.info('Transforming values')
+
+        # upper/lowercase fields
+        self.logger.info('Changing case of fields')
+        dataframe['cve'] = dataframe['cve'].str.upper()
+        dataframe['protocol'] = dataframe['protocol'].str.lower()
+
+        # Contruct the CVSS vector
+        dataframe['cvss_vector'] = ''
+        dataframe.loc[dataframe["cvss"].notnull(), "cvss_vector"] = (
+            dataframe.loc[dataframe["cvss"].notnull(), "cvss"]
+            .str.split()
+            .apply(lambda x: x[1])
+            .str.replace("(", "")
+            .str.replace(")", "")
+        )
+        dataframe.loc[dataframe["cvss"].notnull(), "cvss"] = (
+            dataframe.loc[dataframe["cvss"].notnull(), "cvss"]
+            .str.split()
+            .apply(lambda x: x[0])
+        )
+        dataframe['cvss_temporal_vector'] = ''
+        dataframe.loc[dataframe["cvss_temporal"].notnull(), "cvss_temporal_vector"] = (
+            dataframe.loc[dataframe["cvss_temporal"].notnull(), "cvss_temporal"]
+            .str.split()
+            .apply(lambda x: x[1])
+            .str.replace("(", "")
+            .str.replace(")", "")
+        )
+        dataframe.loc[dataframe["cvss_temporal"].notnull(), "cvss_temporal"] = (
+            dataframe.loc[dataframe["cvss_temporal"].notnull(), "cvss_temporal"]
+            .str.split()
+            .apply(lambda x: x[0])
+            .fillna('')
+        )
+
+        # Combine base and temporal
+        dataframe["cvss_vector"] = (
+            dataframe[["cvss_vector", "cvss_temporal_vector"]]
+            .apply(lambda x: "{}/{}".format(x[0], x[1]), axis=1)
+            .str.rstrip("/nan")
+            .fillna("")
+        )
+        
+        # Convert Qualys severity to standardised risk number
+        dataframe['risk_number'] =  dataframe['severity'].astype(int)-1
+
+        dataframe.fillna('', inplace=True)
+
+        return dataframe

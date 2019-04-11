@@ -633,7 +633,7 @@ class vulnWhispererQualys(vulnWhispererBase):
                         vuln_ready.to_json(relative_path_name, orient='records', lines=True)
 
                     elif output_format == 'csv':
-                       vuln_ready.to_csv(relative_path_name, index=False, header=True)  # add when timestamp occured
+                        vuln_ready.to_csv(relative_path_name, index=False, header=True)  # add when timestamp occured
 
                     self.logger.info('Report written to {}'.format(report_name))
 
@@ -815,13 +815,6 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
 class vulnWhispererQualysVuln(vulnWhispererBase):
 
     CONFIG_SECTION = 'qualys_vuln'
-    COLUMN_MAPPING = {'cvss_base': 'cvss',
-                     'cvss3_base': 'cvss3',
-                     'cve_id': 'cve',
-                     'os': 'operating_system',
-                     'qid': 'plugin_id',
-                     'severity': 'risk',
-                     'title': 'plugin_name'}
 
     def __init__(
             self,
@@ -850,12 +843,11 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
                         scan_reference=None,
                         output_format='json',
                         cleanup=True):
-            launched_date
             if 'Z' in launched_date:
                 launched_date = self.qualys_scan.utils.iso_to_epoch(launched_date)
             report_name = 'qualys_vuln_' + report_id.replace('/','_') \
                           + '_{last_updated}'.format(last_updated=launched_date) \
-                          + '.json'
+                          + '.{extension}'.format(extension=output_format)
 
             relative_path_name = self.path_check(report_name)
 
@@ -883,7 +875,8 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
                     vuln_ready = self.qualys_scan.process_data(scan_id=report_id)
                     vuln_ready['scan_name'] = scan_name
                     vuln_ready['scan_reference'] = report_id
-                    vuln_ready.rename(columns=self.COLUMN_MAPPING, inplace=True)
+                    # Map and transform fields
+                    vuln_ready = self.qualys_scan.normalise(vuln_ready)
                 except Exception as e:
                     self.logger.error('Could not process {}: {}'.format(report_id, str(e)))
                     self.exit_code += 1
@@ -904,9 +897,7 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
                 self.record_insert(record_meta)
 
                 if output_format == 'json':
-                    with open(relative_path_name, 'w') as f:
-                        f.write(vuln_ready.to_json(orient='records', lines=True))
-                        f.write('\n')
+                    vuln_ready.to_json(relative_path_name, orient='records', lines=True)
 
                 self.logger.info('Report written to {}'.format(report_name))
             return self.exit_code
