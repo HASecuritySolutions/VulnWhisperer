@@ -406,7 +406,7 @@ class vulnWhispererNessus(vulnWhispererBase):
                     folder_name = next(f['name'] for f in folders if f['id'] == folder_id)
                 if status in ['completed', 'imported']:
                     file_name = '%s_%s_%s_%s.%s' % (scan_name, scan_id,
-                                                    history_id, norm_time, 'csv')
+                                                    history_id, norm_time, 'json')
                     repls = (('\\', '_'), ('/', '_'), (' ', '_'))
                     file_name = reduce(lambda a, kv: a.replace(*kv), repls, file_name)
                     relative_path_name = self.path_check(folder_name + '/' + file_name)
@@ -448,8 +448,8 @@ class vulnWhispererNessus(vulnWhispererBase):
                             clean_csv['scan_name'] = scan_name.encode('utf8')
                             clean_csv['scan_id'] = uuid
 
-                            clean_csv.to_json(relative_path_name.replace('csv', 'json'), orient='records', lines=True)
-                            clean_csv.to_csv(relative_path_name, index=False)
+                            clean_csv.to_json(relative_path_name, orient='records', lines=True)
+
                             record_meta = (
                                 scan_name,
                                 scan_id,
