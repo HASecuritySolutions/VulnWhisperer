@@ -223,6 +223,9 @@ class NessusAPI(object):
         dataframe['cve'] = dataframe['cve'].str.upper()
         dataframe['protocol'] = dataframe['protocol'].str.lower()
 
+        # Copy asset to IP
+        dataframe['ip'] = dataframe['asset']
+
         # Map risk to a SEVERITY MAPPING value
         self.logger.debug('Mapping risk to severity number')
         dataframe['risk_number'] = dataframe['risk'].str.lower()

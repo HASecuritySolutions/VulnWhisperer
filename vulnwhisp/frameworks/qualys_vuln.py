@@ -85,7 +85,8 @@ class qualysVulnScan:
         'cvss3_base': 'cvss3',
         'ip_status': 'state',
         'os': 'operating_system',
-        'qid': 'plugin_id'
+        'qid': 'plugin_id',
+        'title': 'plugin_name'
     }
 
     def __init__(
@@ -198,7 +199,9 @@ class qualysVulnScan:
             .str.rstrip("/nan")
             .fillna("")
         )
-        
+
+        dataframe.drop('cvss_temporal_vector', axis=1, inplace=True)
+
         # Convert Qualys severity to standardised risk number
         dataframe['risk_number'] =  dataframe['severity'].astype(int)-1
 
