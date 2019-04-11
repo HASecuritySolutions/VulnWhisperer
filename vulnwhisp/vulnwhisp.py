@@ -446,7 +446,7 @@ class vulnWhispererNessus(vulnWhispererBase):
                             clean_csv = self.nessus.normalise(clean_csv)
 
                             clean_csv['scan_name'] = scan_name.encode('utf8')
-                            clean_csv['scan_id'] = scan_id
+                            clean_csv['scan_id'] = uuid
 
                             clean_csv.to_json(relative_path_name.replace('csv', 'json'), orient='records', lines=True)
                             clean_csv.to_csv(relative_path_name, index=False)
@@ -612,7 +612,7 @@ class vulnWhispererQualys(vulnWhispererBase):
                     vuln_ready = self.qualys_scan.process_data(path=self.write_path, file_id=str(generated_report_id))
 
                     vuln_ready['scan_name'] = scan_name.encode('utf8')
-                    vuln_ready['scan_id'] = scan_reference
+                    vuln_ready['scan_id'] = report_id
                     # Map and transform fields
                     vuln_ready = self.qualys_scan.normalise(vuln_ready)
                     # TODO remove the line below once normalising complete
@@ -877,7 +877,7 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
                     self.logger.info('Processing report ID: {}'.format(report_id))
                     vuln_ready = self.qualys_scan.process_data(scan_id=report_id)
                     vuln_ready['scan_name'] = scan_name.encode('utf8')
-                    vuln_ready['scan_reference'] = report_id
+                    vuln_ready['scan_id'] = report_id
                     # Map and transform fields
                     vuln_ready = self.qualys_scan.normalise(vuln_ready)
                 except Exception as e:
