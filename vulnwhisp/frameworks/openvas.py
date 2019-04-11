@@ -190,3 +190,17 @@ class OpenVAS_API(object):
         self.processed_reports += 1
         merged_df = pd.merge(report_df, self.openvas_reports, on='report_ids').reset_index().drop('index', axis=1)
         return merged_df
+
+    def normalise(self, dataframe):
+        self.logger.debug('Normalising data')
+        self.map_fields(dataframe)
+        self.transform_values(dataframe)
+        return dataframe
+
+    def map_fields(self, dataframe):
+        self.logger.debug('Mapping fields')
+        return dataframe
+    
+    def transform_values(self, dataframe):
+        self.logger.debug('Transforming values')
+        return dataframe

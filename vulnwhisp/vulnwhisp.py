@@ -610,6 +610,9 @@ class vulnWhispererQualys(vulnWhispererBase):
 
                     vuln_ready['scan_name'] = scan_name
                     vuln_ready['scan_reference'] = scan_reference
+                    # Map and transform fields
+                    vuln_ready = self.qualys_scan.normalise(vuln_ready)
+                    # TODO remove the line below once normalising complete
                     vuln_ready.rename(columns=self.COLUMN_MAPPING, inplace=True)
 
                     record_meta = (
@@ -627,9 +630,7 @@ class vulnWhispererQualys(vulnWhispererBase):
                     self.record_insert(record_meta)
 
                     if output_format == 'json':
-                        with open(relative_path_name, 'w') as f:
-                            f.write(vuln_ready.to_json(orient='records', lines=True))
-                            f.write('\n')
+                        vuln_ready.to_json(relative_path_name, orient='records', lines=True)
 
                     elif output_format == 'csv':
                        vuln_ready.to_csv(relative_path_name, index=False, header=True)  # add when timestamp occured
@@ -779,10 +780,9 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
                 vuln_ready.rename(columns=self.COLUMN_MAPPING, inplace=True)
                 vuln_ready.port = vuln_ready.port.fillna(0).astype(int)
                 vuln_ready.fillna('', inplace=True)
-                if output_format == 'json':
-                    with open(relative_path_name, 'w') as f:
-                        f.write(vuln_ready.to_json(orient='records', lines=True))
-                        f.write('\n')
+                # Map and transform fields
+                vuln_ready = self.openvas_api.normalise(vuln_ready)
+                vuln_ready.to_json(relative_path_name, orient='records', lines=True)
                 self.logger.info('Report written to {}'.format(report_name))
 
         return report

@@ -463,3 +463,17 @@ class qualysScanReport:
         merged_data.sort_index(axis=1, inplace=True)
 
         return merged_data
+
+    def normalise(self, dataframe):
+        self.logger.debug('Normalising data')
+        self.map_fields(dataframe)
+        self.transform_values(dataframe)
+        return dataframe
+
+    def map_fields(self, dataframe):
+        self.logger.debug('Mapping fields')
+        return dataframe
+    
+    def transform_values(self, dataframe):
+        self.logger.debug('Transforming values')
+        return dataframe
