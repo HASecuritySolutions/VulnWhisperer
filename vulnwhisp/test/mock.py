@@ -16,7 +16,7 @@ class mockAPI(object):
             self.logger.setLevel(logging.DEBUG)
 
         self.logger.info('mockAPI initialised, API requests will be mocked')
-        self.logger.debug('Test path resolved as {}'.format(self.mock_dir))
+        self.logger.info('Test path resolved as {}'.format(self.mock_dir))
 
     def get_directories(self, path):
         dir, subdirs, files = next(os.walk(path))
