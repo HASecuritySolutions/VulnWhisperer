@@ -129,11 +129,6 @@ class vulnWhispererBase(object):
             self.delete_table()
         self.create_table()
 
-    def cleanser(self, _data):
-        repls = (('\n', r'\n'), ('\r', r'\r'))
-        data = reduce(lambda a, kv: a.replace(*kv), repls, _data)
-        return data
-
     def path_check(self, _data):
         if self.write_path:
             if '/' or '\\' in _data[-1]:
@@ -288,7 +283,9 @@ class vulnWhispererNessus(vulnWhispererBase):
                         NessusAPI(hostname=self.hostname,
                                   port=self.nessus_port,
                                   username=self.username,
-                                  password=self.password)
+                                  password=self.password,
+                                  profile=self.CONFIG_SECTION
+                                  )
                     self.nessus_connect = True
                     self.logger.info('Connected to nessus on {host}:{port}'.format(host=self.hostname,
                                                                                    port=str(self.nessus_port)))
@@ -435,21 +432,20 @@ class vulnWhispererNessus(vulnWhispererBase):
                         try:
                             file_req = \
                                 self.nessus.download_scan(scan_id=scan_id, history=history_id,
-                                                        export_format='csv', profile=self.CONFIG_SECTION)
+                                                        export_format='csv')
                         except Exception as e:
                             self.logger.error('Could not download {} scan {}: {}'.format(self.CONFIG_SECTION, scan_id, str(e)))
                             self.exit_code += 1
                             continue
                             
-                        clean_csv = \
-                            pd.read_csv(io.StringIO(file_req.decode('utf-8')))
+                        clean_csv = pd.read_csv(io.StringIO(file_req.decode('utf-8')))
                         if len(clean_csv) > 2:
                             self.logger.info('Processing {}/{} for scan: {}'.format(scan_count, len(scan_list), scan_name.encode('utf8')))
-                            columns_to_cleanse = ['CVSS','CVE','Description','Synopsis','Solution','See Also','Plugin Output']
 
-                            for col in columns_to_cleanse:
-                                clean_csv[col] = clean_csv[col].astype(str).apply(self.cleanser)
+                            # Map and transform fields
+                            clean_csv = self.nessus.normalise(clean_csv)
 
+                            clean_csv.to_json(relative_path_name.replace('csv', 'json'), orient='records', lines=True)
                             clean_csv.to_csv(relative_path_name, index=False)
                             record_meta = (
                                 scan_name,

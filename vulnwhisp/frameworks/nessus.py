@@ -23,8 +23,24 @@ class NessusAPI(object):
     EXPORT_FILE_DOWNLOAD = EXPORT + '/{file_id}/download'
     EXPORT_STATUS = EXPORT + '/{file_id}/status'
     EXPORT_HISTORY = EXPORT + '?history_id={history_id}'
+    # All column mappings should be lowercase
+    COLUMN_MAPPING = {
+        'cvss base score': 'cvss',
+        'cvss temporal score': 'cvss_temporal',
+        'cvss temporal vector': 'cvss_temporal_vector',
+        'cvss3 base score': 'cvss3',
+        'cvss3 temporal score': 'cvss3_temporal',
+        'cvss3 temporal vector': 'cvss3_temporal_vector',
+        'fqdn': 'dns',
+        'host': 'asset',
+        'name': 'plugin_name',
+        'os': 'operating_system',
+        'system type': 'category',
+        'vulnerability state': 'state'
+    }
+    SEVERITY_MAPPING = {'none': 0, 'low': 1, 'medium': 2, 'high': 3, 'critical': 4}
 
-    def __init__(self, hostname=None, port=None, username=None, password=None, verbose=True):
+    def __init__(self, hostname=None, port=None, username=None, password=None, verbose=True, profile=None):
         self.logger = logging.getLogger('NessusAPI')
         if verbose:
             self.logger.setLevel(logging.DEBUG)
@@ -35,6 +51,7 @@ class NessusAPI(object):
         self.password = password
         self.base = 'https://{hostname}:{port}'.format(hostname=hostname, port=port)
         self.verbose = verbose
+        self.profile = profile
 
         self.session = requests.Session()
         self.session.verify = False
@@ -67,7 +84,7 @@ class NessusAPI(object):
     def request(self, url, data=None, headers=None, method='POST', download=False, json_output=False):
         timeout = 0
         success = False
-        
+
         method = method.lower()
         url = self.base + url
         self.logger.debug('Requesting to url {}'.format(url))
@@ -114,7 +131,7 @@ class NessusAPI(object):
         data = self.request(self.SCAN_ID.format(scan_id=scan_id), method='GET', json_output=True)
         return data['history']
 
-    def download_scan(self, scan_id=None, history=None, export_format="", profile=""):
+    def download_scan(self, scan_id=None, history=None, export_format=''):
         running = True
         counter = 0
 
@@ -137,13 +154,13 @@ class NessusAPI(object):
             report_status = self.request(self.EXPORT_STATUS.format(scan_id=scan_id, file_id=file_id), method='GET',
                                          json_output=True)
             running = report_status['status'] != 'ready'
-            sys.stdout.write(".")
+            sys.stdout.write('.')
             sys.stdout.flush()
             # FIXME: why? can this be removed in favour of a counter?
             if counter % 60 == 0:
-                self.logger.info("Completed: {}".format(counter))
-        self.logger.info("Done: {}".format(counter))
-        if profile == 'tenable':
+                self.logger.info('Completed: {}'.format(counter))
+        self.logger.info('Done: {}'.format(counter))
+        if self.profile == 'tenable':
             content = self.request(self.EXPORT_FILE_DOWNLOAD.format(scan_id=scan_id, file_id=file_id), method='GET', download=True)
         else:
             content = self.request(self.EXPORT_TOKEN_DOWNLOAD.format(token_id=token_id), method='GET', download=True)
@@ -169,3 +186,62 @@ class NessusAPI(object):
                     'Pacific Standard Time': 'US/Pacific',
                     'None': 'US/Central'}
         return time_map.get(tz, None)
+
+    def normalise(self, dataframe):
+        self.logger.debug('Normalising data')
+        self.map_fields(dataframe)
+        self.transform_values(dataframe)
+        return dataframe
+
+    def map_fields(self, dataframe):
+        self.logger.debug('Mapping fields')
+
+        # Any specific mappings here
+        if self.profile == 'tenable':
+            # Prefer CVSS Base Score over CVSS for tenable
+            self.logger.debug('Dropping redundant tenable fields')
+            dataframe.drop('CVSS', axis=1, inplace=True)
+            dataframe.drop('IP Address', axis=1, inplace=True)
+
+        # Map fields from COLUMN_MAPPING
+        fields = [x.lower() for x in dataframe.columns]
+        for field, replacement in self.COLUMN_MAPPING.iteritems():
+            if field in fields:
+                self.logger.debug('Renaming "{}" to "{}"'.format(field, replacement))
+                fields[fields.index(field)] = replacement
+
+        fields = [x.replace(' ', '_') for x in fields]
+        dataframe.columns = fields
+
+        return dataframe
+    
+    def transform_values(self, dataframe):
+        self.logger.debug('Transforming values')
+
+        # upper/lowercase fields
+        self.logger.debug('Changing case of fields')
+        dataframe['cve'] = dataframe['cve'].str.upper()
+        dataframe['protocol'] = dataframe['protocol'].str.lower()
+
+        # Map risk to a SEVERITY MAPPING value
+        self.logger.debug('Mapping risk to severity number')
+        dataframe['risk_number'] = dataframe['risk'].str.lower()
+        dataframe['risk_number'].replace(self.SEVERITY_MAPPING, inplace=True)
+
+        if self.profile == 'tenable':
+            self.logger.debug('Combinging CVSS vectors for tenable')
+            # Combine CVSS vectors
+            dataframe['cvss_vector'] = (
+                dataframe[['cvss_vector', 'cvss_temporal_vector']]
+                .apply(lambda x: '{}/{}'.format(x[0], x[1]), axis=1)
+                .str.rstrip('/nan')
+            )
+            dataframe['cvss3_vector'] = (
+                dataframe[['cvss3_vector', 'cvss3_temporal_vector']]
+                .apply(lambda x: '{}/{}'.format(x[0], x[1]), axis=1)
+                .str.rstrip('/nan')
+            )
+
+        dataframe.fillna('', inplace=True)
+
+        return dataframe
