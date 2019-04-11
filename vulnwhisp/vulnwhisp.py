@@ -445,6 +445,9 @@ class vulnWhispererNessus(vulnWhispererBase):
                             # Map and transform fields
                             clean_csv = self.nessus.normalise(clean_csv)
 
+                            clean_csv['scan_name'] = scan_name.encode('utf8')
+                            clean_csv['scan_id'] = scan_id
+
                             clean_csv.to_json(relative_path_name.replace('csv', 'json'), orient='records', lines=True)
                             clean_csv.to_csv(relative_path_name, index=False)
                             record_meta = (
@@ -608,8 +611,8 @@ class vulnWhispererQualys(vulnWhispererBase):
 
                     vuln_ready = self.qualys_scan.process_data(path=self.write_path, file_id=str(generated_report_id))
 
-                    vuln_ready['scan_name'] = scan_name
-                    vuln_ready['scan_reference'] = scan_reference
+                    vuln_ready['scan_name'] = scan_name.encode('utf8')
+                    vuln_ready['scan_id'] = scan_reference
                     # Map and transform fields
                     vuln_ready = self.qualys_scan.normalise(vuln_ready)
                     # TODO remove the line below once normalising complete
@@ -775,8 +778,8 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
 
             else:
                 vuln_ready = self.openvas_api.process_report(report_id=report_id)
-                vuln_ready['scan_name'] = scan_name
-                vuln_ready['scan_reference'] = report_id
+                vuln_ready['scan_name'] = scan_name.encode('utf8')
+                vuln_ready['scan_id'] = report_id
                 vuln_ready.rename(columns=self.COLUMN_MAPPING, inplace=True)
                 vuln_ready.port = vuln_ready.port.fillna(0).astype(int)
                 vuln_ready.fillna('', inplace=True)
@@ -873,7 +876,7 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
                 try:
                     self.logger.info('Processing report ID: {}'.format(report_id))
                     vuln_ready = self.qualys_scan.process_data(scan_id=report_id)
-                    vuln_ready['scan_name'] = scan_name
+                    vuln_ready['scan_name'] = scan_name.encode('utf8')
                     vuln_ready['scan_reference'] = report_id
                     # Map and transform fields
                     vuln_ready = self.qualys_scan.normalise(vuln_ready)
