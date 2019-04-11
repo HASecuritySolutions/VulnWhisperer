@@ -83,6 +83,7 @@ class qualysVulnScan:
         'cve_id': 'cve',
         'cvss_base': 'cvss',
         'cvss3_base': 'cvss3',
+        'impact': 'synopsis',
         'ip_status': 'state',
         'os': 'operating_system',
         'qid': 'plugin_id',

@@ -35,6 +35,7 @@ class NessusAPI(object):
         'host': 'asset',
         'name': 'plugin_name',
         'os': 'operating_system',
+        'see also': 'exploitability',
         'system type': 'category',
         'vulnerability state': 'state'
     }

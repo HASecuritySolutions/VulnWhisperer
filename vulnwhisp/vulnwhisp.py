@@ -326,13 +326,13 @@ class vulnWhispererNessus(vulnWhispererBase):
                         record['uuid'] = h.get('uuid', '')
                         record['status'] = h.get('status', '')
                         record['history_id'] = h.get('history_id', '')
-                        record['last_modification_date'] = \
-                            h.get('last_modification_date', '')
-                        record['norm_time'] = \
-                            self.nessus.get_utc_from_local(int(record['last_modification_date'
-                                                               ]),
-                                                           local_tz=self.nessus.tz_conv(record['timezone'
-                                                                                        ]))
+                        record["last_modification_date"] = h.get(
+                            "last_modification_date", ""
+                        )
+                        record["norm_time"] = self.nessus.get_utc_from_local(
+                            int(record["last_modification_date"]),
+                            local_tz=self.nessus.tz_conv(record["timezone"]),
+                        )
                         scan_records.append(record.copy())
                 except Exception as e:
                     # Generates error each time nonetype is encountered.
@@ -350,14 +350,20 @@ class vulnWhispererNessus(vulnWhispererBase):
             scans = scan_data['scans'] if scan_data['scans'] else []
             all_scans = self.scan_count(scans)
             if self.uuids:
-                scan_list = [scan for scan in all_scans if scan['uuid']
-                             not in self.uuids and scan['status'] in ['completed', 'imported']]
+                scan_list = [
+                    scan
+                    for scan in all_scans
+                    if scan["uuid"] not in self.uuids
+                    and scan["status"] in ["completed", "imported"]
+                ]
             else:
                 scan_list = all_scans
-            self.logger.info('Identified {new} scans to be processed'.format(new=len(scan_list)))
+            self.logger.info(
+                "Identified {new} scans to be processed".format(new=len(scan_list))
+            )
 
             if not scan_list:
-                self.logger.warn('No new scans to process. Exiting...')
+                self.logger.warn("No new scans to process. Exiting...")
                 return self.exit_code
 
             # Create scan subfolders
@@ -445,8 +451,12 @@ class vulnWhispererNessus(vulnWhispererBase):
                             # Map and transform fields
                             clean_csv = self.nessus.normalise(clean_csv)
 
+                            # Set common fields
                             clean_csv['scan_name'] = scan_name.encode('utf8')
                             clean_csv['scan_id'] = uuid
+
+                            # Add @timestamp and convert to milliseconds
+                            clean_csv['@timestamp'] = int(norm_time) * 1000
 
                             clean_csv.to_json(relative_path_name, orient='records', lines=True)
 
@@ -610,13 +620,16 @@ class vulnWhispererQualys(vulnWhispererBase):
                     self.logger.info('New Report ID: {}'.format(generated_report_id))
 
                     vuln_ready = self.qualys_scan.process_data(path=self.write_path, file_id=str(generated_report_id))
-
-                    vuln_ready['scan_name'] = scan_name.encode('utf8')
-                    vuln_ready['scan_id'] = report_id
                     # Map and transform fields
                     vuln_ready = self.qualys_scan.normalise(vuln_ready)
                     # TODO remove the line below once normalising complete
                     vuln_ready.rename(columns=self.COLUMN_MAPPING, inplace=True)
+
+                    # Set common fields
+                    vuln_ready['scan_name'] = scan_name.encode('utf8')
+                    vuln_ready['scan_id'] = report_id
+                    # Add @timestamp and convert to milliseconds
+                    vuln_ready['@timestamp'] = int(launched_date) * 1000
 
                     record_meta = (
                         scan_name,
@@ -778,13 +791,19 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
 
             else:
                 vuln_ready = self.openvas_api.process_report(report_id=report_id)
-                vuln_ready['scan_name'] = scan_name.encode('utf8')
-                vuln_ready['scan_id'] = report_id
+                # Map and transform fields
+                vuln_ready = self.openvas_api.normalise(vuln_ready)
+                # TODO move the following to the openvas_api.transform_values 
                 vuln_ready.rename(columns=self.COLUMN_MAPPING, inplace=True)
                 vuln_ready.port = vuln_ready.port.fillna(0).astype(int)
                 vuln_ready.fillna('', inplace=True)
-                # Map and transform fields
-                vuln_ready = self.openvas_api.normalise(vuln_ready)
+                
+                # Set common fields
+                vuln_ready['scan_name'] = scan_name.encode('utf8')
+                vuln_ready['scan_id'] = report_id
+                # Add @timestamp and convert to milliseconds
+                vuln_ready['@timestamp'] = int(launched_date) * 1000
+
                 vuln_ready.to_json(relative_path_name, orient='records', lines=True)
                 self.logger.info('Report written to {}'.format(report_name))
 
@@ -876,10 +895,16 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
                 try:
                     self.logger.info('Processing report ID: {}'.format(report_id))
                     vuln_ready = self.qualys_scan.process_data(scan_id=report_id)
-                    vuln_ready['scan_name'] = scan_name.encode('utf8')
-                    vuln_ready['scan_id'] = report_id
                     # Map and transform fields
                     vuln_ready = self.qualys_scan.normalise(vuln_ready)
+
+                    # Set common fields
+                    vuln_ready['scan_name'] = scan_name.encode('utf8')
+                    vuln_ready['scan_id'] = report_id
+
+                    # Add @timestamp and convert to milliseconds
+                    vuln_ready['@timestamp'] = int(launched_date) * 1000
+
                 except Exception as e:
                     self.logger.error('Could not process {}: {}'.format(report_id, str(e)))
                     self.exit_code += 1
