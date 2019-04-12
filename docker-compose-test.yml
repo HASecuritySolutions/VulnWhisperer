@@ -73,7 +73,7 @@ services:
         aliases:
           - logstash.local
   vulnwhisperer:
-    image: vulnwhisperer-1.8
+    image: hasecuritysolutions/vulnwhisperer:latest
     container_name: vulnwhisperer
     entrypoint: [
                   "vuln_whisperer",
