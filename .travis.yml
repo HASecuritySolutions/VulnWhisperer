@@ -23,6 +23,8 @@ script:
     # Test successful scan download and parsing
     - rm -rf /tmp/VulnWhisperer
     - vuln_whisperer -c configs/test.ini --mock --mock_dir ${TEST_PATH}
+    # Run a second time with no scans to import
+    - vuln_whisperer -c configs/test.ini --mock --mock_dir ${TEST_PATH}
     # Test one failed scan
     - rm -rf /tmp/VulnWhisperer
     - rm -f ${TEST_PATH}/nessus/GET_scans_exports_164_download
