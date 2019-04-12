@@ -415,7 +415,7 @@ class vulnWhispererNessus(vulnWhispererBase):
                                                     history_id, norm_time, 'json')
                     repls = (('\\', '_'), ('/', '_'), (' ', '_'))
                     file_name = reduce(lambda a, kv: a.replace(*kv), repls, file_name)
-                    relative_path_name = self.path_check(folder_name + '/' + file_name)
+                    relative_path_name = self.path_check(folder_name + '/' + file_name).encode('utf8')
 
                     if os.path.isfile(relative_path_name):
                         if self.develop:
@@ -590,7 +590,7 @@ class vulnWhispererQualys(vulnWhispererBase):
                           + '_{last_updated}'.format(last_updated=launched_date) \
                           + '.{extension}'.format(extension=output_format)
 
-            relative_path_name = self.path_check(report_name)
+            relative_path_name = self.path_check(report_name).encode('utf8')
 
             if os.path.isfile(relative_path_name):
                 #TODO Possibly make this optional to sync directories
@@ -756,7 +756,7 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
             report_name = 'openvas_scan_{scan_name}_{last_updated}.{extension}'.format(scan_name=scan_name,
                                                                                        last_updated=launched_date,
                                                                                        extension=output_format)
-            relative_path_name = self.path_check(report_name)
+            relative_path_name = self.path_check(report_name).encode('utf8')
             scan_reference = report_id
 
             if os.path.isfile(relative_path_name):
@@ -871,7 +871,7 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
                           + '_{last_updated}'.format(last_updated=launched_date) \
                           + '.{extension}'.format(extension=output_format)
 
-            relative_path_name = self.path_check(report_name)
+            relative_path_name = self.path_check(report_name).encode('utf8')
 
             if os.path.isfile(relative_path_name):
                 #TODO Possibly make this optional to sync directories
