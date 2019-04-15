@@ -53,7 +53,7 @@
       ],
       "properties": {
         "plugin_id": {
-          "type": "integer"
+          "type": "float"
         },
         "last_updated": {
           "type": "date"
