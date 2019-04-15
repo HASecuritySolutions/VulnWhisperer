@@ -464,16 +464,16 @@ class qualysScanReport:
 
         return merged_data
 
-    def normalise(self, dataframe):
+    def normalise(self, df):
         self.logger.debug('Normalising data')
-        self.map_fields(dataframe)
-        self.transform_values(dataframe)
-        return dataframe
+        df = self.map_fields(df)
+        df = self.transform_values(df)
+        return df
 
-    def map_fields(self, dataframe):
+    def map_fields(self, df):
         self.logger.debug('Mapping fields')
-        return dataframe
+        return df
     
-    def transform_values(self, dataframe):
+    def transform_values(self, df):
         self.logger.debug('Transforming values')
-        return dataframe
+        return df
