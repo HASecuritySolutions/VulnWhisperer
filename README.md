@@ -77,6 +77,12 @@ cd /path/to/VulnWhisperer
 python setup.py install
 ```
 
+**(Optional) If using a proxy, add proxy URL as environment variable to PATH**
+```shell
+export HTTP_PROXY=http://example.com:8080
+export HTTPS_PROXY=http://example.com:8080
+```
+
 Now you're ready to pull down scans. (see <a href="#run">run section</a>)
 
 Configuration
