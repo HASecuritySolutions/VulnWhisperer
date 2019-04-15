@@ -9,6 +9,7 @@ services:
       - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
       - xpack.security.enabled=false
       - cluster.routing.allocation.disk.threshold_enabled=false
+      - path.repo=/snapshots
     ulimits:
       memlock:
         soft: -1
@@ -73,11 +74,14 @@ services:
       esnet:
         aliases:
           - logstash.local
+
   vulnwhisperer:
-    image: vulnwhisperer-1.8
+    # image: vulnwhisperer-1.8
+    image: vulnwhisperer-pemontto
     container_name: vulnwhisperer
     entrypoint: [
                   "vuln_whisperer",
+                  "-F",
                   "-c",
                   "/opt/VulnWhisperer/vulnwhisperer.ini",
                   "--mock",
