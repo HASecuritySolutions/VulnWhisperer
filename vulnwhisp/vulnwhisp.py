@@ -242,6 +242,7 @@ class vulnWhispererBase(object):
                 scan_names = []
 
         return results
+
     def common_normalise(self, df):
         """Map and transform common data values""" 
         self.logger.info('Start common mapping')
@@ -279,7 +280,7 @@ class vulnWhispererBase(object):
             )
             df.drop('cvss_temporal_vector', axis=1, inplace=True)
         if 'cvss3_vector' in df and 'cvss3_temporal_vector' in df:
-            self.logger.info('Normalising CVSS Vector')
+            self.logger.info('Normalising CVSS3 Vector')
             df['cvss3_vector'] = (
                 df[['cvss3_vector', 'cvss3_temporal_vector']]
                 .apply(lambda x: '{}/{}'.format(x[0], x[1]), axis=1)
