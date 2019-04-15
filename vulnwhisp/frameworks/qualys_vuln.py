@@ -90,6 +90,8 @@ class qualysVulnScan:
         'title': 'plugin_name'
     }
 
+    SEVERITY_MAPPING = {0: 'none', 1: 'low', 2: 'medium', 3: 'high',4: 'critical'}
+
     def __init__(
         self,
         config=None,
@@ -184,23 +186,9 @@ class qualysVulnScan:
             .apply(lambda x: x[0])
         )
 
-        # Combine base and temporal
-        df['cvss_vector'] = (
-            df[['cvss_vector', 'cvss_temporal_vector']]
-            .apply(lambda x: '{}/{}'.format(x[0], x[1]), axis=1)
-            .str.rstrip('/nan')
-        )
-
-        df.drop('cvss_temporal_vector', axis=1, inplace=True)
-
         # Convert Qualys severity to standardised risk number
         df['risk_number'] =  df['severity'].astype(int)-1
-
-        # CVSS score = cvss3_temporal or cvss3_base or cvss_temporal or cvss_base
-        df['cvss'] = df['cvss_base']
-        df.loc[df['cvss_temporal'].notnull(), 'cvss'] = df['cvss_temporal']
-        df['cvss3'] = df['cvss3_base']
-        df.loc[df['cvss3_temporal'].notnull(), 'cvss3'] = df['cvss3_temporal']
+        df['risk'] = df['risk_number'].map(self.SEVERITY_MAPPING)
 
         df.fillna('', inplace=True)
 

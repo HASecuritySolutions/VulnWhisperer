@@ -242,6 +242,52 @@ class vulnWhispererBase(object):
                 scan_names = []
 
         return results
+    def common_normalise(self, df):
+        """Map and transform common data values""" 
+        self.logger.info('Start common mapping')
+        if 'cvss_base' in df:
+            self.logger.info('Normalising CVSS')
+            # CVSS = cvss_temporal or cvss_base
+            df['cvss'] = df['cvss_base']
+            df.loc[df['cvss_temporal'].notnull(), 'cvss'] = df['cvss_temporal']
+            # Map CVSS to severity name
+            df.loc[df['cvss'] == 0, 'cvss_severity'] = 'info'
+            df.loc[(df['cvss'] > 0) & (df['cvss'] < 3), 'cvss_severity'] = 'info'
+            df.loc[(df['cvss'] >= 3) & (df['cvss'] < 6), 'cvss_severity'] = 'medium'
+            df.loc[(df['cvss'] >= 6) & (df['cvss'] < 9), 'cvss_severity'] = 'high'
+            df.loc[df['cvss'] > 9, 'cvss_severity'] = 'critical'
+
+        if 'cvss3_base' in df:
+            self.logger.info('Normalising CVSS3')
+            # CVSS3 = cvss3_temporal or cvss3_base
+            df['cvss3'] = df['cvss3_base']
+            df.loc[df['cvss3_temporal'].notnull(), 'cvss3'] = df['cvss3_temporal']  
+            # Map CVSS to severity name
+            df.loc[df['cvss3'] == 0, 'cvss3_severity'] = 'info'
+            df.loc[(df['cvss3'] > 0) & (df['cvss3'] < 3), 'cvss3_severity'] = 'info'
+            df.loc[(df['cvss3'] >= 3) & (df['cvss3'] < 6), 'cvss3_severity'] = 'medium'
+            df.loc[(df['cvss3'] >= 6) & (df['cvss3'] < 9), 'cvss3_severity'] = 'high'
+            df.loc[df['cvss3'] > 9, 'cvss3_severity'] = 'critical'
+
+        # Combine CVSS and CVSS3 vectors
+        if 'cvss_vector' in df and 'cvss_temporal_vector' in df:
+            self.logger.info('Normalising CVSS Vector')
+            df['cvss_vector'] = (
+                df[['cvss_vector', 'cvss_temporal_vector']]
+                .apply(lambda x: '{}/{}'.format(x[0], x[1]), axis=1)
+                .str.rstrip('/nan')
+            )
+            df.drop('cvss_temporal_vector', axis=1, inplace=True)
+        if 'cvss3_vector' in df and 'cvss3_temporal_vector' in df:
+            self.logger.info('Normalising CVSS Vector')
+            df['cvss3_vector'] = (
+                df[['cvss3_vector', 'cvss3_temporal_vector']]
+                .apply(lambda x: '{}/{}'.format(x[0], x[1]), axis=1)
+                .str.rstrip('/nan')
+            )
+            df.drop('cvss3_temporal_vector', axis=1, inplace=True)
+        return df
+
 
 class vulnWhispererNessus(vulnWhispererBase):
 
@@ -444,22 +490,23 @@ class vulnWhispererNessus(vulnWhispererBase):
                             self.exit_code += 1
                             continue
                             
-                        clean_csv = pd.read_csv(io.StringIO(file_req.decode('utf-8')))
-                        if len(clean_csv) > 2:
+                        vuln_ready = pd.read_csv(io.StringIO(file_req.decode('utf-8')))
+                        if len(vuln_ready) > 2:
                             self.logger.info('Processing {}/{} for scan: {}'.format(scan_count, len(scan_list), scan_name.encode('utf8')))
 
                             # Map and transform fields
-                            clean_csv = self.nessus.normalise(clean_csv)
+                            vuln_ready = self.nessus.normalise(vuln_ready)
+                            vuln_ready = self.common_normalise(vuln_ready)
 
                             # Set common fields
-                            clean_csv['scan_name'] = scan_name.encode('utf8')
-                            clean_csv['scan_id'] = uuid
+                            vuln_ready['scan_name'] = scan_name.encode('utf8')
+                            vuln_ready['scan_id'] = uuid
 
                             # Add timestamp and convert to milliseconds
-                            clean_csv['_timestamp'] = norm_time
-                            clean_csv['scan_source'] = self.CONFIG_SECTION
+                            vuln_ready['_timestamp'] = norm_time
+                            vuln_ready['scan_source'] = self.CONFIG_SECTION
 
-                            clean_csv.to_json(relative_path_name, orient='records', lines=True)
+                            vuln_ready.to_json(relative_path_name, orient='records', lines=True)
 
                             record_meta = (
                                 scan_name,
@@ -467,14 +514,14 @@ class vulnWhispererNessus(vulnWhispererBase):
                                 norm_time,
                                 file_name,
                                 time.time(),
-                                clean_csv.shape[0],
+                                vuln_ready.shape[0],
                                 self.CONFIG_SECTION,
                                 uuid,
                                 1,
                                 0,
                             )
                             self.record_insert(record_meta)
-                            self.logger.info('{filename} records written to {path} '.format(filename=clean_csv.shape[0],
+                            self.logger.info('{filename} records written to {path} '.format(filename=vuln_ready.shape[0],
                                                                                             path=file_name.encode('utf8')))
                         else:
                             record_meta = (
@@ -483,7 +530,7 @@ class vulnWhispererNessus(vulnWhispererBase):
                                 norm_time,
                                 file_name,
                                 time.time(),
-                                clean_csv.shape[0],
+                                vuln_ready.shape[0],
                                 self.CONFIG_SECTION,
                                 uuid,
                                 1,
@@ -623,6 +670,7 @@ class vulnWhispererQualys(vulnWhispererBase):
                     vuln_ready = self.qualys_scan.process_data(path=self.write_path, file_id=str(generated_report_id))
                     # Map and transform fields
                     vuln_ready = self.qualys_scan.normalise(vuln_ready)
+                    vuln_ready = self.common_normalise(vuln_ready)
                     # TODO remove the line below once normalising complete
                     vuln_ready.rename(columns=self.COLUMN_MAPPING, inplace=True)
 
@@ -795,6 +843,7 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
                 vuln_ready = self.openvas_api.process_report(report_id=report_id)
                 # Map and transform fields
                 vuln_ready = self.openvas_api.normalise(vuln_ready)
+                vuln_ready = self.common_normalise(vuln_ready)
                 # TODO move the following to the openvas_api.transform_values 
                 vuln_ready.rename(columns=self.COLUMN_MAPPING, inplace=True)
                 vuln_ready.port = vuln_ready.port.fillna(0).astype(int)
@@ -900,6 +949,7 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
                     vuln_ready = self.qualys_scan.process_data(scan_id=report_id)
                     # Map and transform fields
                     vuln_ready = self.qualys_scan.normalise(vuln_ready)
+                    vuln_ready = self.common_normalise(vuln_ready)
 
                     # Set common fields
                     vuln_ready['scan_name'] = scan_name.encode('utf8')
