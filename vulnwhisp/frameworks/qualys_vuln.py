@@ -144,15 +144,10 @@ class qualysVulnScan:
     def map_fields(self, df):
         self.logger.info('Mapping fields')
 
-        # Map fields from COLUMN_MAPPING
-        fields = [x.lower() for x in df.columns]
-        for field, replacement in self.COLUMN_MAPPING.iteritems():
-            if field in fields:
-                self.logger.info('Renaming "{}" to "{}"'.format(field, replacement))
-                fields[fields.index(field)] = replacement
-
-        fields = [x.replace(' ', '_') for x in fields]
-        df.columns = fields
+        # Lowercase and map fields from COLUMN_MAPPING
+        df.columns = [x.lower() for x in df.columns]
+        df.rename(columns=self.COLUMN_MAPPING, inplace=True)
+        df.columns = [x.replace(' ', '_') for x in df.columns]
 
         return df
     
@@ -165,32 +160,28 @@ class qualysVulnScan:
         df['protocol'] = df['protocol'].str.lower()
 
         # Contruct the CVSS vector
-        df['cvss_vector'] = ''
-        df.loc[df['cvss_base'].notnull(), 'cvss_vector'] = (
+        df['cvss_vector'] = (
             df.loc[df['cvss_base'].notnull(), 'cvss_base']
             .str.split()
             .apply(lambda x: x[1])
-            .str.replace('(', '')
-            .str.replace(')', '')
+            .str.strip('()')
         )
-        df.loc[df['cvss_base'].notnull(), 'cvss_base'] = (
+        df['cvss_base'] = (
             df.loc[df['cvss_base'].notnull(), 'cvss_base']
             .str.split()
             .apply(lambda x: x[0])
         )
-        df['cvss_temporal_vector'] = ''
-        df.loc[df['cvss_temporal'].notnull(), 'cvss_temporal_vector'] = (
+
+        df['cvss_temporal_vector'] = (
             df.loc[df['cvss_temporal'].notnull(), 'cvss_temporal']
             .str.split()
             .apply(lambda x: x[1])
-            .str.replace('(', '')
-            .str.replace(')', '')
+            .str.strip('()')
         )
-        df.loc[df['cvss_temporal'].notnull(), 'cvss_temporal'] = (
+        df['cvss_temporal'] = (
             df.loc[df['cvss_temporal'].notnull(), 'cvss_temporal']
             .str.split()
             .apply(lambda x: x[0])
-            .fillna('')
         )
 
         # Combine base and temporal
@@ -198,7 +189,6 @@ class qualysVulnScan:
             df[['cvss_vector', 'cvss_temporal_vector']]
             .apply(lambda x: '{}/{}'.format(x[0], x[1]), axis=1)
             .str.rstrip('/nan')
-            .fillna('')
         )
 
         df.drop('cvss_temporal_vector', axis=1, inplace=True)
@@ -206,8 +196,11 @@ class qualysVulnScan:
         # Convert Qualys severity to standardised risk number
         df['risk_number'] =  df['severity'].astype(int)-1
 
+        # CVSS score = cvss3_temporal or cvss3_base or cvss_temporal or cvss_base
         df['cvss'] = df['cvss_base']
         df.loc[df['cvss_temporal'].notnull(), 'cvss'] = df['cvss_temporal']
+        df['cvss3'] = df['cvss3_base']
+        df.loc[df['cvss3_temporal'].notnull(), 'cvss3'] = df['cvss3_temporal']
 
         df.fillna('', inplace=True)
 

@@ -24,6 +24,7 @@ script:
     - rm -rf /tmp/VulnWhisperer
     - vuln_whisperer -F -c configs/test.ini --mock --mock_dir ${TEST_PATH}
     # Run a second time with no scans to import
+    - rm -rf /tmp/VulnWhisperer/data/database
     - vuln_whisperer -F -c configs/test.ini --mock --mock_dir ${TEST_PATH}
     # Test one failed scan
     - rm -rf /tmp/VulnWhisperer

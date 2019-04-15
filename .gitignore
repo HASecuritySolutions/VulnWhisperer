@@ -1,5 +1,6 @@
 # Vulnwhisperer stuff
 data/
+docker_data/
 logs/
 elk6/vulnwhisperer.ini
 resources/elk6/vulnwhisperer.ini

@@ -19,6 +19,7 @@ services:
     mem_limit: 8g
     volumes:
       - ./docker_data/esdata1:/usr/share/elasticsearch/data
+      - ./docker_data/es_snapshots:/snapshots
     ports:
       - 9200:9200
     #restart: always
@@ -37,8 +38,8 @@ services:
       - 5601:5601
     depends_on:
       - elasticsearch
-    # volumes:
-    #   - ./kibana-data:
+    volumes:
+      - ./docker_data/kibana_optimize:/usr/share/kibana/optimize
     networks:
       esnet:
         aliases:
@@ -50,7 +51,6 @@ services:
     volumes:
       - ./resources/elk6/init_kibana.sh:/opt/init_kibana.sh
       - ./resources/elk6/kibana_APIonly.json:/opt/kibana_APIonly.json
-      - ./docker_data/kibana_optimize:/usr/share/kibana/optimize
     command: sh -c "apk add --no-cache curl bash && chmod +x /opt/init_kibana.sh && chmod +r /opt/kibana_APIonly.json && cd /opt/ && /bin/bash /opt/init_kibana.sh" # /opt/kibana_APIonly.json"
     networks:
       esnet:

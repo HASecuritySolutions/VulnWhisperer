@@ -203,15 +203,11 @@ class NessusAPI(object):
             df.drop('CVSS', axis=1, inplace=True)
             df.drop('IP Address', axis=1, inplace=True)
 
-        # Map fields from COLUMN_MAPPING
-        fields = [x.lower() for x in df.columns]
-        for field, replacement in self.COLUMN_MAPPING.iteritems():
-            if field in fields:
-                self.logger.debug('Renaming "{}" to "{}"'.format(field, replacement))
-                fields[fields.index(field)] = replacement
+        # Lowercase and map fields from COLUMN_MAPPING
+        df.columns = [x.lower() for x in df.columns]
+        df.rename(columns=self.COLUMN_MAPPING, inplace=True)
+        df.columns = [x.replace(' ', '_') for x in df.columns]
 
-        fields = [x.replace(' ', '_') for x in fields]
-        df.columns = fields
         return df
     
     def transform_values(self, df):
@@ -227,8 +223,7 @@ class NessusAPI(object):
 
         # Map risk to a SEVERITY MAPPING value
         self.logger.debug('Mapping risk to severity number')
-        df['risk_number'] = df['risk'].str.lower()
-        df['risk_number'].replace(self.SEVERITY_MAPPING, inplace=True)
+        df['risk_number'] = df['risk'].str.lower().map(self.SEVERITY_MAPPING)
 
         if self.profile == 'tenable':
             self.logger.debug('Combinging CVSS vectors for tenable')
@@ -243,9 +238,14 @@ class NessusAPI(object):
                 .apply(lambda x: '{}/{}'.format(x[0], x[1]), axis=1)
                 .str.rstrip('/nan')
             )
-            # CVSS score = cvss_temporal if cvss_temporal else cvss_base
+
+            df.drop(['cvss_temporal_vector', 'cvss3_temporal_vector'], axis=1, inplace=True)
+
+            # CVSS score = cvss3_temporal or cvss3_base or cvss_temporal or cvss_base
             df['cvss'] = df['cvss_base']
             df.loc[df['cvss_temporal'].notnull(), 'cvss'] = df['cvss_temporal']
+            df['cvss3'] = df['cvss3_base']
+            df.loc[df['cvss3_temporal'].notnull(), 'cvss3'] = df['cvss3_temporal']
 
         df.fillna('', inplace=True)
         return df

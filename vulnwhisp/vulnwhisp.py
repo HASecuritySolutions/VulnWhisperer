@@ -84,7 +84,7 @@ class vulnWhispererBase(object):
                 self.cur = self.conn.cursor()
                 self.logger.info('Connected to database at {loc}'.format(loc=self.database))
             except Exception as e:
-                self.logger.error('Could not connect to database at {loc}\nReason: {e} - Please ensure the path exist'.format(
+                self.logger.error('Could not connect to database at {loc}\nReason: {e} - Please ensure the path exists'.format(
                         e=e,
                         loc=self.database))
         else:
@@ -189,7 +189,7 @@ class vulnWhispererBase(object):
                 scan=self.write_path.encode('utf8')))
         else:
             os.path.exists(self.write_path)
-            self.logger.info('Directory already exist for {scan} - Skipping creation'.format(
+            self.logger.info('Directory already exists for {scan} - Skipping creation'.format(
                 scan=self.write_path.encode('utf8')))
 
     def get_latest_results(self, source, scan_name):
@@ -376,7 +376,7 @@ class vulnWhispererNessus(vulnWhispererBase):
                         os.makedirs(self.path_check(f['name']))
                 else:
                     os.path.exists(self.path_check(f['name']))
-                    self.logger.info('Directory already exist for {scan} - Skipping creation'.format(
+                    self.logger.info('Directory already exists for {scan} - Skipping creation'.format(
                         scan=self.path_check(f['name']).encode('utf8')))
 
             # try download and save scans into each folder the belong to
@@ -419,7 +419,7 @@ class vulnWhispererNessus(vulnWhispererBase):
 
                     if os.path.isfile(relative_path_name):
                         if self.develop:
-                            csv_in = pd.read_csv(relative_path_name)
+                            csv_in = pd.read_json(relative_path_name, lines=True)
                             record_meta = (
                                 scan_name,
                                 scan_id,
@@ -433,7 +433,7 @@ class vulnWhispererNessus(vulnWhispererBase):
                                 0,
                             )
                             self.record_insert(record_meta)
-                            self.logger.info('File {filename} already exist! Updating database'.format(filename=relative_path_name))
+                            self.logger.info('File {filename} already exists! Updating database'.format(filename=relative_path_name))
                     else:
                         try:
                             file_req = \
@@ -608,7 +608,7 @@ class vulnWhispererQualys(vulnWhispererBase):
                     0,
                 )
                 self.record_insert(record_meta)
-                self.logger.info('File {filename} already exist! Updating database'.format(filename=relative_path_name))
+                self.logger.info('File {filename} already exists! Updating database'.format(filename=relative_path_name))
 
             else:
                 self.logger.info('Generating report for {}'.format(report_id))
@@ -775,7 +775,7 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
                     0,
                 )
                 self.record_insert(record_meta)
-                self.logger.info('File {filename} already exist! Updating database'.format(filename=relative_path_name))
+                self.logger.info('File {filename} already exists! Updating database'.format(filename=relative_path_name))
 
                 record_meta = (
                     scan_name,
@@ -889,7 +889,7 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
                     0,
                 )
                 self.record_insert(record_meta)
-                self.logger.info('File {filename} already exist! Updating database'.format(filename=relative_path_name))
+                self.logger.info('File {filename} already exists! Updating database'.format(filename=relative_path_name))
 
             else:
                 try:
