@@ -246,29 +246,18 @@ class vulnWhispererBase(object):
     def common_normalise(self, df):
         """Map and transform common data values""" 
         self.logger.info('Start common mapping')
+
         if 'cvss_base' in df:
-            self.logger.info('Normalising CVSS')
+            self.logger.info('Normalising CVSS base')
             # CVSS = cvss_temporal or cvss_base
             df['cvss'] = df['cvss_base']
-            df.loc[df['cvss_temporal'].notnull(), 'cvss'] = df['cvss_temporal']
-            # Map CVSS to severity name
-            df.loc[df['cvss'] == 0, 'cvss_severity'] = 'info'
-            df.loc[(df['cvss'] > 0) & (df['cvss'] < 3), 'cvss_severity'] = 'info'
-            df.loc[(df['cvss'] >= 3) & (df['cvss'] < 6), 'cvss_severity'] = 'medium'
-            df.loc[(df['cvss'] >= 6) & (df['cvss'] < 9), 'cvss_severity'] = 'high'
-            df.loc[df['cvss'] > 9, 'cvss_severity'] = 'critical'
+            df.loc[df['cvss_temporal'] != '', 'cvss'] = df['cvss_temporal']
 
         if 'cvss3_base' in df:
-            self.logger.info('Normalising CVSS3')
+            self.logger.info('Normalising CVSS3 base')
             # CVSS3 = cvss3_temporal or cvss3_base
             df['cvss3'] = df['cvss3_base']
-            df.loc[df['cvss3_temporal'].notnull(), 'cvss3'] = df['cvss3_temporal']  
-            # Map CVSS to severity name
-            df.loc[df['cvss3'] == 0, 'cvss3_severity'] = 'info'
-            df.loc[(df['cvss3'] > 0) & (df['cvss3'] < 3), 'cvss3_severity'] = 'info'
-            df.loc[(df['cvss3'] >= 3) & (df['cvss3'] < 6), 'cvss3_severity'] = 'medium'
-            df.loc[(df['cvss3'] >= 6) & (df['cvss3'] < 9), 'cvss3_severity'] = 'high'
-            df.loc[df['cvss3'] > 9, 'cvss3_severity'] = 'critical'
+            df.loc[df['cvss3_temporal'] != '', 'cvss3'] = df['cvss3_temporal']
 
         # Combine CVSS and CVSS3 vectors
         if 'cvss_vector' in df and 'cvss_temporal_vector' in df:
@@ -287,6 +276,30 @@ class vulnWhispererBase(object):
                 .str.rstrip('/nan')
             )
             df.drop('cvss3_temporal_vector', axis=1, inplace=True)
+
+        if 'cvss' in df:
+            self.logger.info('Normalising CVSS severity')
+            # Map CVSS to severity name
+            df.loc[df['cvss'] == '', 'cvss'] = None
+            df['cvss'] = df['cvss'].astype('float')
+            df.loc[df['cvss'] == 0, 'cvss_severity'] = 'info'
+            df.loc[(df['cvss'] > 0) & (df['cvss'] < 3), 'cvss_severity'] = 'low'
+            df.loc[(df['cvss'] >= 3) & (df['cvss'] < 6), 'cvss_severity'] = 'medium'
+            df.loc[(df['cvss'] >= 6) & (df['cvss'] < 9), 'cvss_severity'] = 'high'
+            df.loc[(df['cvss'] > 9) & (df['cvss'].notnull()), 'cvss_severity'] = 'critical'
+
+        if 'cvss3' in df:
+            self.logger.info('Normalising CVSS3 severity')
+            # Map CVSS to severity name
+            df.loc[df['cvss3'] =='', 'cvss3'] = None
+            df['cvss3'] = df['cvss3'].astype('float')
+            df.loc[df['cvss3'] == 0, 'cvss3_severity'] = 'info'
+            df.loc[(df['cvss3'] > 0) & (df['cvss3'] < 3), 'cvss3_severity'] = 'low'
+            df.loc[(df['cvss3'] >= 3) & (df['cvss3'] < 6), 'cvss3_severity'] = 'medium'
+            df.loc[(df['cvss3'] >= 6) & (df['cvss3'] < 9), 'cvss3_severity'] = 'high'
+            df.loc[(df['cvss3'] > 9) & (df['cvss3'].notnull()), 'cvss3_severity'] = 'critical'
+
+        df.fillna('', inplace=True)
         return df
 
 
