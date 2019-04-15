@@ -10,7 +10,7 @@ saved_objects_file="kibana_APIonly.json"
 
 #if [ `curl -I localhost:5601/status | head -n1 |cut -d$' ' -f2` -eq '200' ]; then echo "Loading VulnWhisperer Saved Objects"; eval $(echo $add_saved_objects$saved_objects_file); else echo "waiting for kibana"; fi
 
-until curl -s "$elasticsearch_url/_cluster/health?pretty" | grep '"status"' | grep -q green; do
+until curl -s "$elasticsearch_url/_cluster/health?pretty" | grep '"status"' | grep -qE "green|yellow"; do
     curl -s "$elasticsearch_url/_cluster/health?pretty"
     echo "Waiting for Elasticsearch"
     sleep 5

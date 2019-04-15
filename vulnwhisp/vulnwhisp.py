@@ -455,8 +455,9 @@ class vulnWhispererNessus(vulnWhispererBase):
                             clean_csv['scan_name'] = scan_name.encode('utf8')
                             clean_csv['scan_id'] = uuid
 
-                            # Add @timestamp and convert to milliseconds
-                            clean_csv['@timestamp'] = int(norm_time) * 1000
+                            # Add timestamp and convert to milliseconds
+                            clean_csv['_timestamp'] = norm_time
+                            clean_csv['scan_source'] = self.CONFIG_SECTION
 
                             clean_csv.to_json(relative_path_name, orient='records', lines=True)
 
@@ -628,8 +629,9 @@ class vulnWhispererQualys(vulnWhispererBase):
                     # Set common fields
                     vuln_ready['scan_name'] = scan_name.encode('utf8')
                     vuln_ready['scan_id'] = report_id
-                    # Add @timestamp and convert to milliseconds
-                    vuln_ready['@timestamp'] = int(launched_date) * 1000
+                    # Add timestamp and convert to milliseconds
+                    vuln_ready['_timestamp'] = launched_date
+                    vuln_ready['scan_source'] = self.CONFIG_SECTION
 
                     record_meta = (
                         scan_name,
@@ -801,8 +803,9 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
                 # Set common fields
                 vuln_ready['scan_name'] = scan_name.encode('utf8')
                 vuln_ready['scan_id'] = report_id
-                # Add @timestamp and convert to milliseconds
-                vuln_ready['@timestamp'] = int(launched_date) * 1000
+                # Add _timestamp and convert to milliseconds
+                vuln_ready['_timestamp'] = launched_date
+                vuln_ready['scan_source'] = self.CONFIG_SECTION
 
                 vuln_ready.to_json(relative_path_name, orient='records', lines=True)
                 self.logger.info('Report written to {}'.format(report_name))
@@ -902,8 +905,9 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
                     vuln_ready['scan_name'] = scan_name.encode('utf8')
                     vuln_ready['scan_id'] = report_id
 
-                    # Add @timestamp and convert to milliseconds
-                    vuln_ready['@timestamp'] = int(launched_date) * 1000
+                    # Add timestamp and convert to milliseconds
+                    vuln_ready['_timestamp'] = launched_date
+                    vuln_ready['scan_source'] = self.CONFIG_SECTION
 
                 except Exception as e:
                     self.logger.error('Could not process {}: {}'.format(report_id, str(e)))
