@@ -17,23 +17,22 @@ function yellow() {
     echo -e "$YELLOW$*$NORMAL"
 }
 
+return_code=0
+
 elasticsearch_url="localhost:9200"
 logstash_url="localhost:9600"
 
 until curl -s "$elasticsearch_url/_cluster/health?pretty" | grep '"status"' | grep -qE "green|yellow"; do
-    yellow $(curl -s "$elasticsearch_url/_cluster/health?pretty")
-    yellow "\nWaiting for Elasticsearch..."
+    yellow "Waiting for Elasticsearch..."
     sleep 5
 done
 curl -s "$elasticsearch_url/_cluster/health?pretty"
 
 until [[ $(curl -s "$logstash_url/_node/stats" | jq '.events.out') == 1236 ]] ; do
-    yellow $(curl -s "$logstash_url/_node/stats" | jq '.events')
-    yellow "\nWaiting for Logstash load to finish..."
+    yellow "Waiting for Logstash load to finish..."
     sleep 10
 done
-
-return_code=0
+curl -s "$logstash_url/_node/stats" | jq '.events'
 
 if [[ $(curl -s "$elasticsearch_url/logstash-vulnwhisperer-2019.03/_count" | jq '.count') == 1232 ]]; then
     green "✅ Passed logstash-vulnwhisperer-2019.03 document count == 1232"
