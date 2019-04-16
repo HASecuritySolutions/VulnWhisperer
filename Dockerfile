@@ -20,8 +20,7 @@ RUN python setup.py clean --all && \
 
 
 WORKDIR /opt/VulnWhisperer
-RUN python setup.py install && \   
-    ln -s /opt/VulnWhisperer /tmp/VulnWhisperer
+RUN python setup.py install
 
 
 CMD  vuln_whisperer -c /opt/VulnWhisperer/frameworks_example.ini
