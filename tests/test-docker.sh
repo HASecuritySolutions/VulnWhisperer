@@ -37,16 +37,15 @@ done
 green "✅ Logstash load finished..."
 
 count=0
-curl -s "$elasticsearch_url/logstash-vulnwhisperer-2019.03/_count" | jq '.count'
 until [[ $(curl -s "$elasticsearch_url/logstash-vulnwhisperer-2019.03/_count" | jq '.count') == 1232 ]] ; do
     yellow "Waiting for Elasticsearch index to sync... $(curl -s "$elasticsearch_url/logstash-vulnwhisperer-2019.03/_count" | jq '.count') of 1232"
-    ((count++)) && ((count==30)) && break
+    ((count++)) && ((count==150)) && break
     sleep 2
 done
-if [[ count -le 30 ]]; then
+if [[ count -le 50 && $(curl -s "$elasticsearch_url/logstash-vulnwhisperer-2019.03/_count" | jq '.count') == 1232 ]]; then
     green "✅ logstash-vulnwhisperer-2019.03 document count == 1232"
 else
-    red "❌ TIMED OUT waitin for logstash-vulnwhisperer-2019.03 document count: $(curl -s "$elasticsearch_url/logstash-vulnwhisperer-2019.03/_count" | jq) != 1232"
+    red "❌ TIMED OUT waiting for logstash-vulnwhisperer-2019.03 document count: $(curl -s "$elasticsearch_url/logstash-vulnwhisperer-2019.03/_count" | jq) != 1232"
 fi
 
 # if [[ $(curl -s "$elasticsearch_url/logstash-vulnwhisperer-2019.03/_count" | jq '.count') == 1232 ]]; then
