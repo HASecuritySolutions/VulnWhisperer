@@ -5,11 +5,17 @@ python:
     - 2.7
 env:
     - TEST_PATH=tests/data
+
+services:
+  - docker
 #    - 3.6
 #matrix:
 #    allow_failures:
 #        - python: 3.6 - Commenting out testing for Python 3.6 until ready
 
+before_install:
+    - docker build -t vulnwhisperer-local
+    - docker-compose -f docker-compose-test.yml up
 install:
     - pip install -r requirements.txt
     - pip install flake8  # pytest  # add another testing frameworks later
