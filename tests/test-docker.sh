@@ -21,14 +21,14 @@ elasticsearch_url="localhost:9200"
 logstash_url="localhost:9600"
 
 until curl -s "$elasticsearch_url/_cluster/health?pretty" | grep '"status"' | grep -qE "green|yellow"; do
-    curl -s "$elasticsearch_url/_cluster/health?pretty"
+    yellow $(curl -s "$elasticsearch_url/_cluster/health?pretty")
     yellow "\nWaiting for Elasticsearch..."
     sleep 5
 done
 curl -s "$elasticsearch_url/_cluster/health?pretty"
 
 until [[ $(curl -s "$logstash_url/_node/stats" | jq '.events.out') == 1236 ]] ; do
-    curl -s "$logstash_url/_node/stats" | jq '.events'
+    yellow $(curl -s "$logstash_url/_node/stats" | jq '.events')
     yellow "\nWaiting for Logstash load to finish..."
     sleep 10
 done
