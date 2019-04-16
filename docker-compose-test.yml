@@ -67,6 +67,8 @@ services:
       - xpack.monitoring.enabled=false
     depends_on:
       - elasticsearch
+    ports:
+      - 9600:9600
     networks:
       esnet:
         aliases:
