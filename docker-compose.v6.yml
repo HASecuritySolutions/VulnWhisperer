@@ -75,7 +75,6 @@ services:
                   "/opt/VulnWhisperer/vulnwhisperer.ini"
     ]    
     volumes:
-      - /opt/VulnWhisperer/data/:/opt/VulnWhisperer/data
       - ./data/:/opt/VulnWhisperer/data
       - ./resources/elk6/vulnwhisperer.ini:/opt/VulnWhisperer/vulnwhisperer.ini
     network_mode: host
