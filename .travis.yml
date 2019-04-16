@@ -16,7 +16,7 @@ services:
 before_install:
     - mkdir -p ./data/esdata1
     - mkdir -p ./data/es_snapshots
-    - chown -R 1000:1000 ./data/es*
+    - sudo chown -R 1000:1000 ./data/es*
     - docker build -t vulnwhisperer-local .
     - docker-compose -f docker-compose-test.yml up
 install:
