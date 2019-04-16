@@ -44,6 +44,7 @@ yellow "\n*********************************************"
 yellow "*           Test one failed scan            *"
 yellow "*********************************************"
 rm -rf /opt/VulnWhisperer/*
+yellow "Removing ${TEST_PATH}/nessus/GET_scans_exports_164_download"
 rm -f ${TEST_PATH}/nessus/GET_scans_exports_164_download
 if vuln_whisperer -F -c configs/test.ini --mock --mock_dir ${TEST_PATH}; [[ $? -eq 1 ]]; then
     green "\n✅ Passed: Test one failed scan"
@@ -56,6 +57,7 @@ yellow "\n*********************************************"
 yellow "*           Test two failed scans           *"
 yellow "*********************************************"
 rm -rf /opt/VulnWhisperer/*
+yellow "Removing ${TEST_PATH}/qualys_vuln/scan_1553941061.87241"
 rm -f ${TEST_PATH}/qualys_vuln/scan_1553941061.87241
 if vuln_whisperer -F -c configs/test.ini --mock --mock_dir ${TEST_PATH}; [[ $? -eq 2 ]]; then
     green "\n✅ Passed: Test two failed scans"
@@ -75,7 +77,6 @@ else
     ((return_code = return_code + 1))
 fi
 
-echo -e "\n\n"
 yellow "*********************************************"
 yellow "* Test only Qualys VM with one failed scan  *"
 yellow "*********************************************"
