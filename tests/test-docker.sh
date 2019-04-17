@@ -82,7 +82,7 @@ fi
 
 # Test @timestamp
 if echo $tenable_doc | jq '.["@timestamp"]' | grep -q '2019-03-30T15:45:44.000Z'; then
-    green "✅ Passed: Tenable @timestamp == 2019-03-30T10:17:41.000Z"
+    green "✅ Passed: Tenable @timestamp == 2019-03-30T15:45:44.000Z"
 else
     red "❌ Failed: Tenable @timestamp == 2019-03-30T15:45:44.000Z was: $(echo $tenable_doc | jq '.["@timestamp"]') instead"
     ((return_code = return_code + 1))
