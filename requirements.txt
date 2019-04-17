@@ -8,3 +8,5 @@ bs4
 jira
 bottle
 coloredlogs
+qualysapi>=5.1.0
+httpretty

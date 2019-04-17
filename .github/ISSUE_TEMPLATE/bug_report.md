@@ -11,7 +11,10 @@ assignees: ''
 A clear and concise description of what the bug is.
 
 **Affected module**
-Which one is the module that is not working as expected, e.g. Nessus, Qualys WAS, Qualys VM, OpenVAS, ELK, Jira...) 
+Which one is the module that is not working as expected, e.g. Nessus, Qualys WAS, Qualys VM, OpenVAS, ELK, Jira...). 
+
+**VulnWhisperer debug trail**
+If applicable, paste the VulnWhisperer debug trail of the execution for further detail (execute with '-d' flag).
 
 **To Reproduce**
 Steps to reproduce the behavior:
@@ -27,8 +30,9 @@ A clear and concise description of what you expected to happen.
 If applicable, add screenshots to help explain your problem.
 
 **System in which VulnWhisperer runs (please complete the following information):**
- - OS: [e.g. iOS]
- - Version [e.g. 22]
+ - OS: [e.g. Ubuntu Server]
+ - Version: [e.g. 18.04.2 LTS]
+ - VulnWhisperer Version: [e.g. 1.7.1]
 
 **Additional context**
 Add any other context about the problem here.

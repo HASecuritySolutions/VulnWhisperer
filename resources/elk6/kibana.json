@@ -1,0 +1,433 @@
+[
+  {
+    "_id": "AWCUqesWib22Ai8JwW3u",
+    "_type": "dashboard",
+    "_source": {
+      "title": "VulnWhisperer - Risk Mitigation",
+      "hits": 0,
+      "description": "",
+      "panelsJSON": "[{\"embeddableConfig\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}},\"gridData\":{\"h\":30,\"i\":\"20\",\"w\":8,\"x\":40,\"y\":15},\"id\":\"995e2280-3df3-11e7-a44e-c79ca8efb780\",\"panelIndex\":\"20\",\"type\":\"visualization\",\"version\":\"6.4.3\"},{\"embeddableConfig\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":0,\"direction\":\"desc\"}}}},\"gridData\":{\"h\":30,\"i\":\"21\",\"w\":12,\"x\":0,\"y\":35},\"id\":\"852816e0-3eb1-11e7-90cb-918f9cb01e3d\",\"panelIndex\":\"21\",\"type\":\"visualization\",\"version\":\"6.4.3\"},{\"embeddableConfig\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}},\"gridData\":{\"h\":30,\"i\":\"27\",\"w\":12,\"x\":12,\"y\":35},\"id\":\"297df800-3f7e-11e7-bd24-6903e3283192\",\"panelIndex\":\"27\",\"type\":\"visualization\",\"version\":\"6.4.3\"},{\"embeddableConfig\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":0,\"direction\":\"desc\"}}}},\"gridData\":{\"h\":30,\"i\":\"28\",\"w\":8,\"x\":32,\"y\":15},\"id\":\"35b6d320-3f7f-11e7-bd24-6903e3283192\",\"panelIndex\":\"28\",\"type\":\"visualization\",\"version\":\"6.4.3\"},{\"embeddableConfig\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}},\"gridData\":{\"h\":15,\"i\":\"30\",\"w\":8,\"x\":40,\"y\":0},\"id\":\"471a3580-3f6b-11e7-88e7-df1abe6547fb\",\"panelIndex\":\"30\",\"type\":\"visualization\",\"version\":\"6.4.3\"},{\"embeddableConfig\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}},\"gridData\":{\"h\":20,\"i\":\"31\",\"w\":8,\"x\":24,\"y\":35},\"id\":\"de1a5f40-3f85-11e7-97f9-3777d794626d\",\"panelIndex\":\"31\",\"type\":\"visualization\",\"version\":\"6.4.3\"},{\"gridData\":{\"h\":10,\"i\":\"37\",\"w\":16,\"x\":16,\"y\":25},\"id\":\"5093c620-44e9-11e7-8014-ede06a7e69f8\",\"panelIndex\":\"37\",\"type\":\"visualization\",\"version\":\"6.4.3\"},{\"embeddableConfig\":{\"columns\":[\"host\",\"risk\",\"risk_score\",\"cve\",\"plugin_name\",\"solution\",\"plugin_output\"],\"sort\":[\"@timestamp\",\"desc\"]},\"gridData\":{\"h\":30,\"i\":\"38\",\"w\":48,\"x\":0,\"y\":65},\"id\":\"54648700-3f74-11e7-852e-69207a3d0726\",\"panelIndex\":\"38\",\"type\":\"search\",\"version\":\"6.4.3\"},{\"gridData\":{\"h\":10,\"i\":\"39\",\"w\":16,\"x\":16,\"y\":15},\"id\":\"fb6eb020-49ab-11e7-8f8c-57ad64ec48a6\",\"panelIndex\":\"39\",\"type\":\"visualization\",\"version\":\"6.4.3\"},{\"embeddableConfig\":{\"vis\":{\"legendOpen\":true}},\"gridData\":{\"h\":20,\"i\":\"46\",\"w\":16,\"x\":0,\"y\":15},\"id\":\"56f0f5f0-3ebe-11e7-a192-93f36fbd9d05\",\"panelIndex\":\"46\",\"type\":\"visualization\",\"version\":\"6.4.3\"},{\"embeddableConfig\":{\"vis\":{\"defaultColors\":{\"0 - 50\":\"rgb(247,252,245)\",\"50 - 100\":\"rgb(0,68,27)\"},\"legendOpen\":false}},\"gridData\":{\"h\":15,\"i\":\"47\",\"w\":9,\"x\":30,\"y\":0},\"id\":\"e6b5b920-f77a-11e8-8f42-af2e41422cf8\",\"panelIndex\":\"47\",\"type\":\"visualization\",\"version\":\"6.4.3\"},{\"embeddableConfig\":{\"vis\":{\"defaultColors\":{\"0 - 10\":\"rgb(255,245,240)\",\"10 - 20\":\"rgb(103,0,13)\"},\"legendOpen\":false}},\"gridData\":{\"h\":15,\"i\":\"48\",\"w\":10,\"x\":0,\"y\":0},\"id\":\"8c9c9430-f77b-11e8-8f42-af2e41422cf8\",\"panelIndex\":\"48\",\"type\":\"visualization\",\"version\":\"6.4.3\"},{\"embeddableConfig\":{\"vis\":{\"colors\":{\"0 - 10\":\"#E5AC0E\"},\"defaultColors\":{\"0 - 10\":\"rgb(8,48,107)\"},\"legendOpen\":false}},\"gridData\":{\"h\":15,\"i\":\"50\",\"w\":10,\"x\":20,\"y\":0},\"id\":\"61b43c00-f77b-11e8-8f42-af2e41422cf8\",\"panelIndex\":\"50\",\"type\":\"visualization\",\"version\":\"6.4.3\"},{\"embeddableConfig\":{},\"gridData\":{\"h\":15,\"i\":\"51\",\"w\":10,\"x\":10,\"y\":0},\"id\":\"c533c120-fe8c-11e8-8f42-af2e41422cf8\",\"panelIndex\":\"51\",\"type\":\"visualization\",\"version\":\"6.4.3\"}]",
+      "optionsJSON": "{\"darkTheme\":false,\"useMargins\":false}",
+      "version": 1,
+      "timeRestore": true,
+      "timeTo": "now",
+      "timeFrom": "now-30d",
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"filter\":[],\"highlightAll\":true,\"version\":true,\"query\":{\"language\":\"lucene\",\"query\":{\"match_all\":{}}}}"
+      }
+    }
+  },
+  {
+    "_id": "72051530-448e-11e7-a818-f5f80dfc3590",
+    "_type": "dashboard",
+    "_source": {
+      "title": "VulnWhisperer - Reporting",
+      "hits": 0,
+      "description": "",
+      "panelsJSON": "[{\"embeddableConfig\":{\"vis\":{\"legendOpen\":false}},\"gridData\":{\"h\":20,\"i\":\"5\",\"w\":24,\"x\":0,\"y\":56},\"id\":\"2f979030-44b9-11e7-a818-f5f80dfc3590\",\"panelIndex\":\"5\",\"type\":\"visualization\",\"version\":\"6.4.3\"},{\"gridData\":{\"h\":20,\"i\":\"12\",\"w\":24,\"x\":0,\"y\":36},\"id\":\"8d9592d0-44ec-11e7-a05f-d9719b331a27\",\"panelIndex\":\"12\",\"type\":\"visualization\",\"version\":\"6.4.3\"},{\"gridData\":{\"h\":20,\"i\":\"14\",\"w\":24,\"x\":24,\"y\":16},\"id\":\"67d432e0-44ec-11e7-a05f-d9719b331a27\",\"panelIndex\":\"14\",\"type\":\"visualization\",\"version\":\"6.4.3\"},{\"embeddableConfig\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}},\"gridData\":{\"h\":20,\"i\":\"15\",\"w\":12,\"x\":36,\"y\":36},\"id\":\"297df800-3f7e-11e7-bd24-6903e3283192\",\"panelIndex\":\"15\",\"type\":\"visualization\",\"version\":\"6.4.3\"},{\"embeddableConfig\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}},\"gridData\":{\"h\":20,\"i\":\"20\",\"w\":12,\"x\":24,\"y\":36},\"id\":\"471a3580-3f6b-11e7-88e7-df1abe6547fb\",\"panelIndex\":\"20\",\"type\":\"visualization\",\"version\":\"6.4.3\"},{\"embeddableConfig\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}},\"gridData\":{\"h\":15,\"i\":\"22\",\"w\":8,\"x\":40,\"y\":0},\"id\":\"995e2280-3df3-11e7-a44e-c79ca8efb780\",\"panelIndex\":\"22\",\"type\":\"visualization\",\"version\":\"6.4.3\"},{\"gridData\":{\"h\":20,\"i\":\"29\",\"w\":24,\"x\":0,\"y\":16},\"id\":\"479deab0-8a39-11e7-a58a-9bfcb3761a3d\",\"panelIndex\":\"29\",\"type\":\"visualization\",\"version\":\"6.4.3\"},{\"embeddableConfig\":{\"vis\":{\"defaultColors\":{\"0 - 50\":\"rgb(247,252,245)\",\"50 - 100\":\"rgb(0,68,27)\"},\"legendOpen\":false}},\"gridData\":{\"h\":16,\"i\":\"30\",\"w\":10,\"x\":30,\"y\":0},\"id\":\"e6b5b920-f77a-11e8-8f42-af2e41422cf8\",\"panelIndex\":\"30\",\"type\":\"visualization\",\"version\":\"6.4.3\"},{\"embeddableConfig\":{\"vis\":{\"colors\":{\"0 - 10\":\"#EAB839\"},\"defaultColors\":{\"0 - 10\":\"rgb(8,48,107)\"},\"legendOpen\":false}},\"gridData\":{\"h\":16,\"i\":\"31\",\"w\":9,\"x\":21,\"y\":0},\"id\":\"61b43c00-f77b-11e8-8f42-af2e41422cf8\",\"panelIndex\":\"31\",\"type\":\"visualization\",\"version\":\"6.4.3\"},{\"embeddableConfig\":{\"vis\":{\"colors\":{\"10 - 20\":\"#890F02\"},\"defaultColors\":{\"0 - 10\":\"rgb(255,245,240)\",\"10 - 20\":\"rgb(103,0,13)\"},\"legendOpen\":false}},\"gridData\":{\"h\":16,\"i\":\"32\",\"w\":11,\"x\":0,\"y\":0},\"id\":\"8c9c9430-f77b-11e8-8f42-af2e41422cf8\",\"panelIndex\":\"32\",\"type\":\"visualization\",\"version\":\"6.4.3\"},{\"embeddableConfig\":{},\"gridData\":{\"h\":15,\"i\":\"33\",\"w\":10,\"x\":11,\"y\":0},\"id\":\"c533c120-fe8c-11e8-8f42-af2e41422cf8\",\"panelIndex\":\"33\",\"type\":\"visualization\",\"version\":\"6.4.3\"}]",
+      "optionsJSON": "{\"darkTheme\":false,\"useMargins\":false}",
+      "version": 1,
+      "timeRestore": true,
+      "timeTo": "now",
+      "timeFrom": "now-30d",
+      "refreshInterval": {
+        "pause": true,
+        "value": 0
+      },
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"filter\":[],\"highlightAll\":true,\"version\":true,\"query\":{\"language\":\"lucene\",\"query\":{\"match_all\":{}}}}"
+      }
+    }
+  },
+  {
+    "_id": "159d2500-f773-11e8-8f42-af2e41422cf8",
+    "_type": "search",
+    "_source": {
+      "title": "VulnWhisperer - High Risk",
+      "description": "",
+      "hits": 0,
+      "columns": [
+        "host",
+        "risk",
+        "risk_score",
+        "cve",
+        "plugin_name",
+        "solution",
+        "plugin_output"
+      ],
+      "sort": [
+        "@timestamp",
+        "desc"
+      ],
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"4a6d9090-f66e-11e8-8f42-af2e41422cf8\",\"query\":{\"language\":\"lucene\",\"query\":{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"*\",\"default_field\":\"*\"}}},\"filter\":[{\"meta\":{\"negate\":false,\"index\":\"4a6d9090-f66e-11e8-8f42-af2e41422cf8\",\"type\":\"phrase\",\"key\":\"risk\",\"value\":\"High\",\"params\":{\"query\":\"High\",\"type\":\"phrase\"},\"disabled\":false,\"alias\":null},\"query\":{\"match\":{\"risk\":{\"query\":\"High\",\"type\":\"phrase\"}}},\"$state\":{\"store\":\"appState\"}}],\"highlight\":{\"pre_tags\":[\"@kibana-highlighted-field@\"],\"post_tags\":[\"@/kibana-highlighted-field@\"],\"fields\":{\"*\":{}},\"require_field_match\":false,\"fragment_size\":2147483647},\"highlightAll\":true,\"version\":true}"
+      }
+    }
+  },
+  {
+    "_id": "54648700-3f74-11e7-852e-69207a3d0726",
+    "_type": "search",
+    "_source": {
+      "title": "VulnWhisperer - Saved Search",
+      "description": "",
+      "hits": 0,
+      "columns": [
+        "host",
+        "risk",
+        "risk_score",
+        "cve",
+        "plugin_name",
+        "solution",
+        "plugin_output"
+      ],
+      "sort": [
+        "@timestamp",
+        "desc"
+      ],
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"4a6d9090-f66e-11e8-8f42-af2e41422cf8\",\"query\":{\"query\":{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"*\"}},\"language\":\"lucene\"},\"filter\":[],\"highlight\":{\"pre_tags\":[\"@kibana-highlighted-field@\"],\"post_tags\":[\"@/kibana-highlighted-field@\"],\"fields\":{\"*\":{}},\"require_field_match\":false,\"fragment_size\":2147483647}}"
+      }
+    }
+  },
+  {
+    "_id": "41a7e430-fdb5-11e8-8f42-af2e41422cf8",
+    "_type": "search",
+    "_source": {
+      "title": "VulnWhisperer - Compliance",
+      "description": "",
+      "hits": 0,
+      "columns": [
+        "plugin_id",
+        "cve",
+        "cvss",
+        "risk",
+        "asset",
+        "protocol",
+        "port",
+        "plugin_name",
+        "synopsis",
+        "description",
+        "solution",
+        "see_also",
+        "plugin_output"
+      ],
+      "sort": [
+        "@timestamp",
+        "desc"
+      ],
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"4a6d9090-f66e-11e8-8f42-af2e41422cf8\",\"highlightAll\":true,\"version\":true,\"query\":{\"language\":\"lucene\",\"query\":\"\"},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "465c5820-8977-11e7-857e-e1d56b17746d",
+    "_type": "visualization",
+    "_source": {
+      "title": "VulnWhisperer - Critical Assets",
+      "visState": "{\"title\":\"VulnWhisperer - Critical Assets\",\"type\":\"heatmap\",\"params\":{\"addTooltip\":true,\"addLegend\":true,\"enableHover\":true,\"legendPosition\":\"right\",\"times\":[],\"colorsNumber\":4,\"colorSchema\":\"Green to Red\",\"setColorRange\":true,\"colorsRange\":[{\"from\":0,\"to\":3},{\"from\":3,\"to\":7},{\"from\":7,\"to\":9},{\"from\":9,\"to\":11}],\"invertColors\":false,\"percentageMode\":false,\"valueAxes\":[{\"show\":false,\"id\":\"ValueAxis-1\",\"type\":\"value\",\"scale\":{\"type\":\"linear\",\"defaultYExtents\":false},\"labels\":{\"show\":false,\"rotate\":0,\"color\":\"white\"}}],\"type\":\"heatmap\"},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"risk_score\",\"customLabel\":\"Residual Risk Score\"}},{\"id\":\"2\",\"enabled\":false,\"type\":\"terms\",\"schema\":\"split\",\"params\":{\"field\":\"risk_score\",\"size\":5,\"order\":\"desc\",\"orderBy\":\"1\",\"row\":true}},{\"id\":\"3\",\"enabled\":true,\"type\":\"date_histogram\",\"schema\":\"segment\",\"params\":{\"field\":\"@timestamp\",\"interval\":\"auto\",\"customInterval\":\"2h\",\"min_doc_count\":1,\"extended_bounds\":{},\"customLabel\":\"Date\"}},{\"id\":\"4\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"group\",\"params\":{\"field\":\"asset.keyword\",\"size\":5,\"order\":\"desc\",\"orderBy\":\"1\",\"customLabel\":\"Critical Asset\"}}],\"listeners\":{}}",
+      "uiStateJSON": "{\"vis\":{\"defaultColors\":{\"0 - 3\":\"rgb(0,104,55)\",\"3 - 7\":\"rgb(135,203,103)\",\"7 - 9\":\"rgb(255,255,190)\",\"9 - 11\":\"rgb(249,142,82)\"},\"colors\":{\"8 - 10\":\"#BF1B00\",\"9 - 11\":\"#BF1B00\",\"7 - 9\":\"#EF843C\",\"3 - 7\":\"#EAB839\",\"0 - 3\":\"#7EB26D\"},\"legendOpen\":false}}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"4a6d9090-f66e-11e8-8f42-af2e41422cf8\",\"query\":{\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}},\"language\":\"lucene\"},\"filter\":[{\"meta\":{\"index\":\"logstash-vulnwhisperer-*\",\"negate\":false,\"disabled\":false,\"alias\":\"Critical Asset\",\"type\":\"phrase\",\"key\":\"tags\",\"value\":\"critical_asset\"},\"query\":{\"match\":{\"tags\":{\"query\":\"critical_asset\",\"type\":\"phrase\"}}},\"$state\":{\"store\":\"appState\"}}]}"
+      }
+    }
+  },
+  {
+    "_id": "56f0f5f0-3ebe-11e7-a192-93f36fbd9d05",
+    "_type": "visualization",
+    "_source": {
+      "title": "VulnWhisperer-RiskOverTime",
+      "visState": "{\"title\":\"VulnWhisperer-RiskOverTime\",\"type\":\"line\",\"params\":{\"addLegend\":true,\"addTimeMarker\":false,\"addTooltip\":true,\"categoryAxes\":[{\"id\":\"CategoryAxis-1\",\"labels\":{\"show\":true,\"truncate\":100},\"position\":\"bottom\",\"scale\":{\"type\":\"linear\"},\"show\":true,\"style\":{},\"title\":{\"text\":\"@timestamp per 12 hours\"},\"type\":\"category\"}],\"defaultYExtents\":false,\"drawLinesBetweenPoints\":true,\"grid\":{\"categoryLines\":false,\"style\":{\"color\":\"#eee\"},\"valueAxis\":\"ValueAxis-1\"},\"interpolate\":\"linear\",\"legendPosition\":\"right\",\"orderBucketsBySum\":false,\"radiusRatio\":9,\"scale\":\"linear\",\"seriesParams\":[{\"data\":{\"id\":\"1\",\"label\":\"Count\"},\"drawLinesBetweenPoints\":true,\"interpolate\":\"linear\",\"mode\":\"normal\",\"show\":\"true\",\"showCircles\":true,\"type\":\"line\",\"valueAxis\":\"ValueAxis-1\"}],\"setYExtents\":false,\"showCircles\":true,\"times\":[],\"valueAxes\":[{\"id\":\"ValueAxis-1\",\"labels\":{\"filter\":false,\"rotate\":0,\"show\":true,\"truncate\":100},\"name\":\"LeftAxis-1\",\"position\":\"left\",\"scale\":{\"mode\":\"normal\",\"type\":\"linear\"},\"show\":true,\"style\":{},\"title\":{\"text\":\"Count\"},\"type\":\"value\"}],\"type\":\"line\"},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"count\",\"schema\":\"metric\",\"params\":{}},{\"id\":\"2\",\"enabled\":true,\"type\":\"date_histogram\",\"schema\":\"segment\",\"params\":{\"field\":\"@timestamp\",\"interval\":\"auto\",\"customInterval\":\"2h\",\"min_doc_count\":1,\"extended_bounds\":{}}},{\"id\":\"3\",\"enabled\":true,\"type\":\"filters\",\"schema\":\"group\",\"params\":{\"filters\":[{\"input\":{\"query\":{\"query_string\":{\"query\":\"risk_score_name:info\"}}},\"label\":\"Info\"},{\"input\":{\"query\":{\"query_string\":{\"query\":\"risk_score_name:low\"}}},\"label\":\"Low\"},{\"input\":{\"query\":{\"query_string\":{\"query\":\"risk_score_name:medium\"}}},\"label\":\"Medium\"},{\"input\":{\"query\":{\"query_string\":{\"query\":\"risk_score_name:high\"}}},\"label\":\"High\"},{\"input\":{\"query\":{\"query_string\":{\"query\":\"risk_score_name:critical\"}}},\"label\":\"Critical\"}]}}],\"listeners\":{}}",
+      "uiStateJSON": "{\"vis\":{\"colors\":{\"Critical\":\"#962D82\",\"High\":\"#BF1B00\",\"Low\":\"#629E51\",\"Medium\":\"#EAB839\",\"Info\":\"#65C5DB\"}}}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"4a6d9090-f66e-11e8-8f42-af2e41422cf8\",\"query\":{\"query\":{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"*\"}},\"language\":\"lucene\"},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "5093c620-44e9-11e7-8014-ede06a7e69f8",
+    "_type": "visualization",
+    "_source": {
+      "title": "VulnWhisperer - Mitigation Readme",
+      "visState": "{\"title\":\"VulnWhisperer - Mitigation Readme\",\"type\":\"markdown\",\"params\":{\"markdown\":\"** Legend **\\n\\n* [Common Vulnerability Scoring System (CVSS)](https://nvd.nist.gov/vuln-metrics/cvss) is the NIST vulnerability scoring system\\n* Risk Number is residual risk score calculated from CVSS, which is adjusted to be specific to Heartland which accounts for services not in use such as Java and Flash\\n* Vulnerabilities by Tag are systems tagged with HIPAA and PCI identification.\\n\\n\\n** Workflow **\\n* Select 10.0 under Risk Number to identify Critical Vulnerabilities. \\n* For more information about a CVE, scroll down and click the CVE link.\\n* To filter by tags, use one of the following filters:\\n** tags:has_hipaa_data, tags:pci_asset, tags:hipaa_asset, tags:critical_asset**\"},\"aggs\":[],\"listeners\":{}}",
+      "uiStateJSON": "{}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"query\":{\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}},\"language\":\"lucene\"},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "471a3580-3f6b-11e7-88e7-df1abe6547fb",
+    "_type": "visualization",
+    "_source": {
+      "title": "VulnWhisperer - Vulnerabilities by Tag",
+      "visState": "{\"title\":\"VulnWhisperer - Vulnerabilities by Tag\",\"type\":\"table\",\"params\":{\"perPage\":3,\"showMeticsAtAllLevels\":false,\"showPartialRows\":false,\"showTotal\":false,\"sort\":{\"columnIndex\":null,\"direction\":null},\"totalFunc\":\"sum\"},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"count\",\"schema\":\"metric\",\"params\":{}},{\"id\":\"3\",\"enabled\":true,\"type\":\"filters\",\"schema\":\"bucket\",\"params\":{\"filters\":[{\"input\":{\"query\":{\"query_string\":{\"query\":\"tags:has_hipaa_data\",\"analyze_wildcard\":true}}},\"label\":\"Systems with HIPAA data\"},{\"input\":{\"query\":{\"query_string\":{\"query\":\"tags:pci_asset\",\"analyze_wildcard\":true}}},\"label\":\"PCI Systems\"},{\"input\":{\"query\":{\"query_string\":{\"query\":\"tags:hipaa_asset\",\"analyze_wildcard\":true}}},\"label\":\"HIPAA Systems\"}]}}],\"listeners\":{}}",
+      "uiStateJSON": "{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"4a6d9090-f66e-11e8-8f42-af2e41422cf8\",\"query\":{\"query\":{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"*\"}},\"language\":\"lucene\"},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "1de9e550-3df1-11e7-a44e-c79ca8efb780",
+    "_type": "visualization",
+    "_source": {
+      "title": "VulnWhisperer-Description",
+      "visState": "{\"title\":\"VulnWhisperer-Description\",\"type\":\"table\",\"params\":{\"perPage\":10,\"showPartialRows\":false,\"showMeticsAtAllLevels\":false,\"sort\":{\"columnIndex\":null,\"direction\":null},\"showTotal\":false,\"totalFunc\":\"sum\"},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"count\",\"schema\":\"metric\",\"params\":{}},{\"id\":\"2\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"bucket\",\"params\":{\"field\":\"description.keyword\",\"size\":50,\"order\":\"desc\",\"orderBy\":\"1\",\"customLabel\":\"Description\"}}],\"listeners\":{}}",
+      "uiStateJSON": "{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"4a6d9090-f66e-11e8-8f42-af2e41422cf8\",\"query\":{\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}},\"language\":\"lucene\"},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "fb6eb020-49ab-11e7-8f8c-57ad64ec48a6",
+    "_type": "visualization",
+    "_source": {
+      "title": "VulnWhisperer - Critical Risk Score for Tagged Assets",
+      "visState": "{\"title\":\"VulnWhisperer - Critical Risk Score for Tagged Assets\",\"type\":\"timelion\",\"params\":{\"expression\":\".es(index=logstash-vulnwhisperer-*,q='risk_score:>9 AND tags:hipaa_asset').label(\\\"HIPAA Assets\\\"),.es(index=logstash-vulnwhisperer-*,q='risk_score:>9 AND tags:pci_asset').label(\\\"PCI Systems\\\"),.es(index=logstash-vulnwhisperer-*,q='risk_score:>9 AND tags:has_hipaa_data').label(\\\"Has HIPAA Data\\\")\",\"interval\":\"auto\"},\"aggs\":[],\"listeners\":{}}",
+      "uiStateJSON": "{}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"query\":{\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}},\"language\":\"lucene\"},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "13c7d4e0-3df3-11e7-a44e-c79ca8efb780",
+    "_type": "visualization",
+    "_source": {
+      "title": "VulnWhisperer-Solution",
+      "visState": "{\n  \"title\": \"VulnWhisperer-Solution\",\n  \"type\": \"table\",\n  \"params\": {\n    \"perPage\": 10,\n    \"showMeticsAtAllLevels\": false,\n    \"showPartialRows\": false,\n    \"showTotal\": false,\n    \"sort\": {\n      \"columnIndex\": null,\n      \"direction\": null\n    },\n    \"totalFunc\": \"sum\"\n  },\n  \"aggs\": [\n    {\n      \"id\": \"1\",\n      \"enabled\": true,\n      \"type\": \"count\",\n      \"schema\": \"metric\",\n      \"params\": {}\n    },\n    {\n      \"id\": \"2\",\n      \"enabled\": true,\n      \"type\": \"terms\",\n      \"schema\": \"bucket\",\n      \"params\": {\n        \"field\": \"solution\",\n        \"size\": 50,\n        \"order\": \"desc\",\n        \"orderBy\": \"1\",\n        \"customLabel\": \"Solution\"\n      }\n    }\n  ],\n  \"listeners\": {}\n}",
+      "uiStateJSON": "{\n  \"vis\": {\n    \"params\": {\n      \"sort\": {\n        \"columnIndex\": null,\n        \"direction\": null\n      }\n    }\n  }\n}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\n  \"index\": \"4a6d9090-f66e-11e8-8f42-af2e41422cf8\",\n  \"query\": {\n    \"query\": {\n      \"query_string\": {\n        \"analyze_wildcard\": true,\n        \"query\": \"*\"\n      }\n    },\n    \"language\": \"lucene\"\n  },\n  \"filter\": []\n}"
+      }
+    }
+  },
+  {
+    "_id": "f9b68640-fda5-11e8-8f42-af2e41422cf8",
+    "_type": "visualization",
+    "_source": {
+      "title": "VulnWhisperer - AggTest",
+      "visState": "{\"title\":\"VulnWhisperer - AggTest\",\"type\":\"table\",\"params\":{\"perPage\":10,\"showPartialRows\":false,\"showMetricsAtAllLevels\":false,\"sort\":{\"columnIndex\":null,\"direction\":null},\"showTotal\":false,\"totalFunc\":\"sum\"},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"top_hits\",\"schema\":\"metric\",\"params\":{\"field\":\"@timestamp\",\"aggregate\":\"concat\",\"size\":1,\"sortField\":\"@timestamp\",\"sortOrder\":\"desc\"}},{\"id\":\"2\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"bucket\",\"params\":{\"field\":\"asset.keyword\",\"size\":1000,\"order\":\"desc\",\"orderBy\":\"_key\",\"otherBucket\":false,\"otherBucketLabel\":\"Other\",\"missingBucket\":false,\"missingBucketLabel\":\"Missing\"}},{\"id\":\"3\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"bucket\",\"params\":{\"field\":\"plugin_id\",\"size\":5,\"order\":\"desc\",\"orderBy\":\"_key\",\"otherBucket\":true,\"otherBucketLabel\":\"Other\",\"missingBucket\":false,\"missingBucketLabel\":\"Missing\"}}]}",
+      "uiStateJSON": "{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"4a6d9090-f66e-11e8-8f42-af2e41422cf8\",\"query\":{\"query\":\"\",\"language\":\"lucene\"},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "852816e0-3eb1-11e7-90cb-918f9cb01e3d",
+    "_type": "visualization",
+    "_source": {
+      "title": "VulnWhisperer-CVSS",
+      "visState": "{\"title\":\"VulnWhisperer-CVSS\",\"type\":\"table\",\"params\":{\"perPage\":10,\"showPartialRows\":false,\"showTotal\":false,\"sort\":{\"columnIndex\":0,\"direction\":\"desc\"},\"totalFunc\":\"sum\",\"type\":\"table\",\"showMetricsAtAllLevels\":false},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"cardinality\",\"schema\":\"metric\",\"params\":{\"field\":\"scan_fingerprint\",\"customLabel\":\"Unique Findings\"}},{\"id\":\"2\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"bucket\",\"params\":{\"field\":\"cvss\",\"size\":20,\"order\":\"desc\",\"orderBy\":\"1\",\"otherBucket\":false,\"otherBucketLabel\":\"Other\",\"missingBucket\":false,\"missingBucketLabel\":\"Missing\",\"customLabel\":\"CVSS Score\"}},{\"id\":\"4\",\"enabled\":true,\"type\":\"cardinality\",\"schema\":\"metric\",\"params\":{\"field\":\"asset.keyword\",\"customLabel\":\"# of Assets\"}}]}",
+      "uiStateJSON": "{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":0,\"direction\":\"desc\"}}}}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"4a6d9090-f66e-11e8-8f42-af2e41422cf8\",\"query\":{\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true,\"default_field\":\"*\"}},\"language\":\"lucene\"},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "35b6d320-3f7f-11e7-bd24-6903e3283192",
+    "_type": "visualization",
+    "_source": {
+      "title": "VulnWhisperer - Residual Risk",
+      "visState": "{\"title\":\"VulnWhisperer - Residual Risk\",\"type\":\"table\",\"params\":{\"perPage\":15,\"showPartialRows\":false,\"sort\":{\"columnIndex\":0,\"direction\":\"desc\"},\"showTotal\":false,\"totalFunc\":\"sum\",\"showMetricsAtAllLevels\":false},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"cardinality\",\"schema\":\"metric\",\"params\":{\"field\":\"scan_fingerprint\",\"customLabel\":\"Count\"}},{\"id\":\"2\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"bucket\",\"params\":{\"field\":\"risk_score\",\"size\":50,\"order\":\"desc\",\"orderBy\":\"1\",\"otherBucket\":false,\"otherBucketLabel\":\"Other\",\"missingBucket\":false,\"missingBucketLabel\":\"Missing\",\"customLabel\":\"Risk Number\"}}]}",
+      "uiStateJSON": "{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":0,\"direction\":\"desc\"}}}}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"4a6d9090-f66e-11e8-8f42-af2e41422cf8\",\"query\":{\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true,\"default_field\":\"*\"}},\"language\":\"lucene\"},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "995e2280-3df3-11e7-a44e-c79ca8efb780",
+    "_type": "visualization",
+    "_source": {
+      "title": "VulnWhisperer-Asset",
+      "visState": "{\"title\":\"VulnWhisperer-Asset\",\"type\":\"table\",\"params\":{\"perPage\":15,\"showPartialRows\":false,\"showTotal\":false,\"sort\":{\"columnIndex\":null,\"direction\":null},\"totalFunc\":\"sum\",\"type\":\"table\",\"showMetricsAtAllLevels\":false},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"cardinality\",\"schema\":\"metric\",\"params\":{\"field\":\"scan_fingerprint\",\"customLabel\":\"Findings\"}},{\"id\":\"2\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"bucket\",\"params\":{\"field\":\"asset.keyword\",\"size\":50,\"order\":\"desc\",\"orderBy\":\"1\",\"otherBucket\":false,\"otherBucketLabel\":\"Other\",\"missingBucket\":false,\"missingBucketLabel\":\"Missing\",\"customLabel\":\"Asset\"}}]}",
+      "uiStateJSON": "{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"4a6d9090-f66e-11e8-8f42-af2e41422cf8\",\"query\":{\"query\":{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"*\",\"default_field\":\"*\"}},\"language\":\"lucene\"},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "67d432e0-44ec-11e7-a05f-d9719b331a27",
+    "_type": "visualization",
+    "_source": {
+      "title": "VulnWhisperer - TL-Critical Risk",
+      "visState": "{\"title\":\"VulnWhisperer - TL-Critical Risk\",\"type\":\"timelion\",\"params\":{\"expression\":\".es(index='logstash-vulnwhisperer-*',q='(risk_score:>=9 AND risk_score:<=10)').label(\\\"Original\\\"),.es(index='logstash-vulnwhisperer-*',q='(risk_score:>=9 AND risk_score:<=10)',offset=-1w).label(\\\"One week offset\\\"),.es(index='logstash-vulnwhisperer-*',q='(risk_score:>=9 AND risk_score:<=10)').subtract(.es(index='logstash-vulnwhisperer-*',q='(risk_score:>=9 AND risk_score:<=10)',offset=-1w)).label(\\\"Difference\\\").lines(steps=3,fill=2,width=1)\",\"interval\":\"auto\"},\"aggs\":[],\"listeners\":{}}",
+      "uiStateJSON": "{}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"query\":{\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}},\"language\":\"lucene\"},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "8d9592d0-44ec-11e7-a05f-d9719b331a27",
+    "_type": "visualization",
+    "_source": {
+      "title": "VulnWhisperer - TL-High Risk",
+      "visState": "{\"title\":\"VulnWhisperer - TL-High Risk\",\"type\":\"timelion\",\"params\":{\"expression\":\".es(index='logstash-vulnwhisperer-*',q='(risk_score:>=7 AND risk_score:<9)').label(\\\"Original\\\"),.es(index='logstash-vulnwhisperer-*',q='(risk_score:>=7 AND risk_score:<9)',offset=-1w).label(\\\"One week offset\\\"),.es(index='logstash-vulnwhisperer-*',q='(risk_score:>=7 AND risk_score:<9)').subtract(.es(index='logstash-vulnwhisperer-*',q='(risk_score:>=7 AND risk_score:<9)',offset=-1w)).label(\\\"Difference\\\").lines(steps=3,fill=2,width=1)\",\"interval\":\"auto\"},\"aggs\":[],\"listeners\":{}}",
+      "uiStateJSON": "{}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"query\":{\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}},\"language\":\"lucene\"},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "2f979030-44b9-11e7-a818-f5f80dfc3590",
+    "_type": "visualization",
+    "_source": {
+      "title": "VulnWhisperer - ScanBarChart",
+      "visState": "{\n  \"title\": \"VulnWhisperer - ScanBarChart\",\n  \"type\": \"histogram\",\n  \"params\": {\n    \"addLegend\": true,\n    \"addTimeMarker\": false,\n    \"addTooltip\": true,\n    \"defaultYExtents\": false,\n    \"legendPosition\": \"right\",\n    \"mode\": \"stacked\",\n    \"scale\": \"linear\",\n    \"setYExtents\": false,\n    \"times\": [],\n    \"type\": \"histogram\",\n    \"grid\": {\n      \"categoryLines\": false,\n      \"style\": {\n        \"color\": \"#eee\"\n      }\n    },\n    \"categoryAxes\": [\n      {\n        \"id\": \"CategoryAxis-1\",\n        \"type\": \"category\",\n        \"position\": \"bottom\",\n        \"show\": true,\n        \"style\": {},\n        \"scale\": {\n          \"type\": \"linear\"\n        },\n        \"labels\": {\n          \"show\": true,\n          \"truncate\": 100\n        },\n        \"title\": {}\n      }\n    ],\n    \"valueAxes\": [\n      {\n        \"id\": \"ValueAxis-1\",\n        \"name\": \"LeftAxis-1\",\n        \"type\": \"value\",\n        \"position\": \"left\",\n        \"show\": true,\n        \"style\": {},\n        \"scale\": {\n          \"type\": \"linear\",\n          \"mode\": \"normal\",\n          \"setYExtents\": false,\n          \"defaultYExtents\": false\n        },\n        \"labels\": {\n          \"show\": true,\n          \"rotate\": 0,\n          \"filter\": false,\n          \"truncate\": 100\n        },\n        \"title\": {\n          \"text\": \"Unique count of scan_fingerprint\"\n        }\n      }\n    ],\n    \"seriesParams\": [\n      {\n        \"show\": \"true\",\n        \"type\": \"histogram\",\n        \"mode\": \"stacked\",\n        \"data\": {\n          \"label\": \"Unique count of scan_fingerprint\",\n          \"id\": \"1\"\n        },\n        \"valueAxis\": \"ValueAxis-1\"\n      }\n    ]\n  },\n  \"aggs\": [\n    {\n      \"id\": \"1\",\n      \"enabled\": true,\n      \"type\": \"cardinality\",\n      \"schema\": \"metric\",\n      \"params\": {\n        \"field\": \"scan_fingerprint\"\n      }\n    },\n    {\n      \"id\": \"2\",\n      \"enabled\": true,\n      \"type\": \"terms\",\n      \"schema\": \"segment\",\n      \"params\": {\n        \"field\": \"plugin_name\",\n        \"size\": 10,\n        \"order\": \"desc\",\n        \"orderBy\": \"1\",\n        \"otherBucket\": false,\n        \"otherBucketLabel\": \"Other\",\n        \"missingBucket\": false,\n        \"missingBucketLabel\": \"Missing\",\n        \"customLabel\": \"Scan Name\"\n      }\n    }\n  ]\n}",
+      "uiStateJSON": "{}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\n  \"index\": \"4a6d9090-f66e-11e8-8f42-af2e41422cf8\",\n  \"query\": {\n    \"query\": {\n      \"query_string\": {\n        \"analyze_wildcard\": true,\n        \"query\": \"*\",\n        \"default_field\": \"*\"\n      }\n    },\n    \"language\": \"lucene\"\n  },\n  \"filter\": []\n}"
+      }
+    }
+  },
+  {
+    "_id": "8c9c9430-f77b-11e8-8f42-af2e41422cf8",
+    "_type": "visualization",
+    "_source": {
+      "title": "VulnWhisperer - Risk: Critical",
+      "visState": "{\"title\":\"VulnWhisperer - Risk: Critical\",\"type\":\"gauge\",\"params\":{\"type\":\"gauge\",\"addTooltip\":true,\"addLegend\":true,\"isDisplayWarning\":false,\"gauge\":{\"verticalSplit\":false,\"extendRange\":true,\"percentageMode\":false,\"gaugeType\":\"Arc\",\"gaugeStyle\":\"Full\",\"backStyle\":\"Full\",\"orientation\":\"vertical\",\"colorSchema\":\"Reds\",\"gaugeColorMode\":\"Labels\",\"colorsRange\":[{\"from\":0,\"to\":10},{\"from\":10,\"to\":20}],\"invertColors\":false,\"labels\":{\"show\":true,\"color\":\"black\"},\"scale\":{\"show\":true,\"labels\":false,\"color\":\"#333\"},\"type\":\"meter\",\"style\":{\"bgWidth\":0.9,\"width\":0.9,\"mask\":false,\"bgMask\":false,\"maskBars\":50,\"bgFill\":\"#eee\",\"bgColor\":false,\"subText\":\"\",\"fontSize\":60,\"labelColor\":true}}},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"cardinality\",\"schema\":\"metric\",\"params\":{\"field\":\"scan_fingerprint\"}},{\"id\":\"2\",\"enabled\":true,\"type\":\"filters\",\"schema\":\"group\",\"params\":{\"filters\":[{\"input\":{\"query\":\"risk_score_name:critical\"},\"label\":\"Critical Risk\"}]}}]}",
+      "uiStateJSON": "{\"vis\":{\"defaultColors\":{\"0 - 10\":\"rgb(255,245,240)\",\"10 - 20\":\"rgb(103,0,13)\"}}}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"4a6d9090-f66e-11e8-8f42-af2e41422cf8\",\"query\":{\"language\":\"lucene\",\"query\":\"\"},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "e6b5b920-f77a-11e8-8f42-af2e41422cf8",
+    "_type": "visualization",
+    "_source": {
+      "title": "VulnWhisperer - Risk: Low",
+      "visState": "{\"title\":\"VulnWhisperer - Risk: Low\",\"type\":\"gauge\",\"params\":{\"type\":\"gauge\",\"addTooltip\":true,\"addLegend\":true,\"isDisplayWarning\":false,\"gauge\":{\"verticalSplit\":false,\"extendRange\":true,\"percentageMode\":false,\"gaugeType\":\"Arc\",\"gaugeStyle\":\"Full\",\"backStyle\":\"Full\",\"orientation\":\"vertical\",\"colorSchema\":\"Greens\",\"gaugeColorMode\":\"Labels\",\"colorsRange\":[{\"from\":0,\"to\":50},{\"from\":50,\"to\":100}],\"invertColors\":false,\"labels\":{\"show\":true,\"color\":\"black\"},\"scale\":{\"show\":true,\"labels\":false,\"color\":\"#333\"},\"type\":\"meter\",\"style\":{\"bgWidth\":0.9,\"width\":0.9,\"mask\":false,\"bgMask\":false,\"maskBars\":50,\"bgFill\":\"#eee\",\"bgColor\":false,\"subText\":\"\",\"fontSize\":60,\"labelColor\":true}}},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"cardinality\",\"schema\":\"metric\",\"params\":{\"field\":\"scan_fingerprint\"}},{\"id\":\"2\",\"enabled\":true,\"type\":\"filters\",\"schema\":\"group\",\"params\":{\"filters\":[{\"input\":{\"query\":\"risk_score_name:low\"},\"label\":\"Low Risk\"}]}}]}",
+      "uiStateJSON": "{\"vis\":{\"defaultColors\":{\"0 - 50\":\"rgb(247,252,245)\",\"50 - 100\":\"rgb(0,68,27)\"}}}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"4a6d9090-f66e-11e8-8f42-af2e41422cf8\",\"query\":{\"query\":\"\",\"language\":\"lucene\"},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "c533c120-fe8c-11e8-8f42-af2e41422cf8",
+    "_type": "visualization",
+    "_source": {
+      "title": "VulnWhisperer - Risk: High",
+      "visState": "{\"title\":\"VulnWhisperer - Risk: High\",\"type\":\"goal\",\"params\":{\"addTooltip\":true,\"addLegend\":false,\"isDisplayWarning\":false,\"type\":\"gauge\",\"gauge\":{\"verticalSplit\":false,\"autoExtend\":false,\"percentageMode\":false,\"gaugeType\":\"Arc\",\"gaugeStyle\":\"Full\",\"backStyle\":\"Full\",\"orientation\":\"vertical\",\"useRanges\":false,\"colorSchema\":\"Reds\",\"gaugeColorMode\":\"None\",\"colorsRange\":[{\"from\":1,\"to\":5},{\"from\":5,\"to\":19999}],\"invertColors\":false,\"labels\":{\"show\":true,\"color\":\"black\"},\"scale\":{\"show\":false,\"labels\":false,\"color\":\"#333\",\"width\":2},\"type\":\"meter\",\"style\":{\"bgFill\":\"#000\",\"bgColor\":false,\"labelColor\":false,\"subText\":\"\",\"fontSize\":60}}},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"cardinality\",\"schema\":\"metric\",\"params\":{\"field\":\"scan_fingerprint\",\"customLabel\":\"Risk: High\"}},{\"id\":\"2\",\"enabled\":true,\"type\":\"filters\",\"schema\":\"group\",\"params\":{\"filters\":[{\"input\":{\"query\":\"risk_score_name:high\"},\"label\":\"risk: High\"}]}}]}",
+      "uiStateJSON": "{\"vis\":{\"defaultColors\":{\"1 - 5\":\"rgb(255,245,240)\",\"5 - 19999\":\"rgb(103,0,13)\"}}}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"4a6d9090-f66e-11e8-8f42-af2e41422cf8\",\"query\":{\"query\":\"\",\"language\":\"lucene\"},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "61b43c00-f77b-11e8-8f42-af2e41422cf8",
+    "_type": "visualization",
+    "_source": {
+      "title": "VulnWhisperer - Risk: Medium",
+      "visState": "{\"title\":\"VulnWhisperer - Risk: Medium\",\"type\":\"gauge\",\"params\":{\"type\":\"gauge\",\"addTooltip\":true,\"addLegend\":true,\"isDisplayWarning\":false,\"gauge\":{\"verticalSplit\":false,\"extendRange\":false,\"percentageMode\":false,\"gaugeType\":\"Arc\",\"gaugeStyle\":\"Full\",\"backStyle\":\"Full\",\"orientation\":\"vertical\",\"colorSchema\":\"Blues\",\"gaugeColorMode\":\"Labels\",\"colorsRange\":[{\"from\":0,\"to\":10}],\"invertColors\":true,\"labels\":{\"show\":true,\"color\":\"black\"},\"scale\":{\"show\":true,\"labels\":false,\"color\":\"#333\"},\"type\":\"meter\",\"style\":{\"bgWidth\":0.9,\"width\":0.9,\"mask\":false,\"bgMask\":false,\"maskBars\":50,\"bgFill\":\"#eee\",\"bgColor\":false,\"subText\":\"\",\"fontSize\":60,\"labelColor\":true}}},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"cardinality\",\"schema\":\"metric\",\"params\":{\"field\":\"scan_fingerprint\"}},{\"id\":\"2\",\"enabled\":true,\"type\":\"filters\",\"schema\":\"group\",\"params\":{\"filters\":[{\"input\":{\"query\":\"risk_score_name:medium\"},\"label\":\"Medium Risk\"}]}}]}",
+      "uiStateJSON": "{\"vis\":{\"defaultColors\":{\"0 - 10\":\"rgb(8,48,107)\"}}}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"4a6d9090-f66e-11e8-8f42-af2e41422cf8\",\"query\":{\"query\":\"\",\"language\":\"lucene\"},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "297df800-3f7e-11e7-bd24-6903e3283192",
+    "_type": "visualization",
+    "_source": {
+      "title": "VulnWhisperer - Plugin Name",
+      "visState": "{\n  \"title\": \"VulnWhisperer - Plugin Name\",\n  \"type\": \"table\",\n  \"params\": {\n    \"perPage\": 10,\n    \"showPartialRows\": false,\n    \"sort\": {\n      \"columnIndex\": null,\n      \"direction\": null\n    },\n    \"showTotal\": false,\n    \"totalFunc\": \"sum\",\n    \"showMetricsAtAllLevels\": false\n  },\n  \"aggs\": [\n    {\n      \"id\": \"1\",\n      \"enabled\": true,\n      \"type\": \"cardinality\",\n      \"schema\": \"metric\",\n      \"params\": {\n        \"field\": \"scan_fingerprint\",\n        \"customLabel\": \"Count\"\n      }\n    },\n    {\n      \"id\": \"2\",\n      \"enabled\": true,\n      \"type\": \"terms\",\n      \"schema\": \"bucket\",\n      \"params\": {\n        \"field\": \"plugin_name\",\n        \"size\": 10,\n        \"order\": \"desc\",\n        \"orderBy\": \"1\",\n        \"otherBucket\": false,\n        \"otherBucketLabel\": \"Other\",\n        \"missingBucket\": false,\n        \"missingBucketLabel\": \"Missing\",\n        \"customLabel\": \"Plugin Name\"\n      }\n    }\n  ]\n}",
+      "uiStateJSON": "{\n  \"vis\": {\n    \"params\": {\n      \"sort\": {\n        \"columnIndex\": null,\n        \"direction\": null\n      }\n    }\n  }\n}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\n  \"index\": \"4a6d9090-f66e-11e8-8f42-af2e41422cf8\",\n  \"query\": {\n    \"query\": {\n      \"query_string\": {\n        \"query\": \"*\",\n        \"analyze_wildcard\": true,\n        \"default_field\": \"*\"\n      }\n    },\n    \"language\": \"lucene\"\n  },\n  \"filter\": []\n}"
+      }
+    }
+  },
+  {
+    "_id": "479deab0-8a39-11e7-a58a-9bfcb3761a3d",
+    "_type": "visualization",
+    "_source": {
+      "title": "VulnWhisperer - TL - TaggedAssetsPluginNames",
+      "visState": "{\n  \"title\": \"VulnWhisperer - TL - TaggedAssetsPluginNames\",\n  \"type\": \"timelion\",\n  \"params\": {\n    \"expression\": \".es(index='logstash-vulnwhisperer-*', q='tags:critical_asset OR tags:hipaa_asset OR tags:pci_asset', split=\\\"plugin_name:10\\\").bars(width=4).label(regex=\\\".*:(.+)>.*\\\",label=\\\"$1\\\")\",\n    \"interval\": \"auto\"\n  },\n  \"aggs\": [],\n  \"listeners\": {}\n}",
+      "uiStateJSON": "{}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\n  \"query\": {\n    \"query\": {\n      \"query_string\": {\n        \"query\": \"*\",\n        \"analyze_wildcard\": true\n      }\n    },\n    \"language\": \"lucene\"\n  },\n  \"filter\": []\n}"
+      }
+    }
+  },
+  {
+    "_id": "4a6d9090-f66e-11e8-8f42-af2e41422cf8",
+    "_type": "index-pattern",
+    "_source": {
+      "title": "logstash-vulnwhisperer-*",
+      "timeFieldName": "@timestamp",
+      "fields": "[{\"name\":\"@timestamp\",\"type\":\"date\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"@version\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"_id\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":false},{\"name\":\"_index\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":false},{\"name\":\"_score\",\"type\":\"number\",\"count\":0,\"scripted\":false,\"searchable\":false,\"aggregatable\":false,\"readFromDocValues\":false},{\"name\":\"_source\",\"type\":\"_source\",\"count\":0,\"scripted\":false,\"searchable\":false,\"aggregatable\":false,\"readFromDocValues\":false},{\"name\":\"_type\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":false},{\"name\":\"asset\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":false,\"readFromDocValues\":false},{\"name\":\"asset.keyword\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"asset_uuid\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"assign_ip\",\"type\":\"ip\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"category\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"cve\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"cvss\",\"type\":\"number\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"cvss3\",\"type\":\"number\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"cvss3_base\",\"type\":\"number\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"cvss3_temporal\",\"type\":\"number\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"cvss3_temporal_vector\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"cvss3_vector\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"cvss_base\",\"type\":\"number\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"cvss_temporal\",\"type\":\"number\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"cvss_temporal_vector\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"cvss_vector\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"description\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":false,\"readFromDocValues\":false},{\"name\":\"description.keyword\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"dns\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"exploitability\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":false,\"readFromDocValues\":false},{\"name\":\"exploitability.keyword\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"fqdn\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"geoip.ip\",\"type\":\"ip\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"geoip.latitude\",\"type\":\"number\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"geoip.location\",\"type\":\"geo_point\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"geoip.longitude\",\"type\":\"number\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"history_id\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"host\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"host_end\",\"type\":\"date\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"host_start\",\"type\":\"date\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"impact\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":false,\"readFromDocValues\":false},{\"name\":\"impact.keyword\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"ip\",\"type\":\"ip\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"ip_status\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"last_updated\",\"type\":\"date\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"operating_system\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"path\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"pci_vuln\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"plugin_family\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"plugin_id\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"plugin_name\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"plugin_output\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":false,\"readFromDocValues\":false},{\"name\":\"plugin_output.keyword\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"port\",\"type\":\"number\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"protocol\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"results\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":false,\"readFromDocValues\":false},{\"name\":\"risk\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"risk_number\",\"type\":\"number\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"risk_score\",\"type\":\"number\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"risk_score_name\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"scan_id\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"scan_name\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"scan_reference\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"see_also\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"solution\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"source\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"ssl\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"synopsis\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"system_type\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"tags\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"threat\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":false,\"readFromDocValues\":false},{\"name\":\"type\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"vendor_reference\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"vulnerability_state\",\"type\":\"string\",\"count\":0,\"scripted\":false,\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":true},{\"name\":\"scan_fingerprint\",\"type\":\"string\",\"count\":1,\"scripted\":true,\"script\":\"doc['asset.keyword']+'_'+doc['plugin_id']\",\"lang\":\"painless\",\"searchable\":true,\"aggregatable\":true,\"readFromDocValues\":false}]",
+      "fieldFormatMap": "{\"plugin_id\":{\"id\":\"number\",\"params\":{\"pattern\":\"00.[000]\"}}}"
+    },
+    "_migrationVersion": {
+      "index-pattern": "6.5.0"
+    }
+  },
+  {
+    "_id": "de1a5f40-3f85-11e7-97f9-3777d794626d",
+    "_type": "visualization",
+    "_source": {
+      "title": "VulnWhisperer - ScanName",
+      "visState": "{\n  \"title\": \"VulnWhisperer - ScanName\",\n  \"type\": \"table\",\n  \"params\": {\n    \"perPage\": 10,\n    \"showPartialRows\": false,\n    \"sort\": {\n      \"columnIndex\": null,\n      \"direction\": null\n    },\n    \"showTotal\": false,\n    \"totalFunc\": \"sum\",\n    \"showMetricsAtAllLevels\": false\n  },\n  \"aggs\": [\n    {\n      \"id\": \"1\",\n      \"enabled\": true,\n      \"type\": \"count\",\n      \"schema\": \"metric\",\n      \"params\": {}\n    },\n    {\n      \"id\": \"2\",\n      \"enabled\": true,\n      \"type\": \"terms\",\n      \"schema\": \"bucket\",\n      \"params\": {\n        \"field\": \"scan_name\",\n        \"size\": 20,\n        \"order\": \"desc\",\n        \"orderBy\": \"1\",\n        \"otherBucket\": false,\n        \"otherBucketLabel\": \"Other\",\n        \"missingBucket\": false,\n        \"missingBucketLabel\": \"Missing\",\n        \"customLabel\": \"Scan Name\"\n      }\n    }\n  ]\n}",
+      "uiStateJSON": "{\n  \"vis\": {\n    \"params\": {\n      \"sort\": {\n        \"columnIndex\": null,\n        \"direction\": null\n      }\n    }\n  }\n}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\n  \"index\": \"4a6d9090-f66e-11e8-8f42-af2e41422cf8\",\n  \"query\": {\n    \"query\": {\n      \"query_string\": {\n        \"query\": \"*\",\n        \"analyze_wildcard\": true,\n        \"default_field\": \"*\"\n      }\n    },\n    \"language\": \"lucene\"\n  },\n  \"filter\": []\n}"
+      }
+    }
+  }
+]

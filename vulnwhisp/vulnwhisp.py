@@ -43,10 +43,10 @@ class vulnWhispererBase(object):
         if self.CONFIG_SECTION is None:
                 raise Exception('Implementing class must define CONFIG_SECTION')
 
+        self.exit_code = 0
         self.db_name = db_name
         self.purge = purge
         self.develop = develop
-
 
         if config is not None:
             self.config = vwConfig(config_in=config)
@@ -102,6 +102,7 @@ class vulnWhispererBase(object):
             'source',
             'uuid',
             'processed',
+            'reported',
         ]
 
         self.init()
@@ -115,7 +116,7 @@ class vulnWhispererBase(object):
             'CREATE TABLE IF NOT EXISTS scan_history (id INTEGER PRIMARY KEY,'
             ' scan_name TEXT, scan_id INTEGER, last_modified DATE, filename TEXT,'
             ' download_time DATE, record_count INTEGER, source TEXT,'
-            ' uuid TEXT, processed INTEGER)'
+            ' uuid TEXT, processed INTEGER, reported INTEGER)'
             )
         self.conn.commit()
 
@@ -142,10 +143,36 @@ class vulnWhispererBase(object):
         return data
 
     def record_insert(self, record):
-        self.cur.execute('insert into scan_history({table_columns}) values (?,?,?,?,?,?,?,?,?)'.format(
-            table_columns=', '.join(self.table_columns)),
-                         record)
-        self.conn.commit()
+        #for backwards compatibility with older versions without "reported" field
+        
+        try:
+            #-1 to get the latest column, 1 to get the column name (old version would be "processed", new "reported")
+            #TODO delete backward compatibility check after some versions
+            last_column_table = self.cur.execute('PRAGMA table_info(scan_history)').fetchall()[-1][1]
+            if last_column_table == self.table_columns[-1]:
+                self.cur.execute('insert into scan_history({table_columns}) values (?,?,?,?,?,?,?,?,?,?)'.format(
+                    table_columns=', '.join(self.table_columns)), record)
+
+            else:
+                self.cur.execute('insert into scan_history({table_columns}) values (?,?,?,?,?,?,?,?,?)'.format(
+                    table_columns=', '.join(self.table_columns[:-1])), record[:-1])
+            self.conn.commit()
+        except Exception as e:
+            self.logger.error("Failed to insert record in database. Error: {}".format(e))
+            sys.exit(1)
+
+    def set_latest_scan_reported(self, filename):
+        #the reason to use the filename instead of the source/scan_name is because the filename already belongs to
+        #that latest scan, and we maintain integrity making sure that it is the exact scan we checked
+        try:
+            self.cur.execute('UPDATE scan_history SET reported = 1 WHERE filename="{}";'.format(filename))
+            self.conn.commit()
+            self.logger.info('Scan {} marked as successfully processed.'.format(filename))
+            return True
+        except Exception as e:
+            self.logger.error('Failed while setting scan with file {} as processed'.format(filename))
+            
+        return False
 
     def retrieve_uuids(self):
         """
@@ -164,24 +191,34 @@ class vulnWhispererBase(object):
         if not os.path.exists(self.write_path):
             os.makedirs(self.write_path)
             self.logger.info('Directory created at {scan} - Skipping creation'.format(
-                scan=self.write_path))
+                scan=self.write_path.encode('utf8')))
         else:
             os.path.exists(self.write_path)
             self.logger.info('Directory already exist for {scan} - Skipping creation'.format(
-                scan=self.write_path))
+                scan=self.write_path.encode('utf8')))
 
     def get_latest_results(self, source, scan_name):
+        processed = 0
+        results = []
+        
         try:
             self.conn.text_factory = str
             self.cur.execute('SELECT filename FROM scan_history WHERE source="{}" AND scan_name="{}" ORDER BY last_modified DESC LIMIT 1;'.format(source, scan_name))
             #should always return just one filename
             results = [r[0] for r in self.cur.fetchall()][0]
-        except:
-            results = []
-        return results
 
-        return True
+            #-1 to get the latest column, 1 to get the column name (old version would be "processed", new "reported")
+            #TODO delete backward compatibility check after some versions
+            last_column_table = self.cur.execute('PRAGMA table_info(scan_history)').fetchall()[-1][1]
+            if results and last_column_table == self.table_columns[-1]:
+                reported = self.cur.execute('SELECT reported FROM scan_history WHERE filename="{}"'.format(results)).fetchall()
+                reported = reported[0][0]
+                if reported:
+                    self.logger.debug("Last downloaded scan from source {source} scan_name {scan_name} has already been reported".format(source=source, scan_name=scan_name))
 
+        except Exception as e:
+            self.logger.error("Error when getting latest results from {}.{} : {}".format(source, scan_name, e))
+        return results, reported
         
     def get_scan_profiles(self):
         # Returns a list of source.scan_name elements from the database
@@ -302,7 +339,6 @@ class vulnWhispererNessus(vulnWhispererBase):
                         scan_records.append(record.copy())
                 except Exception as e:
                     # Generates error each time nonetype is encountered.
-
                     pass
 
         if completed:
@@ -312,7 +348,7 @@ class vulnWhispererNessus(vulnWhispererBase):
 
     def whisper_nessus(self):
         if self.nessus_connect:
-            scan_data = self.nessus.get_scans()
+            scan_data = self.nessus.scans
             folders = scan_data['folders']
             scans = scan_data['scans'] if scan_data['scans'] else []
             all_scans = self.scan_count(scans)
@@ -325,7 +361,7 @@ class vulnWhispererNessus(vulnWhispererBase):
 
             if not scan_list:
                 self.logger.warn('No new scans to process. Exiting...')
-                return 0
+                return self.exit_code
 
             # Create scan subfolders
 
@@ -338,8 +374,7 @@ class vulnWhispererNessus(vulnWhispererBase):
                 else:
                     os.path.exists(self.path_check(f['name']))
                     self.logger.info('Directory already exist for {scan} - Skipping creation'.format(
-                        scan=self.path_check(f['name'
-                                             ])))
+                        scan=self.path_check(f['name']).encode('utf8')))
 
             # try download and save scans into each folder the belong to
 
@@ -368,17 +403,16 @@ class vulnWhispererNessus(vulnWhispererBase):
                 # TODO Create directory sync function which scans the directory for files that exist already and populates the database
 
                 folder_id = s['folder_id']
-                scan_history = self.nessus.get_scan_history(scan_id)
                 if self.CONFIG_SECTION == 'tenable':
                     folder_name = ''
                 else:
                     folder_name = next(f['name'] for f in folders if f['id'] == folder_id)
-                if status == 'completed':
+                if status in ['completed', 'imported']:
                     file_name = '%s_%s_%s_%s.%s' % (scan_name, scan_id,
                                                     history_id, norm_time, 'csv')
-                    repls = (('\\', '_'), ('/', '_'), ('/', '_'), (' ', '_'))
+                    repls = (('\\', '_'), ('/', '_'), (' ', '_'))
                     file_name = reduce(lambda a, kv: a.replace(*kv), repls, file_name)
-                    relative_path_name = self.path_check(folder_name + '/' + file_name)
+                    relative_path_name = self.path_check(folder_name + '/' + file_name).encode('utf8')
 
                     if os.path.isfile(relative_path_name):
                         if self.develop:
@@ -393,18 +427,24 @@ class vulnWhispererNessus(vulnWhispererBase):
                                 self.CONFIG_SECTION,
                                 uuid,
                                 1,
+                                0,
                             )
                             self.record_insert(record_meta)
                             self.logger.info('File {filename} already exist! Updating database'.format(filename=relative_path_name))
                     else:
-                        file_req = \
-                            self.nessus.download_scan(scan_id=scan_id, history=history_id,
-                                                      export_format='csv', profile=self.CONFIG_SECTION)
+                        try:
+                            file_req = \
+                                self.nessus.download_scan(scan_id=scan_id, history=history_id,
+                                                        export_format='csv', profile=self.CONFIG_SECTION)
+                        except Exception as e:
+                            self.logger.error('Could not download {} scan {}: {}'.format(self.CONFIG_SECTION, scan_id, str(e)))
+                            self.exit_code += 1
+                            continue
+                            
                         clean_csv = \
-                            pd.read_csv(io.StringIO(file_req.decode('utf-8'
-                                                                    )))
+                            pd.read_csv(io.StringIO(file_req.decode('utf-8')))
                         if len(clean_csv) > 2:
-                            self.logger.info('Processing {}/{} for scan: {}'.format(scan_count, len(scan_list), scan_name))
+                            self.logger.info('Processing {}/{} for scan: {}'.format(scan_count, len(scan_list), scan_name.encode('utf8')))
                             columns_to_cleanse = ['CVSS','CVE','Description','Synopsis','Solution','See Also','Plugin Output']
 
                             for col in columns_to_cleanse:
@@ -421,10 +461,11 @@ class vulnWhispererNessus(vulnWhispererBase):
                                 self.CONFIG_SECTION,
                                 uuid,
                                 1,
+                                0,
                             )
                             self.record_insert(record_meta)
                             self.logger.info('{filename} records written to {path} '.format(filename=clean_csv.shape[0],
-                                                                                            path=file_name))
+                                                                                            path=file_name.encode('utf8')))
                         else:
                             record_meta = (
                                 scan_name,
@@ -436,14 +477,16 @@ class vulnWhispererNessus(vulnWhispererBase):
                                 self.CONFIG_SECTION,
                                 uuid,
                                 1,
+                                0,
                             )
                             self.record_insert(record_meta)
                             self.logger.warn('{} has no host available... Updating database and skipping!'.format(file_name))
             self.conn.close()
             self.logger.info('Scan aggregation complete! Connection to database closed.')
         else:
-
             self.logger.error('Failed to use scanner at {host}:{port}'.format(host=self.hostname, port=self.nessus_port))
+            self.exit_code += 1
+        return self.exit_code
 
 
 class vulnWhispererQualys(vulnWhispererBase):
@@ -513,7 +556,6 @@ class vulnWhispererQualys(vulnWhispererBase):
         if debug:
             self.logger.setLevel(logging.DEBUG)
         
-
         self.qualys_scan = qualysScanReport(config=config)
         self.latest_scans = self.qualys_scan.qw.get_all_scans()
         self.directory_check()
@@ -539,7 +581,7 @@ class vulnWhispererQualys(vulnWhispererBase):
                           + '_{last_updated}'.format(last_updated=launched_date) \
                           + '.{extension}'.format(extension=output_format)
 
-            relative_path_name = self.path_check(report_name)
+            relative_path_name = self.path_check(report_name).encode('utf8')
 
             if os.path.isfile(relative_path_name):
                 #TODO Possibly make this optional to sync directories
@@ -554,6 +596,7 @@ class vulnWhispererQualys(vulnWhispererBase):
                     self.CONFIG_SECTION,
                     report_id,
                     1,
+                    0,
                 )
                 self.record_insert(record_meta)
                 self.logger.info('File {filename} already exist! Updating database'.format(filename=relative_path_name))
@@ -583,6 +626,7 @@ class vulnWhispererQualys(vulnWhispererBase):
                         self.CONFIG_SECTION,
                         report_id,
                         1,
+                        0,
                     )
                     self.record_insert(record_meta)
 
@@ -625,7 +669,7 @@ class vulnWhispererQualys(vulnWhispererBase):
             for app in self.scans_to_process.iterrows():
                 counter += 1
                 r = app[1]
-                self.logger.debug('Processing {}/{}'.format(counter, len(self.scans_to_process)))
+                self.logger.info('Processing {}/{}'.format(counter, len(self.scans_to_process)))
                 self.whisper_reports(report_id=r['id'],
                                      launched_date=r['launchedDate'],
                                      scan_name=r['name'],
@@ -633,7 +677,7 @@ class vulnWhispererQualys(vulnWhispererBase):
         else:
             self.logger.info('No new scans to process. Exiting...')
         self.conn.close()
-        return 0
+        return self.exit_code
 
 
 class vulnWhispererOpenVAS(vulnWhispererBase):
@@ -679,6 +723,7 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
         if debug:
             self.logger.setLevel(logging.DEBUG)
 
+        self.directory_check()
         self.port = int(self.config.get(self.CONFIG_SECTION, 'port'))
         self.develop = True
         self.purge = purge
@@ -698,7 +743,7 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
             report_name = 'openvas_scan_{scan_name}_{last_updated}.{extension}'.format(scan_name=scan_name,
                                                                                        last_updated=launched_date,
                                                                                        extension=output_format)
-            relative_path_name = self.path_check(report_name)
+            relative_path_name = self.path_check(report_name).encode('utf8')
             scan_reference = report_id
 
             if os.path.isfile(relative_path_name):
@@ -714,6 +759,7 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
                     self.CONFIG_SECTION,
                     report_id,
                     1,
+                    0,
                 )
                 self.record_insert(record_meta)
                 self.logger.info('File {filename} already exist! Updating database'.format(filename=relative_path_name))
@@ -767,7 +813,7 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
         else:
             self.logger.info('No new scans to process. Exiting...')
         self.conn.close()
-        return 0
+        return self.exit_code
 
 
 class vulnWhispererQualysVuln(vulnWhispererBase):
@@ -808,7 +854,6 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
                         scan_reference=None,
                         output_format='json',
                         cleanup=True):
-        try:
             launched_date
             if 'Z' in launched_date:
                 launched_date = self.qualys_scan.utils.iso_to_epoch(launched_date)
@@ -816,7 +861,7 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
                           + '_{last_updated}'.format(last_updated=launched_date) \
                           + '.json'
 
-            relative_path_name = self.path_check(report_name)
+            relative_path_name = self.path_check(report_name).encode('utf8')
 
             if os.path.isfile(relative_path_name):
                 #TODO Possibly make this optional to sync directories
@@ -831,42 +876,44 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
                     self.CONFIG_SECTION,
                     report_id,
                     1,
+                    0,
                 )
                 self.record_insert(record_meta)
                 self.logger.info('File {filename} already exist! Updating database'.format(filename=relative_path_name))
 
             else:
-                self.logger.info('Processing report ID: {}'.format(report_id))
-                vuln_ready = self.qualys_scan.process_data(scan_id=report_id)
-                if not vuln_ready.empty:
+                try:
+                    self.logger.info('Processing report ID: {}'.format(report_id))
+                    vuln_ready = self.qualys_scan.process_data(scan_id=report_id)
                     vuln_ready['scan_name'] = scan_name
                     vuln_ready['scan_reference'] = report_id
                     vuln_ready.rename(columns=self.COLUMN_MAPPING, inplace=True)
+                except Exception as e:
+                    self.logger.error('Could not process {}: {}'.format(report_id, str(e)))
+                    self.exit_code += 1
+                    return self.exit_code
 
-                    record_meta = (
-                        scan_name,
-                        scan_reference,
-                        launched_date,
-                        report_name,
-                        time.time(),
-                        vuln_ready.shape[0],
-                        self.CONFIG_SECTION,
-                        report_id,
-                        1,
-                    )
-                    self.record_insert(record_meta)
+                record_meta = (
+                    scan_name,
+                    scan_reference,
+                    launched_date,
+                    report_name,
+                    time.time(),
+                    vuln_ready.shape[0],
+                    self.CONFIG_SECTION,
+                    report_id,
+                    1,
+                    0,
+                )
+                self.record_insert(record_meta)
 
-                    if output_format == 'json':
-                        with open(relative_path_name, 'w') as f:
-                            f.write(vuln_ready.to_json(orient='records', lines=True))
-                            f.write('\n')
+                if output_format == 'json':
+                    with open(relative_path_name, 'w') as f:
+                        f.write(vuln_ready.to_json(orient='records', lines=True))
+                        f.write('\n')
 
-                    self.logger.info('Report written to {}'.format(report_name))
-                else:
-                    return False
-
-        except Exception as e:
-            self.logger.error('Could not process {}: {}'.format(report_id, str(e)))
+                self.logger.info('Report written to {}'.format(report_name))
+            return self.exit_code
 
 
     def identify_scans_to_process(self):
@@ -887,15 +934,15 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
             for app in self.scans_to_process.iterrows():
                 counter += 1
                 r = app[1]
-                self.logger.debug('Processing {}/{}'.format(counter, len(self.scans_to_process)))
-                self.whisper_reports(report_id=r['id'],
+                self.logger.info('Processing {}/{}'.format(counter, len(self.scans_to_process)))
+                self.exit_code += self.whisper_reports(report_id=r['id'],
                                      launched_date=r['date'],
                                      scan_name=r['name'],
                                      scan_reference=r['type'])
         else:
             self.logger.info('No new scans to process. Exiting...')
         self.conn.close()
-        return 0
+        return self.exit_code
 
 
 class vulnWhispererJIRA(vulnWhispererBase):
@@ -975,7 +1022,7 @@ class vulnWhispererJIRA(vulnWhispererBase):
             sys.exit(0)
             
         #datafile path
-        filename = self.get_latest_results(source, scan_name)
+        filename, reported = self.get_latest_results(source, scan_name)
         fullpath = ""
         
         # search data files under user specified directory
@@ -983,11 +1030,24 @@ class vulnWhispererJIRA(vulnWhispererBase):
             if filename in filenames:
                 fullpath = "{}/{}".format(root,filename)
         
-        if not fullpath:
-            self.logger.error('Scan file path "{scan_name}" for source "{source}" has not been found.'.format(scan_name=scan_name, source=source))
-            sys.exit(1)
+        if reported:
+            self.logger.warn('Last Scan of "{scan_name}" for source "{source}" has already been reported; will be skipped.'.format(scan_name=scan_name, source=source))
+            return [False] * 5
 
-        return project, components, fullpath, min_critical
+        if not fullpath:
+            self.logger.error('Scan of "{scan_name}" for source "{source}" has not been found. Please check that the scanner data files are in place.'.format(scan_name=scan_name, source=source))
+            sys.exit(1)
+    
+        dns_resolv = self.config.get('jira','dns_resolv')
+        if dns_resolv in ('False', 'false', ''):
+            dns_resolv = False
+        elif dns_resolv in ('True', 'true'):
+            dns_resolv = True
+        else:
+            self.logger.error("dns_resolv variable not setup in [jira] section; will not do dns resolution")
+            dns_resolv = False
+
+        return project, components, fullpath, min_critical, dns_resolv
 
 
     def parse_nessus_vulnerabilities(self, fullpath, source, scan_name, min_critical):
@@ -1036,7 +1096,7 @@ class vulnWhispererJIRA(vulnWhispererBase):
         
         return vulnerabilities
     
-    def parse_qualys_vuln_vulnerabilities(self, fullpath, source, scan_name, min_critical):
+    def parse_qualys_vuln_vulnerabilities(self, fullpath, source, scan_name, min_critical, dns_resolv = False):
         #parsing of the qualys vulnerabilities schema
         #parse json
         vulnerabilities = []
@@ -1044,8 +1104,12 @@ class vulnWhispererJIRA(vulnWhispererBase):
         risks = ['info', 'low', 'medium', 'high', 'critical'] 
         # +1 as array is 0-4, but score is 1-5
         min_risk = int([i for i,x in enumerate(risks) if x == min_critical][0])+1
-
-        data=[json.loads(line) for line in open(fullpath).readlines()] 
+        
+        try:
+            data=[json.loads(line) for line in open(fullpath).readlines()] 
+        except Exception as e:
+            self.logger.warn("Scan has no vulnerabilities, skipping.")
+            return vulnerabilities
        
         #qualys fields we want - []
         for index in range(len(data)):
@@ -1069,7 +1133,7 @@ class vulnWhispererJIRA(vulnWhispererBase):
                 vuln['ips'] = []
                 #TODO ADDED DNS RESOLUTION FROM QUALYS! \n SEPARATORS INSTEAD OF \\n!
                 
-                vuln['ips'].append("{ip} - {protocol}/{port} - {dns}".format(**self.get_asset_fields(data[index])))
+                vuln['ips'].append("{ip} - {protocol}/{port} - {dns}".format(**self.get_asset_fields(data[index], dns_resolv)))
 
                 #different risk system than Nessus!
                 vuln['risk'] = risks[int(data[index]['risk'])-1]
@@ -1084,31 +1148,32 @@ class vulnWhispererJIRA(vulnWhispererBase):
                 # grouping assets by vulnerability to open on single ticket, as each asset has its own nessus entry
                 for vuln in vulnerabilities:
                     if vuln['title'] == data[index]['plugin_name']:
-                        vuln['ips'].append("{ip} - {protocol}/{port} - {dns}".format(**self.get_asset_fields(data[index])))
+                        vuln['ips'].append("{ip} - {protocol}/{port} - {dns}".format(**self.get_asset_fields(data[index], dns_resolv)))
 
         return vulnerabilities
 
-    def get_asset_fields(self, vuln):
+    def get_asset_fields(self, vuln, dns_resolv):
         values = {}
         values['ip'] = vuln['ip']
         values['protocol'] = vuln['protocol'] 
         values['port'] = vuln['port'] 
         values['dns'] = ''
-        if vuln['dns']:
-            values['dns'] = vuln['dns']
-        else:
-            if values['ip'] in self.host_resolv_cache.keys():
-                self.logger.debug("Hostname from {ip} cached, retrieving from cache.".format(ip=values['ip']))
-                values['dns'] = self.host_resolv_cache[values['ip']]
+        if dns_resolv:
+            if vuln['dns']:
+                values['dns'] = vuln['dns']
             else:
-                self.logger.debug("No hostname, trying to resolve {ip}'s  hostname.".format(ip=values['ip']))
-                try:
-                    values['dns'] = socket.gethostbyaddr(vuln['ip'])[0]
-                    self.host_resolv_cache[values['ip']] = values['dns']
-                    self.logger.debug("Hostname found: {hostname}.".format(hostname=values['dns']))
-                except:
-                    self.host_resolv_cache[values['ip']] = ''
-                    self.logger.debug("Hostname not found for: {ip}.".format(ip=values['ip']))
+                if values['ip'] in self.host_resolv_cache.keys():
+                    self.logger.debug("Hostname from {ip} cached, retrieving from cache.".format(ip=values['ip']))
+                    values['dns'] = self.host_resolv_cache[values['ip']]
+                else:
+                    self.logger.debug("No hostname, trying to resolve {ip}'s  hostname.".format(ip=values['ip']))
+                    try:
+                        values['dns'] = socket.gethostbyaddr(vuln['ip'])[0]
+                        self.host_resolv_cache[values['ip']] = values['dns']
+                        self.logger.debug("Hostname found: {hostname}.".format(hostname=values['dns']))
+                    except:
+                        self.host_resolv_cache[values['ip']] = ''
+                        self.logger.debug("Hostname not found for: {ip}.".format(ip=values['ip']))
 
         for key in values.keys():
             if not values[key]:
@@ -1126,7 +1191,11 @@ class vulnWhispererJIRA(vulnWhispererBase):
     def jira_sync(self, source, scan_name):
         self.logger.info("Jira Sync triggered for source '{source}' and scan '{scan_name}'".format(source=source, scan_name=scan_name))
 
-        project, components, fullpath, min_critical = self.get_env_variables(source, scan_name)
+        project, components, fullpath, min_critical, dns_resolv = self.get_env_variables(source, scan_name)
+
+        if not project:
+            self.logger.debug("Skipping scan for source '{source}' and scan '{scan_name}': vulnerabilities have already been reported.".format(source=source, scan_name=scan_name))
+            return False
 
         vulnerabilities = []
 
@@ -1136,7 +1205,7 @@ class vulnWhispererJIRA(vulnWhispererBase):
 
         #***Qualys VM parsing***
         if source == "qualys_vuln":
-            vulnerabilities = self.parse_qualys_vuln_vulnerabilities(fullpath, source, scan_name, min_critical)
+            vulnerabilities = self.parse_qualys_vuln_vulnerabilities(fullpath, source, scan_name, min_critical, dns_resolv)
         
         #***JIRA sync***
         if vulnerabilities:
@@ -1145,9 +1214,11 @@ class vulnWhispererJIRA(vulnWhispererBase):
             
             self.jira.sync(vulnerabilities, project, components)
         else:
-            self.logger.info("Vulnerabilities from {source} has not been parsed! Exiting...".format(source=source))
-            sys.exit(0)
+            self.logger.info("[{source}.{scan_name}] No vulnerabilities or vulnerabilities not parsed.".format(source=source, scan_name=scan_name))
+            self.set_latest_scan_reported(fullpath.split("/")[-1])
+            return False
 
+        self.set_latest_scan_reported(fullpath.split("/")[-1])
         return True
 
     def sync_all(self):
@@ -1180,6 +1251,7 @@ class vulnWhisperer(object):
         self.verbose = verbose
         self.source = source
         self.scanname = scanname
+        self.exit_code = 0
 
 
     def whisper_vulnerabilities(self):
@@ -1190,15 +1262,15 @@ class vulnWhisperer(object):
                                      password=self.password,
                                      verbose=self.verbose,
                                      profile=self.profile)
-            vw.whisper_nessus()
+            self.exit_code += vw.whisper_nessus()
 
         elif self.profile == 'qualys_web':
             vw = vulnWhispererQualys(config=self.config)
-            vw.process_web_assets()
+            self.exit_code += vw.process_web_assets()
 
         elif self.profile == 'openvas':
             vw_openvas = vulnWhispererOpenVAS(config=self.config)
-            vw_openvas.process_openvas_scans()
+            self.exit_code += vw_openvas.process_openvas_scans()
 
         elif self.profile == 'tenable':
             vw = vulnWhispererNessus(config=self.config,
@@ -1206,11 +1278,11 @@ class vulnWhisperer(object):
                                      password=self.password,
                                      verbose=self.verbose,
                                      profile=self.profile)
-            vw.whisper_nessus()
+            self.exit_code += vw.whisper_nessus()
 
         elif self.profile == 'qualys_vuln':
             vw = vulnWhispererQualysVuln(config=self.config)
-            vw.process_vuln_scans()
+            self.exit_code += vw.process_vuln_scans()
         
         elif self.profile == 'jira':
             #first we check config fields are created, otherwise we create them
@@ -1224,3 +1296,5 @@ class vulnWhisperer(object):
                     return 0
             else:
                 vw.jira_sync(self.source, self.scanname)
+
+        return self.exit_code

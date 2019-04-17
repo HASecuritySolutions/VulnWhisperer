@@ -5,16 +5,19 @@ __author__ = 'Austin Taylor'
 
 from vulnwhisp.vulnwhisp import vulnWhisperer
 from vulnwhisp.base.config import vwConfig
+from vulnwhisp.test.mock import mockAPI
 import os
 import argparse
 import sys
 import logging
+
 
 def isFileValid(parser, arg):
     if not os.path.exists(arg):
         parser.error("The file %s does not exist!" % arg)
     else:
         return arg
+
 
 def main():
 
@@ -30,46 +33,64 @@ def main():
                         help='JIRA required only! Scan name from scan to report')
     parser.add_argument('-v', '--verbose', dest='verbose', action='store_true', default=True,
                         help='Prints status out to screen (defaults to True)')
-    parser.add_argument('-u', '--username', dest='username', required=False, default=None, type=lambda x: x.strip(), help='The NESSUS username')
-    parser.add_argument('-p', '--password', dest='password', required=False, default=None, type=lambda x: x.strip(), help='The NESSUS password')
-    parser.add_argument('-F', '--fancy', action='store_true', help='Enable colourful logging output')
-    parser.add_argument('-d', '--debug', action='store_true', help='Enable debugging messages')
+    parser.add_argument('-u', '--username', dest='username', required=False, default=None,
+                        help='The NESSUS username', type=lambda x: x.strip())
+    parser.add_argument('-p', '--password', dest='password', required=False, default=None,
+                        help='The NESSUS password', type=lambda x: x.strip())
+    parser.add_argument('-F', '--fancy', action='store_true',
+                        help='Enable colourful logging output')
+    parser.add_argument('-d', '--debug', action='store_true',
+                        help='Enable debugging messages')
+    parser.add_argument('--mock', action='store_true',
+                        help='Enable mocked API responses')
+    parser.add_argument('--mock_dir', dest='mock_dir', required=False, default=None,
+                        help='Path of test directory')
     args = parser.parse_args()
 
     # First setup logging
     logging.basicConfig(
         stream=sys.stdout,
+        #format only applies when not using -F flag for colouring
+        format='%(levelname)s:%(name)s:%(funcName)s:%(message)s',
         level=logging.DEBUG if args.debug else logging.INFO
     )
-    logger = logging.getLogger(name='main')
+    logger = logging.getLogger()
+    # we set up the logger to log as well to file
+    fh = logging.FileHandler('vulnwhisperer.log')
+    fh.setLevel(logging.DEBUG if args.debug else logging.INFO)
+    fh.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(name)s - %(funcName)s:%(message)s", "%Y-%m-%d %H:%M:%S"))
+    logger.addHandler(fh)
+
     if args.fancy:
         import coloredlogs
         coloredlogs.install(level='DEBUG' if args.debug else 'INFO')
 
+    if args.mock:
+        mock_api = mockAPI(args.mock_dir, args.verbose)
+        mock_api.mock_endpoints()
+
+    exit_code = 0
+
     try:
         if args.config and not args.section:
-	    
             # this remains a print since we are in the main binary
             print('WARNING: {warning}'.format(warning='No section was specified, vulnwhisperer will scrape enabled modules from config file. \
-						    \nPlease specify a section using -s. \
+                            \nPlease specify a section using -s. \
                                                     \nExample vuln_whisperer -c config.ini -s nessus'))
             logger.info('No section was specified, vulnwhisperer will scrape enabled modules from the config file.')
-	    config = vwConfig(config_in=args.config)
-	    enabled_sections = config.get_sections_with_attribute('enabled')
-		
-	    for section in enabled_sections:
-		vw = vulnWhisperer(config=args.config,
-                               profile=section,
-                               verbose=args.verbose,
-                               username=args.username,
-                               password=args.password,
-                               source=args.source,
-                               scanname=args.scanname)
+            
+            config = vwConfig(config_in=args.config)
+            enabled_sections = config.get_sections_with_attribute('enabled')
 
-            	vw.whisper_vulnerabilities()
-            # TODO: fix this to NOT be exit 1 unless in error
-	    sys.exit(1)
-
+            for section in enabled_sections:
+                vw = vulnWhisperer(config=args.config,
+                                   profile=section,
+                                   verbose=args.verbose,
+                                   username=args.username,
+                                   password=args.password,
+                                   source=args.source,
+                                   scanname=args.scanname)
+                exit_code += vw.whisper_vulnerabilities()
         else:
             logger.info('Running vulnwhisperer for section {}'.format(args.section))
             vw = vulnWhisperer(config=args.config,
@@ -79,10 +100,10 @@ def main():
                                password=args.password,
                                source=args.source,
                                scanname=args.scanname)
+            exit_code += vw.whisper_vulnerabilities()
 
-            vw.whisper_vulnerabilities()
-            # TODO: fix this to NOT be exit 1 unless in error
-            sys.exit(1)
+        close_logging_handlers(logger)
+        sys.exit(exit_code)
 
     except Exception as e:
         if args.verbose:
@@ -90,8 +111,15 @@ def main():
             logger.error('{}'.format(str(e)))
             print('ERROR: {error}'.format(error=e))
         # TODO: fix this to NOT be exit 2 unless in error
+        close_logging_handlers(logger)
         sys.exit(2)
 
+    close_logging_handlers(logger)
+
+def close_logging_handlers(logger):
+    for handler in logger.handlers:
+        handler.close()
+        logger.removeFilter(handler)
 
 if __name__ == '__main__':
     main()

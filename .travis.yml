@@ -3,12 +3,22 @@ language: python
 cache: pip
 python:
     - 2.7
+env:
+    - TEST_PATH=tests/data
 
+services:
+  - docker
 #    - 3.6
 #matrix:
 #    allow_failures:
 #        - python: 3.6 - Commenting out testing for Python 3.6 until ready
 
+before_install:
+    - mkdir -p ./data/esdata1
+    - mkdir -p ./data/es_snapshots
+    - sudo chown -R 1000:1000 ./data/es*
+    - docker build -t vulnwhisperer-local .
+    - docker-compose -f docker-compose-test.yml up -d
 install:
     - pip install -r requirements.txt
     - pip install flake8  # pytest  # add another testing frameworks later
@@ -18,7 +28,9 @@ before_script:
     # exit-zero treats all errors as warnings.  The GitHub editor is 127 chars wide
     - flake8 . --count --exit-zero --exclude=deps/qualysapi --max-complexity=10 --max-line-length=127 --statistics
 script:
-    - true  # pytest --capture=sys  # add other tests here
+    - python setup.py install
+    - bash tests/test-vuln_whisperer.sh
+    - bash tests/test-docker.sh
 notifications:
     on_success: change
     on_failure: change  # `always` will be the setting once code changes slow down

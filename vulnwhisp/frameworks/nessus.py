@@ -1,17 +1,14 @@
-import requests
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
-requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-
-import pytz
-from datetime import datetime
 import json
+import logging
 import sys
 import time
-import logging
+from datetime import datetime
 
+import pytz
+import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
-requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
 class NessusAPI(object):
@@ -39,7 +36,10 @@ class NessusAPI(object):
         self.base = 'https://{hostname}:{port}'.format(hostname=hostname, port=port)
         self.verbose = verbose
 
-        self.headers = {
+        self.session = requests.Session()
+        self.session.verify = False
+        self.session.stream = True
+        self.session.headers = {
             'Origin': self.base,
             'Accept-Encoding': 'gzip, deflate, br',
             'Accept-Language': 'en-US,en;q=0.8',
@@ -53,30 +53,28 @@ class NessusAPI(object):
         }
 
         self.login()
+        self.scans = self.get_scans()
         self.scan_ids = self.get_scan_ids()
 
     def login(self):
-        resp = self.get_token()
-        if resp.status_code is 200:
-            self.headers['X-Cookie'] = 'token={token}'.format(token=resp.json()['token'])
+        auth = '{"username":"%s", "password":"%s"}' % (self.user, self.password)
+        resp = self.request(self.SESSION, data=auth, json_output=False)
+        if resp.status_code == 200:
+            self.session.headers['X-Cookie'] = 'token={token}'.format(token=resp.json()['token'])
         else:
             raise Exception('[FAIL] Could not login to Nessus')
 
-    def request(self, url, data=None, headers=None, method='POST', download=False, json=False):
-        if headers is None:
-            headers = self.headers
+    def request(self, url, data=None, headers=None, method='POST', download=False, json_output=False):
         timeout = 0
         success = False
-
+        
+        method = method.lower()
         url = self.base + url
         self.logger.debug('Requesting to url {}'.format(url))
-        methods = {'GET': requests.get,
-                   'POST': requests.post,
-                   'DELETE': requests.delete}
 
         while (timeout <= 10) and (not success):
-            data = methods[method](url, data=data, headers=self.headers, verify=False)
-            if data.status_code == 401:
+            response = getattr(self.session, method)(url, data=data)
+            if response.status_code == 401:
                 if url == self.base + self.SESSION:
                     break
                 try:
@@ -88,78 +86,35 @@ class NessusAPI(object):
             else:
                 success = True
 
-        if json:
-            data = data.json()
+        if json_output:
+            return response.json()
         if download:
             self.logger.debug('Returning data.content')
-            return data.content
-        return data
-
-    def get_token(self):
-        auth = '{"username":"%s", "password":"%s"}' % (self.user, self.password)
-        token = self.request(self.SESSION, data=auth, json=False)
-        return token
-
-    def logout(self):
-        self.logger.debug('Logging out')
-        self.request(self.SESSION, method='DELETE')
-
-    def get_folders(self):
-        folders = self.request(self.FOLDERS, method='GET', json=True)
-        return folders
+            response_data = ''
+            count = 0
+            for chunk in response.iter_content(chunk_size=8192):
+                count += 1
+                if chunk:
+                    response_data += chunk
+            self.logger.debug('Processed {} chunks'.format(count))
+            return response_data
+        return response
 
     def get_scans(self):
-        scans = self.request(self.SCANS, method='GET', json=True)
+        scans = self.request(self.SCANS, method='GET', json_output=True)
         return scans
 
     def get_scan_ids(self):
-        scans = self.get_scans()
+        scans = self.scans
         scan_ids = [scan_id['id'] for scan_id in scans['scans']] if scans['scans'] else []
         self.logger.debug('Found {} scan_ids'.format(len(scan_ids)))
         return scan_ids
 
-    def count_scan(self, scans, folder_id):
-        count = 0
-        for scan in scans:
-            if scan['folder_id'] == folder_id: count = count + 1
-        return count
-
-    def print_scans(self, data):
-        for folder in data['folders']:
-            self.logger.info("\\{0} - ({1})\\".format(folder['name'], self.count_scan(data['scans'], folder['id'])))
-            for scan in data['scans']:
-                if scan['folder_id'] == folder['id']:
-                    self.logger.info("\t\"{0}\" - sid:{1} - uuid: {2}".format(scan['name'].encode('utf-8'), scan['id'], scan['uuid']))
-
-    def get_scan_details(self, scan_id):
-        data = self.request(self.SCAN_ID.format(scan_id=scan_id), method='GET', json=True)
-        return data
-
     def get_scan_history(self, scan_id):
-        data = self.request(self.SCAN_ID.format(scan_id=scan_id), method='GET', json=True)
+        data = self.request(self.SCAN_ID.format(scan_id=scan_id), method='GET', json_output=True)
         return data['history']
 
-    def get_scan_hosts(self, scan_id):
-        data = self.request(self.SCAN_ID.format(scan_id=scan_id), method='GET', json=True)
-        return data['hosts']
-
-    def get_host_vulnerabilities(self, scan_id, host_id):
-        query = self.HOST_VULN.format(scan_id=scan_id, host_id=host_id)
-        data = self.request(query, method='GET', json=True)
-        return data
-
-    def get_plugin_info(self, scan_id, host_id, plugin_id):
-        query = self.PLUGINS.format(scan_id=scan_id, host_id=host_id, plugin_id=plugin_id)
-        data = self.request(query, method='GET', json=True)
-        return data
-
-    def export_scan(self, scan_id, history_id):
-        data = {'format': 'csv'}
-        query = self.EXPORT_REPORT.format(scan_id=scan_id, history_id=history_id)
-        req = self.request(query, data=data, method='POST')
-        return req
-
-    def download_scan(self, scan_id=None, history=None, export_format="", chapters="", dbpasswd="", profile=""):
+    def download_scan(self, scan_id=None, history=None, export_format="", profile=""):
         running = True
         counter = 0
 
@@ -169,7 +124,7 @@ class NessusAPI(object):
         else:
             query = self.EXPORT_HISTORY.format(scan_id=scan_id, history_id=history)
             scan_id = str(scan_id)
-        req = self.request(query, data=json.dumps(data), method='POST', json=True)
+        req = self.request(query, data=json.dumps(data), method='POST', json_output=True)
         try:
             file_id = req['file']
             token_id = req['token'] if 'token' in req else req['temp_token']
@@ -180,7 +135,7 @@ class NessusAPI(object):
             time.sleep(2)
             counter += 2
             report_status = self.request(self.EXPORT_STATUS.format(scan_id=scan_id, file_id=file_id), method='GET',
-                                         json=True)
+                                         json_output=True)
             running = report_status['status'] != 'ready'
             sys.stdout.write(".")
             sys.stdout.flush()
@@ -188,22 +143,11 @@ class NessusAPI(object):
             if counter % 60 == 0:
                 self.logger.info("Completed: {}".format(counter))
         self.logger.info("Done: {}".format(counter))
-        if profile=='tenable':
+        if profile == 'tenable':
             content = self.request(self.EXPORT_FILE_DOWNLOAD.format(scan_id=scan_id, file_id=file_id), method='GET', download=True)
         else:
             content = self.request(self.EXPORT_TOKEN_DOWNLOAD.format(token_id=token_id), method='GET', download=True)
         return content
-
-    @staticmethod
-    def merge_dicts(self, *dict_args):
-        """
-        Given any number of dicts, shallow copy and merge into a new dict,
-        precedence goes to key value pairs in latter dicts.
-        """
-        result = {}
-        for dictionary in dict_args:
-            result.update(dictionary)
-        return result
 
     def get_utc_from_local(self, date_time, local_tz=None, epoch=True):
         date_time = datetime.fromtimestamp(date_time)

@@ -21,7 +21,7 @@ services:
       - 9200:9200
     environment:
       - xpack.security.enabled=false
-    restart: always
+    #restart: always
     networks:
       esnet:
         aliases:

@@ -42,43 +42,48 @@ class qualysWhisperAPI(object):
         except Exception as e:
             self.logger.error('Could not connect to Qualys: {}'.format(str(e)))
         self.headers = {
-            "content-type": "text/xml"}
-        self.config_parse = qcconf.QualysConnectConfig(config)
+            #"content-type": "text/xml"}
+            "Accept" : "application/json",
+            "Content-Type": "application/json"}
+        self.config_parse = qcconf.QualysConnectConfig(config, 'qualys_web')
         try:
             self.template_id = self.config_parse.get_template_id()
         except:
             self.logger.error('Could not retrieve template ID')
 
-    def request(self, path, method='get', data=None):
-        methods = {'get': requests.get,
-                   'post': requests.post}
-        base = 'https://' + self.qgc.server + path
-        req = methods[method](base, auth=self.qgc.auth, data=data, headers=self.headers).content
-        return req
-
-    def get_version(self):
-        return self.request(self.VERSION)
-
-    def get_scan_count(self, scan_name):
-        parameters = (
-            E.ServiceRequest(
-                E.filters(
-                    E.Criteria({'field': 'name', 'operator': 'CONTAINS'}, scan_name))))
-        xml_output = self.qgc.request(self.COUNT_WEBAPP, parameters)
-        root = objectify.fromstring(xml_output)
-        return root.count.text
+    ####
+    #### GET SCANS TO PROCESS
+    ####
 
     def get_was_scan_count(self, status):
+        """
+        Checks number of scans, used to control the api limits
+        """
         parameters = (
             E.ServiceRequest(
                 E.filters(
                     E.Criteria({'field': 'status', 'operator': 'EQUALS'}, status))))
         xml_output = self.qgc.request(self.COUNT_WASSCAN, parameters)
-        root = objectify.fromstring(xml_output)
+        root = objectify.fromstring(xml_output.encode('utf-8'))
         return root.count.text
 
-    def get_reports(self):
-        return self.qgc.request(self.SEARCH_REPORTS)
+    def generate_scan_result_XML(self, limit=1000, offset=1, status='FINISHED'):
+        report_xml = E.ServiceRequest(
+            E.filters(
+                E.Criteria({'field': 'status', 'operator': 'EQUALS'}, status
+                           ),
+            ),
+            E.preferences(
+                E.startFromOffset(str(offset)),
+                E.limitResults(str(limit))
+            ),
+        )
+        return report_xml
+
+    def get_scan_info(self, limit=1000, offset=1, status='FINISHED'):
+        """ Returns XML of ALL WAS Scans"""
+        data = self.generate_scan_result_XML(limit=limit, offset=offset, status=status)
+        return self.qgc.request(self.SEARCH_WAS_SCAN, data)
 
     def xml_parser(self, xml, dupfield=None):
         all_records = []
@@ -98,54 +103,31 @@ class qualysWhisperAPI(object):
                 all_records.append(record)
         return pd.DataFrame(all_records)
 
-    def get_report_list(self):
-        """Returns a dataframe of reports"""
-        return self.xml_parser(self.get_reports(), dupfield='user_id')
-
-    def get_web_apps(self):
-        """Returns webapps available for account"""
-        return self.qgc.request(self.SEARCH_WEB_APPS)
-
-    def get_web_app_list(self):
-        """Returns dataframe of webapps"""
-        return self.xml_parser(self.get_web_apps(), dupfield='user_id')
-
-    def get_web_app_details(self, was_id):
-        """Get webapp details - use to retrieve app ID tag"""
-        return self.qgc.request(self.GET_WEBAPP_DETAILS.format(was_id=was_id))
-
-    def get_scans_by_app_id(self, app_id):
-        data = self.generate_app_id_scan_XML(app_id)
-        return self.qgc.request(self.SEARCH_WAS_SCAN, data)
-
-    def get_scan_info(self, limit=1000, offset=1, status='FINISHED'):
-        """ Returns XML of ALL WAS Scans"""
-        data = self.generate_scan_result_XML(limit=limit, offset=offset, status=status)
-        return self.qgc.request(self.SEARCH_WAS_SCAN, data)
-
     def get_all_scans(self, limit=1000, offset=1, status='FINISHED'):
         qualys_api_limit = limit
         dataframes = []
         _records = []
-        total = int(self.get_was_scan_count(status=status))
-        self.logger.info('Retrieving information for {} scans'.format(total))
-        for i in range(0, total):
-            if i % limit == 0:
-                if (total - i) < limit:
-                    qualys_api_limit = total - i
-                self.logger.info('Making a request with a limit of {} at offset {}'.format((str(qualys_api_limit), str(i + 1))))
-                scan_info = self.get_scan_info(limit=qualys_api_limit, offset=i + 1, status=status)
-                _records.append(scan_info)
-        self.logger.debug('Converting XML to DataFrame')
-        dataframes = [self.xml_parser(xml) for xml in _records]
+        try:
+            total = int(self.get_was_scan_count(status=status))
+            self.logger.error('Already have WAS scan count')
+            self.logger.info('Retrieving information for {} scans'.format(total))
+            for i in range(0, total):
+                if i % limit == 0:
+                    if (total - i) < limit:
+                        qualys_api_limit = total - i
+                    self.logger.info('Making a request with a limit of {} at offset {}'.format((str(qualys_api_limit)), str(i + 1)))
+                    scan_info = self.get_scan_info(limit=qualys_api_limit, offset=i + 1, status=status)
+                    _records.append(scan_info)
+            self.logger.debug('Converting XML to DataFrame')
+            dataframes = [self.xml_parser(xml) for xml in _records]
+        except Exception as e:
+            self.logger.error("Couldn't process all scans: {}".format(e))
 
         return pd.concat(dataframes, axis=0).reset_index().drop('index', axis=1)
 
-    def get_scan_details(self, scan_id):
-        return self.qgc.request(self.SCAN_DETAILS.format(scan_id=scan_id))
-
-    def get_report_details(self, report_id):
-        return self.qgc.request(self.REPORT_DETAILS.format(report_id=report_id))
+    ####
+    #### CREATE VULNERABILITY REPORT AND DOWNLOAD IT
+    ####
 
     def get_report_status(self, report_id):
         return self.qgc.request(self.REPORT_STATUS.format(report_id=report_id))
@@ -153,30 +135,15 @@ class qualysWhisperAPI(object):
     def download_report(self, report_id):
         return self.qgc.request(self.REPORT_DOWNLOAD.format(report_id=report_id))
 
-    def download_scan_results(self, scan_id):
-        return self.qgc.request(self.SCAN_DOWNLOAD.format(scan_id=scan_id))
-
-    def generate_scan_result_XML(self, limit=1000, offset=1, status='FINISHED'):
-        report_xml = E.ServiceRequest(
-            E.filters(
-                E.Criteria({'field': 'status', 'operator': 'EQUALS'}, status
-                           ),
-            ),
-            E.preferences(
-                E.startFromOffset(str(offset)),
-                E.limitResults(str(limit))
-            ),
-        )
-        return report_xml
-
     def generate_scan_report_XML(self, scan_id):
         """Generates a CSV report for an asset based on template defined in .ini file"""
         report_xml = E.ServiceRequest(
             E.data(
                 E.Report(
-                    E.name('![CDATA[API Scan Report generated by VulnWhisperer]]>'),
+                    E.name('<![CDATA[API Scan Report generated by VulnWhisperer]]>'),
                     E.description('<![CDATA[CSV Scanning report for VulnWhisperer]]>'),
                     E.format('CSV'),
+                    #type is not needed, as the template already has it
                     E.type('WAS_SCAN_REPORT'),
                     E.template(
                         E.id(self.template_id)
@@ -197,51 +164,13 @@ class qualysWhisperAPI(object):
         )
         return report_xml
 
-    def generate_webapp_report_XML(self, app_id):
-        """Generates a CSV report for an asset based on template defined in .ini file"""
-        report_xml = E.ServiceRequest(
-            E.data(
-                E.Report(
-                    E.name('![CDATA[API Web Application Report generated by VulnWhisperer]]>'),
-                    E.description('<![CDATA[CSV WebApp report for VulnWhisperer]]>'),
-                    E.format('CSV'),
-                    E.template(
-                        E.id(self.template_id)
-                    ),
-                    E.config(
-                        E.webAppReport(
-                            E.target(
-                                E.webapps(
-                                    E.WebApp(
-                                        E.id(app_id)
-                                    )
-                                ),
-                            ),
-                        ),
-                    )
-                )
-            )
-        )
-        return report_xml
-
-    def generate_app_id_scan_XML(self, app_id):
-        report_xml = E.ServiceRequest(
-            E.filters(
-                E.Criteria({'field': 'webApp.id', 'operator': 'EQUALS'}, app_id
-                           ),
-            ),
-        )
-        return report_xml
-
     def create_report(self, report_id, kind='scan'):
-        mapper = {'scan': self.generate_scan_report_XML,
-                  'webapp': self.generate_webapp_report_XML}
+        mapper = {'scan': self.generate_scan_report_XML}
         try:
             data = mapper[kind](report_id)
         except Exception as e:
             self.logger.error('Error creating report: {}'.format(str(e)))
-
-        return self.qgc.request(self.REPORT_CREATE, data)
+        return self.qgc.request(self.REPORT_CREATE, data).encode('utf-8')
 
     def delete_report(self, report_id):
         return self.qgc.request(self.DELETE_REPORT.format(report_id=report_id))
@@ -358,237 +287,6 @@ class qualysUtils:
         if _data:
             _data = reduce(lambda a, kv: a.replace(*kv), repls, str(_data))
         return _data
-
-
-class qualysWebAppReport:
-    # URL Vulnerability Information
-    WEB_APP_VULN_BLOCK = list(qualysReportFields.VULN_BLOCK)
-    WEB_APP_VULN_BLOCK.insert(0, 'Web Application Name')
-    WEB_APP_VULN_BLOCK.insert(WEB_APP_VULN_BLOCK.index('Ignored'), 'Status')
-
-    WEB_APP_VULN_HEADER = list(WEB_APP_VULN_BLOCK)
-    WEB_APP_VULN_HEADER[WEB_APP_VULN_BLOCK.index(qualysReportFields.CATEGORIES[0])] = \
-        'Vulnerability Category'
-
-    WEB_APP_SENSITIVE_HEADER = list(WEB_APP_VULN_HEADER)
-    WEB_APP_SENSITIVE_HEADER.insert(WEB_APP_SENSITIVE_HEADER.index('Url'
-                                                                   ), 'Content')
-
-    WEB_APP_SENSITIVE_BLOCK = list(WEB_APP_SENSITIVE_HEADER)
-    WEB_APP_SENSITIVE_BLOCK[WEB_APP_SENSITIVE_BLOCK.index('Vulnerability Category'
-                                                          )] = qualysReportFields.CATEGORIES[1]
-
-    WEB_APP_INFO_HEADER = list(qualysReportFields.INFO_HEADER)
-    WEB_APP_INFO_HEADER.insert(0, 'Web Application Name')
-
-    WEB_APP_INFO_BLOCK = list(qualysReportFields.INFO_BLOCK)
-    WEB_APP_INFO_BLOCK.insert(0, 'Web Application Name')
-
-    QID_HEADER = list(qualysReportFields.QID_HEADER)
-    GROUP_HEADER = list(qualysReportFields.GROUP_HEADER)
-    OWASP_HEADER = list(qualysReportFields.OWASP_HEADER)
-    WASC_HEADER = list(qualysReportFields.WASC_HEADER)
-    SCAN_META = list(qualysReportFields.SCAN_META)
-    CATEGORY_HEADER = list(qualysReportFields.CATEGORY_HEADER)
-
-    def __init__(
-            self,
-            config=None,
-            file_in=None,
-            file_stream=False,
-            delimiter=',',
-            quotechar='"',
-    ):
-        self.logger = logging.getLogger('qualysWebAppReport')
-        self.file_in = file_in
-        self.file_stream = file_stream
-        self.report = None
-        self.utils = qualysUtils()
-
-        if config:
-            try:
-                self.qw = qualysWhisperAPI(config=config)
-            except Exception as e:
-                self.logger.error('Could not load config! Please check settings. Error: {}'.format(str(e)))
-
-        if file_stream:
-            self.open_file = file_in.splitlines()
-        elif file_in:
-
-            self.open_file = open(file_in, 'rb')
-
-        self.downloaded_file = None
-
-    def get_hostname(self, report):
-        host = ''
-        with open(report, 'rb') as csvfile:
-            q_report = csv.reader(csvfile, delimiter=',', quotechar='"')
-            for x in q_report:
-
-                if 'Web Application Name' in x[0]:
-                    host = q_report.next()[0]
-        return host
-
-    def get_scanreport_name(self, report):
-        scan_name = ''
-        with open(report, 'rb') as csvfile:
-            q_report = csv.reader(csvfile, delimiter=',', quotechar='"')
-            for x in q_report:
-
-                if 'Scans' in x[0]:
-                    scan_name = x[1]
-        return scan_name
-
-    def grab_sections(self, report):
-        all_dataframes = []
-        dict_tracker = {}
-        with open(report, 'rb') as csvfile:
-            dict_tracker['WEB_APP_VULN_BLOCK'] = pd.DataFrame(self.utils.grab_section(report,
-                                                                       self.WEB_APP_VULN_BLOCK,
-                                                                       end=[self.WEB_APP_SENSITIVE_BLOCK,
-                                                                            self.WEB_APP_INFO_BLOCK],
-                                                                       pop_last=True), columns=self.WEB_APP_VULN_HEADER)
-            dict_tracker['WEB_APP_SENSITIVE_BLOCK'] = pd.DataFrame(self.utils.grab_section(report,
-                                                                       self.WEB_APP_SENSITIVE_BLOCK,
-                                                                       end=[self.WEB_APP_INFO_BLOCK,
-                                                                            self.WEB_APP_SENSITIVE_BLOCK],
-                                                                       pop_last=True), columns=self.WEB_APP_SENSITIVE_HEADER)
-            dict_tracker['WEB_APP_INFO_BLOCK'] = pd.DataFrame(self.utils.grab_section(report,
-                                                                       self.WEB_APP_INFO_BLOCK,
-                                                                       end=[self.QID_HEADER],
-                                                                       pop_last=True), columns=self.WEB_APP_INFO_HEADER)
-            dict_tracker['QID_HEADER'] = pd.DataFrame(self.utils.grab_section(report,
-                                                                       self.QID_HEADER,
-                                                                       end=[self.GROUP_HEADER],
-                                                                       pop_last=True), columns=self.QID_HEADER)
-            dict_tracker['GROUP_HEADER'] = pd.DataFrame(self.utils.grab_section(report,
-                                                                       self.GROUP_HEADER,
-                                                                       end=[self.OWASP_HEADER],
-                                                                       pop_last=True), columns=self.GROUP_HEADER)
-            dict_tracker['OWASP_HEADER'] = pd.DataFrame(self.utils.grab_section(report,
-                                                                       self.OWASP_HEADER,
-                                                                       end=[self.WASC_HEADER],
-                                                                       pop_last=True), columns=self.OWASP_HEADER)
-            dict_tracker['WASC_HEADER'] = pd.DataFrame(self.utils.grab_section(report,
-                                                                       self.WASC_HEADER, end=[['APPENDIX']],
-                                                                       pop_last=True), columns=self.WASC_HEADER)
-            dict_tracker['CATEGORY_HEADER'] =pd.DataFrame(self.utils.grab_section(report,
-                                                                       self.CATEGORY_HEADER), columns=self.CATEGORY_HEADER)
-            all_dataframes.append(dict_tracker)
-
-        return all_dataframes
-
-    def data_normalizer(self, dataframes):
-        """
-        Merge and clean data
-        :param dataframes:
-        :return:
-        """
-        df_dict = dataframes[0]
-        merged_df = pd.concat([df_dict['WEB_APP_VULN_BLOCK'], df_dict['WEB_APP_SENSITIVE_BLOCK'],
-                               df_dict['WEB_APP_INFO_BLOCK']], axis=0,
-                              ignore_index=False)
-
-        merged_df = pd.merge(merged_df, df_dict['QID_HEADER'], left_on='QID',
-                             right_on='Id')
-
-        merged_df = pd.concat([dataframes[0], dataframes[1],
-                               dataframes[2]], axis=0,
-                              ignore_index=False)
-        merged_df = pd.merge(merged_df, dataframes[3], left_on='QID',
-                             right_on='Id')
-
-        if 'Content' not in merged_df:
-            merged_df['Content'] = ''
-
-        columns_to_cleanse = ['Payload #1', 'Request Method #1', 'Request URL #1',
-                              'Request Headers #1', 'Response #1', 'Evidence #1',
-                              'Description', 'Impact', 'Solution', 'Url', 'Content']
-
-        for col in columns_to_cleanse:
-            merged_df[col] = merged_df[col].astype(str).apply(self.utils.cleanser)
-
-        merged_df = pd.merge(merged_df, df_dict['CATEGORY_HEADER'])
-        merged_df = merged_df.drop(['QID_y', 'QID_x'], axis=1)
-        merged_df = merged_df.rename(columns={'Id': 'QID'})
-        merged_df = merged_df.replace('N/A','').fillna('')
-
-        try:
-            merged_df = \
-                merged_df[~merged_df.Title.str.contains('Links Crawled|External Links Discovered'
-                                                        )]
-        except Exception as e:
-            self.logger.error('Error merging df: {}'.format(str(e)))
-        return merged_df
-
-    def download_file(self, file_id):
-        report = self.qw.download_report(file_id)
-        filename = str(file_id) + '.csv'
-        file_out = open(filename, 'w')
-        for line in report.splitlines():
-            file_out.write(line + '\n')
-        file_out.close()
-        self.logger.info('File written to {}'.format(filename))
-        return filename
-
-    def remove_file(self, filename):
-        os.remove(filename)
-
-    def process_data(self, file_id, scan=True, cleanup=True):
-        """Downloads a file from qualys and normalizes it"""
-
-        download_file = self.download_file(file_id)
-        self.logger.info('Downloading file ID: {}'.format(file_id))
-        report_data = self.grab_sections(download_file)
-        merged_data = self.data_normalizer(report_data)
-        if scan:
-            scan_name = self.get_scanreport_name(download_file)
-            merged_data['ScanName'] = scan_name
-
-        # TODO cleanup old data (delete)
-
-        return merged_data
-
-    def whisper_reports(self, report_id, updated_date, cleanup=False):
-        """
-        report_id: App ID
-        updated_date: Last time scan was ran for app_id
-        """
-        vuln_ready = None
-        try:
-
-            if 'Z' in updated_date:
-                updated_date = self.utils.iso_to_epoch(updated_date)
-            report_name = 'qualys_web_' + str(report_id) \
-                          + '_{last_updated}'.format(last_updated=updated_date) \
-                          + '.csv'
-            if os.path.isfile(report_name):
-                self.logger.info('File already exists! Skipping...')
-                pass
-            else:
-                self.logger.info('Generating report for {}'.format(report_id))
-                status = self.qw.create_report(report_id)
-                root = objectify.fromstring(status)
-                if root.responseCode == 'SUCCESS':
-                    self.logger.info('Successfully generated report for webapp: {}'.format(report_id))
-                    generated_report_id = root.data.Report.id
-                    self.logger.info('New Report ID: {}'.format(generated_report_id))
-                    vuln_ready = self.process_data(generated_report_id)
-
-                    vuln_ready.to_csv(report_name, index=False, header=True)  # add when timestamp occured
-                    self.logger.info('Report written to {}'.format(report_name))
-                    if cleanup:
-                        self.logger.info('Removing report {}'.format(generated_report_id))
-                        cleaning_up = \
-                            self.qw.delete_report(generated_report_id)
-                        self.remove_file(str(generated_report_id) + '.csv')
-                        self.logger.info('Deleted report: {}'.format(generated_report_id))
-                else:
-                    self.logger.error('Could not process report ID: {}'.format(status))
-        except Exception as e:
-            self.logger.error('Could not process {}: {}'.format(report_id, e))
-        return vuln_ready
-
 
 class qualysScanReport:
     # URL Vulnerability Information
@@ -730,6 +428,7 @@ class qualysScanReport:
 
         merged_df = merged_df.drop(['QID_y', 'QID_x'], axis=1)
         merged_df = merged_df.rename(columns={'Id': 'QID'})
+        
         merged_df = merged_df.assign(**df_dict['SCAN_META'].to_dict(orient='records')[0])
 
         merged_df = pd.merge(merged_df, df_dict['CATEGORY_HEADER'], how='left', left_on=['Category', 'Severity Level'],
@@ -739,8 +438,7 @@ class qualysScanReport:
 
         try:
             merged_df = \
-                merged_df[~merged_df.Title.str.contains('Links Crawled|External Links Discovered'
-                                                        )]
+                merged_df[~merged_df.Title.str.contains('Links Crawled|External Links Discovered')]
         except Exception as e:
             self.logger.error('Error normalizing: {}'.format(str(e)))
         return merged_df
@@ -755,9 +453,6 @@ class qualysScanReport:
         self.logger.info('File written to {}'.format(filename))
         return filename
 
-    def remove_file(self, filename):
-        os.remove(filename)
-
     def process_data(self, path='', file_id=None, cleanup=True):
         """Downloads a file from qualys and normalizes it"""
 
@@ -766,62 +461,5 @@ class qualysScanReport:
         report_data = self.grab_sections(download_file)
         merged_data = self.data_normalizer(report_data)
         merged_data.sort_index(axis=1, inplace=True)
-        # TODO cleanup old data (delete)
 
         return merged_data
-
-    def whisper_reports(self, report_id, updated_date, cleanup=False):
-        """
-        report_id: App ID
-        updated_date: Last time scan was ran for app_id
-        """
-        vuln_ready = None
-        try:
-
-            if 'Z' in updated_date:
-                updated_date = self.utils.iso_to_epoch(updated_date)
-            report_name = 'qualys_web_' + str(report_id) \
-                          + '_{last_updated}'.format(last_updated=updated_date) \
-                          + '.csv'
-            if os.path.isfile(report_name):
-                self.logger.info('File already exist! Skipping...')
-            else:
-                self.logger.info('Generating report for {}'.format(report_id))
-                status = self.qw.create_report(report_id)
-                root = objectify.fromstring(status)
-                if root.responseCode == 'SUCCESS':
-                    self.logger.info('Successfully generated report for webapp: {}'.format(report_id))
-                    generated_report_id = root.data.Report.id
-                    self.logger.info('New Report ID: {}'.format(generated_report_id))
-                    vuln_ready = self.process_data(generated_report_id)
-
-                    vuln_ready.to_csv(report_name, index=False, header=True)  # add when timestamp occured
-                    self.logger.info('Report written to {}'.format(report_name))
-                    if cleanup:
-                        self.logger.info('Removing report {} from disk'.format(generated_report_id))
-                        cleaning_up = \
-                            self.qw.delete_report(generated_report_id)
-                        self.remove_file(str(generated_report_id) + '.csv')
-                        self.logger.info('Deleted report from Qualys Database: {}'.format(generated_report_id))
-                else:
-                    self.logger.error('Could not process report ID: {}'.format(status))
-        except Exception as e:
-            self.logger.error('Could not process {}: {}'.format(report_id, e))
-        return vuln_ready
-
-
-maxInt = int(4000000)
-maxSize = sys.maxsize
-
-if maxSize > maxInt and type(maxSize) == int:
-    maxInt = maxSize
-
-decrement = True
-
-while decrement:
-    decrement = False
-    try:
-        csv.field_size_limit(maxInt)
-    except OverflowError:
-        maxInt = int(maxInt/10)
-        decrement = True

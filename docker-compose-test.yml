@@ -8,6 +8,7 @@ services:
       - bootstrap.memory_lock=true
       - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
       - xpack.security.enabled=false
+      - cluster.routing.allocation.disk.threshold_enabled=false
     ulimits:
       memlock:
         soft: -1
@@ -17,7 +18,8 @@ services:
         hard: 65536
     mem_limit: 8g
     volumes:
-      - esdata1:/usr/share/elasticsearch/data
+      - ./data/esdata1:/usr/share/elasticsearch/data
+      - ./data/es_snapshots:/snapshots
     ports:
       - 9200:9200
     #restart: always
@@ -25,6 +27,7 @@ services:
       esnet:
         aliases:
           - elasticsearch.local
+
   kibana:
     image: docker.elastic.co/kibana/kibana:6.6.0
     container_name: kibana
@@ -39,6 +42,7 @@ services:
       esnet:
         aliases:
           - kibana.local
+
   kibana-config:
     image: alpine
     container_name: kibana-config
@@ -51,36 +55,43 @@ services:
       esnet:
         aliases:
           - kibana-config.local
+
   logstash:
     image: docker.elastic.co/logstash/logstash:6.6.0
     container_name: logstash
     volumes:
       - ./resources/elk6/pipeline/:/usr/share/logstash/pipeline
-      - ./data/:/opt/VulnWhisperer/data
-      #- ./resources/elk6/logstash.yml:/usr/share/logstash/config/logstash.yml
+      - ./data/vulnwhisperer/:/opt/VulnWhisperer/data
+      # - ./resources/elk6/logstash.yml:/usr/share/logstash/config/logstash.yml
     environment:
       - xpack.monitoring.enabled=false
     depends_on:
       - elasticsearch
+    ports:
+      - 9600:9600
     networks:
       esnet:
         aliases:
           - logstash.local
   vulnwhisperer:
-    image: hasecuritysolutions/vulnwhisperer:latest
+    # image: hasecuritysolutions/vulnwhisperer:latest
+    image: vulnwhisperer-local
     container_name: vulnwhisperer
     entrypoint: [
                   "vuln_whisperer",
+                  "-F",
                   "-c",
-                  "/opt/VulnWhisperer/vulnwhisperer.ini"
+                  "/opt/VulnWhisperer/vulnwhisperer.ini",
+                  "--mock",
+                  "--mock_dir",
+                  "/tests/data"
     ]    
     volumes:
-      - ./data/:/opt/VulnWhisperer/data
-      - ./resources/elk6/vulnwhisperer.ini:/opt/VulnWhisperer/vulnwhisperer.ini
+      - ./data/vulnwhisperer/:/opt/VulnWhisperer/data
+      # - ./resources/elk6/vulnwhisperer.ini:/opt/VulnWhisperer/vulnwhisperer.ini
+      - ./configs/test.ini:/opt/VulnWhisperer/vulnwhisperer.ini
+      - ./tests/data/:/tests/data
     network_mode: host
-volumes:
-  esdata1:
-    driver: local
 
 networks:
   esnet:
