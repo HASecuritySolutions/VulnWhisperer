@@ -19,6 +19,8 @@ function yellow() {
 
 return_code=0
 
+TEST_PATH=${TEST_PATH:-"tests/data"}
+
 yellow "\n*********************************************"
 yellow "* Test successful scan download and parsing *"
 yellow "*********************************************"
@@ -89,7 +91,7 @@ else
 fi
 
 # Restore the removed files
-mv" ${TEST_PATH}/qualys_vuln/scan_1553941061.87241.bak" "${TEST_PATH}/qualys_vuln/scan_1553941061.87241"
-mv "${TEST_PATH}/nessus/GET_scans_exports_164_download.bak" "${TEST_PATH}/nessus/GET_scans_exports_164_download.bak"
+mv "${TEST_PATH}/qualys_vuln/scan_1553941061.87241.bak" "${TEST_PATH}/qualys_vuln/scan_1553941061.87241"
+mv "${TEST_PATH}/nessus/GET_scans_exports_164_download.bak" "${TEST_PATH}/nessus/GET_scans_exports_164_download"
 
 exit $return_code
