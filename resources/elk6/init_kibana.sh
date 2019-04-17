@@ -16,11 +16,17 @@ until curl -s "$elasticsearch_url/_cluster/health?pretty" | grep '"status"' | gr
     sleep 5
 done
 
-echo "Loading VulnWhisperer index template"
-if curl -s --fail -XPUT "http://$elasticsearch_url/_template/vulnwhisperer" -H 'Content-Type: application/json' -d '@/opt/index-template.json'; then
-    echo -e "\nVulnWhisperer index template loaded successfully!"
+count=0
+until  curl -s --fail -XPUT "http://$elasticsearch_url/_template/vulnwhisperer" -H 'Content-Type: application/json' -d '@/opt/index-template.json'; do
+    echo "Loading VulnWhisperer index template..."
+    ((count++)) && ((count==60)) && break
+    sleep 1
+done
+
+if [[ count -le 60 && $(curl -s -I http://$elasticsearch_url/_template/vulnwhisperer | head -n1 |cut -d$' ' -f2) == "200" ]]; then
+    echo -e "\n✅ VulnWhisperer index template loaded"
 else
-    echo -e "\nFAILED to load VulnWhisperer index template"
+    echo -e "\n❌ VulnWhisperer index template failed to load"
 fi
 
 until [ "`curl -s -I "$kibana_url"/status | head -n1 |cut -d$' ' -f2`" == "200" ]; do
