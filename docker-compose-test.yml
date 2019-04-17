@@ -18,7 +18,8 @@ services:
         hard: 65536
     mem_limit: 8g
     volumes:
-      - ./docker_data/esdata1:/usr/share/elasticsearch/data
+      - ./data/esdata1:/usr/share/elasticsearch/data
+      - ./data/es_snapshots:/snapshots
     ports:
       - 9200:9200
     #restart: always
@@ -37,8 +38,6 @@ services:
       - 5601:5601
     depends_on:
       - elasticsearch
-    # volumes:
-    #   - ./kibana-data:
     networks:
       esnet:
         aliases:
@@ -50,7 +49,7 @@ services:
     volumes:
       - ./resources/elk6/init_kibana.sh:/opt/init_kibana.sh
       - ./resources/elk6/kibana_APIonly.json:/opt/kibana_APIonly.json
-      - ./docker_data/kibana_optimize:/usr/share/kibana/optimize
+      - ./resources/elk6/logstash-vulnwhisperer-template.json:/opt/index-template.json
     command: sh -c "apk add --no-cache curl bash && chmod +x /opt/init_kibana.sh && chmod +r /opt/kibana_APIonly.json && cd /opt/ && /bin/bash /opt/init_kibana.sh" # /opt/kibana_APIonly.json"
     networks:
       esnet:
@@ -62,21 +61,25 @@ services:
     container_name: logstash
     volumes:
       - ./resources/elk6/pipeline/:/usr/share/logstash/pipeline
-      - ./docker_data/data/:/opt/VulnWhisperer/data
-      - ./resources/elk6/logstash.yml:/usr/share/logstash/config/logstash.yml
+      - ./data/vulnwhisperer/:/opt/VulnWhisperer/data
+      # - ./resources/elk6/logstash.yml:/usr/share/logstash/config/logstash.yml
     environment:
       - xpack.monitoring.enabled=false
     depends_on:
       - elasticsearch
+    ports:
+      - 9600:9600
     networks:
       esnet:
         aliases:
           - logstash.local
   vulnwhisperer:
-    image: hasecuritysolutions/vulnwhisperer:latest
+    # image: hasecuritysolutions/vulnwhisperer:latest
+    image: vulnwhisperer-local
     container_name: vulnwhisperer
     entrypoint: [
                   "vuln_whisperer",
+                  "-F",
                   "-c",
                   "/opt/VulnWhisperer/vulnwhisperer.ini",
                   "--mock",
@@ -84,8 +87,8 @@ services:
                   "/tests/data"
     ]    
     volumes:
-      # - /opt/VulnWhisperer/data/:/opt/VulnWhisperer/data
-      - ./docker_data/data/:/opt/VulnWhisperer/data
+      - ./data/vulnwhisperer/:/opt/VulnWhisperer/data
+      # - ./resources/elk6/vulnwhisperer.ini:/opt/VulnWhisperer/vulnwhisperer.ini
       - ./configs/test.ini:/opt/VulnWhisperer/vulnwhisperer.ini
       - ./tests/data/:/tests/data
     network_mode: host
