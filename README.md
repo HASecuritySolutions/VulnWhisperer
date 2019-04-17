@@ -40,8 +40,8 @@ Getting Started
 1) Follow the [install requirements](#installreq)
 2) Fill out the section you want to process in <a href="https://github.com/HASecuritySolutions/VulnWhisperer/blob/master/configs/frameworks_example.ini">frameworks_example.ini file</a>
 3) [JIRA] If using Jira, fill Jira config in the config file mentioned above.
-3) [ELK] Modify the IP settings in the <a href="https://github.com/austin-taylor/VulnWhisperer/tree/master/logstash">Logstash files to accommodate your environment</a> and import them to your logstash conf directory (default is /etc/logstash/conf.d/)
-4) [ELK] Import the <a href="https://github.com/austin-taylor/VulnWhisperer/tree/master/kibana/vuln_whisp_kibana">Kibana visualizations</a>
+3) [ELK] Modify the IP settings in the <a href="https://github.com/HASecuritySolutions/VulnWhisperer/tree/master/resources/elk6/pipeline">Logstash files to accommodate your environment</a> and import them to your logstash conf directory (default is /etc/logstash/conf.d/)
+4) [ELK] Import the <a href="https://github.com/HASecuritySolutions/VulnWhisperer/blob/master/resources/elk6/kibana.json">Kibana visualizations</a>
 5) [Run Vulnwhisperer](#run)
 
 Need assistance or just want to chat? Join our [slack channel](https://join.slack.com/t/vulnwhisperer/shared_invite/enQtNDQ5MzE4OTIyODU0LWQxZTcxYTY0MWUwYzA4MTlmMWZlYWY2Y2ZmM2EzNDFmNWVlOTM4MzNjYzI0YzdkMDA0YmQyYWRhZGI2NGUxNGI)
@@ -123,7 +123,7 @@ ELK is a whole world by itself, and for newcomers to the platform, it requires b
 - ElasticSearch 6.6
 - Kibana 6.6
 
-The docker-compose just requires specifying the paths where the VulnWhisperer data will be saved, and where the config files reside. If ran directly after `git clone`, with just adding the Scanner config to the VulnWhisperer config file (/resources/elk6/vulnwhisperer.ini), it will work out of the box.
+The docker-compose just requires specifying the paths where the VulnWhisperer data will be saved, and where the config files reside. If ran directly after `git clone`, with just adding the Scanner config to the VulnWhisperer config file ([/resources/elk6/vulnwhisperer.ini](https://github.com/HASecuritySolutions/VulnWhisperer/blob/master/resources/elk6/vulnwhisperer.ini)), it will work out of the box.
 
 It also takes care to load the Kibana Dashboards and Visualizations automatically through the API, which needs to be done manually otherwise at Kibana's startup.
 
