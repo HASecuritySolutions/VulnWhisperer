@@ -79,7 +79,7 @@ else
     ((return_code = return_code + 1))
 fi
 
-yellow "*********************************************"
+yellow "\n*********************************************"
 yellow "* Test only Qualys VM with one failed scan  *"
 yellow "*********************************************"
 rm -rf /opt/VulnWhisperer/*
