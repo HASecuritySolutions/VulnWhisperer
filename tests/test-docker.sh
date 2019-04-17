@@ -29,21 +29,27 @@ done
 green "✅ Elasticsearch status is green..."
 
 count=0
-until [[ $(curl -s "$logstash_url/_node/stats" | jq '.events.out') == 1236 ]] ; do
-    yellow "Waiting for Logstash load to finish... attempt $count of 30"
-    ((count++)) && ((count!=30)) && break
-    sleep 10
+until [[ $(curl -s "$logstash_url/_node/stats" | jq '.events.out') -ge 1236 ]]; do
+    yellow "Waiting for Logstash load to finish...  $(curl -s "$logstash_url/_node/stats" | jq '.events.out') of 1236 (attempt $count of 60)"
+    ((count++)) && ((count==60)) && break
+    sleep 5
 done
-green "✅ Logstash load finished..."
+
+if [[ count -le 60 && $(curl -s "$logstash_url/_node/stats" | jq '.events.out') -ge 1236 ]]; then
+    green "✅ Logstash load finished..."
+else
+    red "❌ Logstash load didn't complete... $(curl -s "$logstash_url/_node/stats" | jq '.events.out')"
+fi
+
 
 count=0
-until [[ $(curl -s "$elasticsearch_url/logstash-vulnwhisperer-2019.03/_count" | jq '.count') == 1232 ]] ; do
-    yellow "Waiting for Elasticsearch index to sync... $(curl -s "$elasticsearch_url/logstash-vulnwhisperer-2019.03/_count" | jq '.count') of 1232"
+until [[ $(curl -s "$elasticsearch_url/logstash-vulnwhisperer-2019.03/_count" | jq '.count') -ge 1232 ]] ; do
+    yellow "Waiting for Elasticsearch index to sync... $(curl -s "$elasticsearch_url/logstash-vulnwhisperer-2019.03/_count" | jq '.count') of 1232 logs loaded (attempt $count of 150)"
     ((count++)) && ((count==150)) && break
     sleep 2
 done
-if [[ count -le 50 && $(curl -s "$elasticsearch_url/logstash-vulnwhisperer-2019.03/_count" | jq '.count') == 1232 ]]; then
-    green "✅ logstash-vulnwhisperer-2019.03 document count == 1232"
+if [[ count -le 50 && $(curl -s "$elasticsearch_url/logstash-vulnwhisperer-2019.03/_count" | jq '.count') -ge 1232 ]]; then
+    green "✅ logstash-vulnwhisperer-2019.03 document count >= 1232"
 else
     red "❌ TIMED OUT waiting for logstash-vulnwhisperer-2019.03 document count: $(curl -s "$elasticsearch_url/logstash-vulnwhisperer-2019.03/_count" | jq) != 1232"
 fi
@@ -68,7 +74,7 @@ fi
 tenable_doc=$(curl -s "$elasticsearch_url/logstash-vulnwhisperer-2019.03/_search?q=plugin_name:%22Backported%20Security%20Patch%20Detection%20(FTP)%22%20AND%20asset:176.28.50.164%20AND%20tags:tenable" | jq '.hits.hits[]._source')
 # Test asset
 if echo $tenable_doc | jq .asset | grep -q '176.28.50.164'; then
-    green "✅ Passed: Tenable asset == 2019-03-30T10:17:41.000Z"
+    green "✅ Passed: Tenable asset == 176.28.50.164"
 else
     red "❌ Failed: Tenable asset == 176.28.50.164 was: $(echo $tenable_doc | jq .asset) instead"
     ((return_code = return_code + 1))
