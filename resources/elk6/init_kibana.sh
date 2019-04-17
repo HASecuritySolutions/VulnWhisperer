@@ -3,7 +3,7 @@
 #kibana_url="localhost:5601"
 kibana_url="kibana.local:5601"
 elasticsearch_url="elasticsearch.local:9200"
-add_saved_objects="curl -u elastic:changeme -k -XPOST 'http://"$kibana_url"/api/saved_objects/_bulk_create' -H 'Content-Type: application/json' -H \"kbn-xsrf: true\" -d @"
+add_saved_objects="curl -s -u elastic:changeme -k -XPOST 'http://"$kibana_url"/api/saved_objects/_bulk_create' -H 'Content-Type: application/json' -H \"kbn-xsrf: true\" -d @"
 
 #Create all saved objects - including index pattern
 saved_objects_file="kibana_APIonly.json"
@@ -12,16 +12,26 @@ saved_objects_file="kibana_APIonly.json"
 
 until curl -s "$elasticsearch_url/_cluster/health?pretty" | grep '"status"' | grep -qE "green|yellow"; do
     curl -s "$elasticsearch_url/_cluster/health?pretty"
-    echo "Waiting for Elasticsearch"
+    echo "Waiting for Elasticsearch..."
     sleep 5
 done
 
-echo "Loading VulnWhisperer index template"
-curl -XPUT "http://$elasticsearch_url/_template/vulnwhisperer" -H 'Content-Type: application/json' -d '@/opt/index-template.json'
+count=0
+until  curl -s --fail -XPUT "http://$elasticsearch_url/_template/vulnwhisperer" -H 'Content-Type: application/json' -d '@/opt/index-template.json'; do
+    echo "Loading VulnWhisperer index template..."
+    ((count++)) && ((count==60)) && break
+    sleep 1
+done
 
-until [ "`curl -I "$kibana_url"/status | head -n1 |cut -d$' ' -f2`" == "200" ]; do
-    curl -I "$kibana_url"/status
-    echo "Waiting for Kibana"
+if [[ count -le 60 && $(curl -s -I http://$elasticsearch_url/_template/vulnwhisperer | head -n1 |cut -d$' ' -f2) == "200" ]]; then
+    echo -e "\n✅ VulnWhisperer index template loaded"
+else
+    echo -e "\n❌ VulnWhisperer index template failed to load"
+fi
+
+until [ "`curl -s -I "$kibana_url"/status | head -n1 |cut -d$' ' -f2`" == "200" ]; do
+    curl -s -I "$kibana_url"/status
+    echo "Waiting for Kibana..."
     sleep 5
 done
 
@@ -40,4 +50,3 @@ eval $(echo $add_saved_objects$saved_objects_file)
 #Create jira index pattern, separated for not fill of crap variables the Discover tab by default
 #index_name = "logstash-jira-*"
 #os.system(add_index+index_name+"' '-d{\"attributes\":{\"title\":\""+index_name+"\",\"timeFieldName\":\"@timestamp\"}}'")
-

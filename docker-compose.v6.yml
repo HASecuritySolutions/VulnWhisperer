@@ -8,7 +8,6 @@ services:
       - bootstrap.memory_lock=true
       - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
       - xpack.security.enabled=false
-
     ulimits:
       memlock:
         soft: -1
@@ -46,6 +45,7 @@ services:
     volumes:
       - ./resources/elk6/init_kibana.sh:/opt/init_kibana.sh
       - ./resources/elk6/kibana_APIonly.json:/opt/kibana_APIonly.json
+      - ./resources/elk6/logstash-vulnwhisperer-template.json:/opt/index-template.json
     command: sh -c "apk add --no-cache curl bash && chmod +x /opt/init_kibana.sh && chmod +r /opt/kibana_APIonly.json && cd /opt/ && /bin/bash /opt/init_kibana.sh" # /opt/kibana_APIonly.json"
     networks:
       esnet:
@@ -75,7 +75,6 @@ services:
                   "/opt/VulnWhisperer/vulnwhisperer.ini"
     ]    
     volumes:
-      - /opt/VulnWhisperer/data/:/opt/VulnWhisperer/data
       - ./data/:/opt/VulnWhisperer/data
       - ./resources/elk6/vulnwhisperer.ini:/opt/VulnWhisperer/vulnwhisperer.ini
     network_mode: host
