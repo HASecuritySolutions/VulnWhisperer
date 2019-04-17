@@ -411,8 +411,7 @@ class vulnWhispererNessus(vulnWhispererBase):
             all_scans = self.scan_count(scans)
             if self.uuids:
                 scan_list = [
-                    scan
-                    for scan in all_scans
+                    scan for scan in all_scans
                     if scan["uuid"] not in self.uuids
                     and scan["status"] in ["completed", "imported"]
                 ]
@@ -503,55 +502,39 @@ class vulnWhispererNessus(vulnWhispererBase):
                             self.logger.error('Could not download {} scan {}: {}'.format(self.CONFIG_SECTION, scan_id, str(e)))
                             self.exit_code += 1
                             continue
-                            
+                        
+                        self.logger.info('Processing {}/{} for scan: {}'.format(scan_count, len(scan_list), scan_name.encode('utf8')))
                         vuln_ready = pd.read_csv(io.StringIO(file_req.decode('utf-8')))
-                        if len(vuln_ready) > 2:
-                            self.logger.info('Processing {}/{} for scan: {}'.format(scan_count, len(scan_list), scan_name.encode('utf8')))
 
-                            # Map and transform fields
-                            vuln_ready = self.nessus.normalise(vuln_ready)
-                            vuln_ready = self.common_normalise(vuln_ready)
+                        # Map and transform fields
+                        vuln_ready = self.nessus.normalise(vuln_ready)
+                        vuln_ready = self.common_normalise(vuln_ready)
 
-                            # Set common fields
-                            vuln_ready['scan_name'] = scan_name.encode('utf8')
-                            vuln_ready['scan_id'] = uuid
+                        # Set common fields
+                        vuln_ready['scan_name'] = scan_name.encode('utf8')
+                        vuln_ready['scan_id'] = uuid
 
-                            # Add timestamp and convert to milliseconds
-                            vuln_ready['_timestamp'] = norm_time
-                            vuln_ready['scan_source'] = self.CONFIG_SECTION
+                        # Add timestamp
+                        vuln_ready['_timestamp'] = norm_time
+                        vuln_ready['scan_source'] = self.CONFIG_SECTION
 
-                            vuln_ready.to_json(relative_path_name, orient='records', lines=True)
+                        vuln_ready.to_json(relative_path_name, orient='records', lines=True)
 
-                            record_meta = (
-                                scan_name,
-                                scan_id,
-                                norm_time,
-                                file_name,
-                                time.time(),
-                                vuln_ready.shape[0],
-                                self.CONFIG_SECTION,
-                                uuid,
-                                1,
-                                0,
-                            )
-                            self.record_insert(record_meta)
-                            self.logger.info('{filename} records written to {path} '.format(filename=vuln_ready.shape[0],
-                                                                                            path=file_name.encode('utf8')))
-                        else:
-                            record_meta = (
-                                scan_name,
-                                scan_id,
-                                norm_time,
-                                file_name,
-                                time.time(),
-                                vuln_ready.shape[0],
-                                self.CONFIG_SECTION,
-                                uuid,
-                                1,
-                                0,
-                            )
-                            self.record_insert(record_meta)
-                            self.logger.warn('{} has no host available... Updating database and skipping!'.format(file_name))
+                        record_meta = (
+                            scan_name,
+                            scan_id,
+                            norm_time,
+                            file_name,
+                            time.time(),
+                            vuln_ready.shape[0],
+                            self.CONFIG_SECTION,
+                            uuid,
+                            1,
+                            0,
+                        )
+                        self.record_insert(record_meta)
+                        self.logger.info('{records} records written to {path} '.format(records=vuln_ready.shape[0],
+                                                                                        path=file_name.encode('utf8')))
             self.conn.close()
             self.logger.info('Scan aggregation complete! Connection to database closed.')
         else:
@@ -691,7 +674,7 @@ class vulnWhispererQualys(vulnWhispererBase):
                     # Set common fields
                     vuln_ready['scan_name'] = scan_name.encode('utf8')
                     vuln_ready['scan_id'] = report_id
-                    # Add timestamp and convert to milliseconds
+                    # Add timestamp
                     vuln_ready['_timestamp'] = launched_date
                     vuln_ready['scan_source'] = self.CONFIG_SECTION
 
@@ -969,7 +952,7 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
                     vuln_ready['scan_name'] = scan_name.encode('utf8')
                     vuln_ready['scan_id'] = report_id
 
-                    # Add timestamp and convert to milliseconds
+                    # Add timestamp
                     vuln_ready['_timestamp'] = launched_date
                     vuln_ready['scan_source'] = self.CONFIG_SECTION
 
