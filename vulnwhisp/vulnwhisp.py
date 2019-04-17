@@ -282,7 +282,7 @@ class vulnWhispererBase(object):
             # Map CVSS to severity name
             df.loc[df['cvss'] == '', 'cvss'] = None
             df['cvss'] = df['cvss'].astype('float')
-            df.loc[df['cvss'] == 0, 'cvss_severity'] = 'info'
+            df.loc[df['cvss'].isnull(), 'cvss_severity'] = 'info'
             df.loc[(df['cvss'] > 0) & (df['cvss'] < 3), 'cvss_severity'] = 'low'
             df.loc[(df['cvss'] >= 3) & (df['cvss'] < 6), 'cvss_severity'] = 'medium'
             df.loc[(df['cvss'] >= 6) & (df['cvss'] < 9), 'cvss_severity'] = 'high'
@@ -291,9 +291,9 @@ class vulnWhispererBase(object):
         if 'cvss3' in df:
             self.logger.info('Normalising CVSS3 severity')
             # Map CVSS to severity name
-            df.loc[df['cvss3'] =='', 'cvss3'] = None
+            df.loc[df['cvss3'] == '', 'cvss3'] = None
             df['cvss3'] = df['cvss3'].astype('float')
-            df.loc[df['cvss3'] == 0, 'cvss3_severity'] = 'info'
+            df.loc[df['cvss3'].isnull(), 'cvss3_severity'] = 'info'
             df.loc[(df['cvss3'] > 0) & (df['cvss3'] < 3), 'cvss3_severity'] = 'low'
             df.loc[(df['cvss3'] >= 3) & (df['cvss3'] < 6), 'cvss3_severity'] = 'medium'
             df.loc[(df['cvss3'] >= 6) & (df['cvss3'] < 9), 'cvss3_severity'] = 'high'
