@@ -12,7 +12,7 @@ saved_objects_file="kibana_APIonly.json"
 
 until curl -s "$elasticsearch_url/_cluster/health?pretty" | grep '"status"' | grep -qE "green|yellow"; do
     curl -s "$elasticsearch_url/_cluster/health?pretty"
-    echo "Waiting for Elasticsearch"
+    echo "Waiting for Elasticsearch..."
     sleep 5
 done
 
@@ -30,8 +30,8 @@ else
 fi
 
 until [ "`curl -s -I "$kibana_url"/status | head -n1 |cut -d$' ' -f2`" == "200" ]; do
-    curl -I "$kibana_url"/status
-    echo "Waiting for Kibana"
+    curl -s -I "$kibana_url"/status
+    echo "Waiting for Kibana..."
     sleep 5
 done
 
