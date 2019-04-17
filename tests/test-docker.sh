@@ -29,13 +29,13 @@ done
 green "✅ Elasticsearch status is green..."
 
 count=0
-until [[ $(curl -s "$logstash_url/_node/stats" | jq '.events.out') -ge 1236 ]]; do
-    yellow "Waiting for Logstash load to finish...  $(curl -s "$logstash_url/_node/stats" | jq '.events.out') of 1236 (attempt $count of 60)"
+until [[ $(curl -s "$logstash_url/_node/stats" | jq '.events.out') -ge 1232 ]]; do
+    yellow "Waiting for Logstash load to finish...  $(curl -s "$logstash_url/_node/stats" | jq '.events.out') of 1232 (attempt $count of 60)"
     ((count++)) && ((count==60)) && break
     sleep 5
 done
 
-if [[ count -le 60 && $(curl -s "$logstash_url/_node/stats" | jq '.events.out') -ge 1236 ]]; then
+if [[ count -le 60 && $(curl -s "$logstash_url/_node/stats" | jq '.events.out') -ge 1232 ]]; then
     green "✅ Logstash load finished..."
 else
     red "❌ Logstash load didn't complete... $(curl -s "$logstash_url/_node/stats" | jq '.events.out')"
@@ -49,7 +49,7 @@ until [[ $(curl -s "$elasticsearch_url/logstash-vulnwhisperer-2019.03/_count" | 
     sleep 2
 done
 if [[ count -le 50 && $(curl -s "$elasticsearch_url/logstash-vulnwhisperer-2019.03/_count" | jq '.count') -ge 1232 ]]; then
-    green "✅ logstash-vulnwhisperer-2019.03 document count >= 1232"
+    green "✅ logstash-vulnwhisperer-2019.03 document count $(curl -s "$elasticsearch_url/logstash-vulnwhisperer-2019.03/_count" | jq '.count') >= 1232"
 else
     red "❌ TIMED OUT waiting for logstash-vulnwhisperer-2019.03 document count: $(curl -s "$elasticsearch_url/logstash-vulnwhisperer-2019.03/_count" | jq) != 1232"
 fi
@@ -63,10 +63,10 @@ fi
 
 # Test Nessus plugin_name:Backported Security Patch Detection (FTP)
 nessus_doc=$(curl -s "$elasticsearch_url/logstash-vulnwhisperer-2019.03/_search?q=plugin_name:%22Backported%20Security%20Patch%20Detection%20(FTP)%22%20AND%20asset:176.28.50.164%20AND%20tags:nessus" | jq '.hits.hits[]._source')
-if echo $nessus_doc | jq '.risk' | grep -q "None"; then
-    green "✅ Passed: Nessus risk == None"
+if echo $nessus_doc | jq '.risk' | grep -q "none"; then
+    green "✅ Passed: Nessus risk == none"
 else
-    red "❌ Failed: Nessus risk == None was: $(echo $nessus_doc | jq '.risk') instead"
+    red "❌ Failed: Nessus risk == none was: $(echo $nessus_doc | jq '.risk') instead"
     ((return_code = return_code + 1))
 fi
 
@@ -99,10 +99,10 @@ else
 fi
 
 # Test @XXXX
-if echo $qualys_vuln_doc | jq '.cvss' | grep -q '6.8'; then
-    green "✅ Passed: Qualys VM cvss == 6.8"
+if echo $qualys_vuln_doc | jq '.cvss' | grep -q '5.6'; then
+    green "✅ Passed: Qualys VM cvss == 5.6"
 else
-    red "❌ Failed: Qualys VM cvss == 6.8 was: $(echo $qualys_vuln_doc | jq '.cvss') instead"
+    red "❌ Failed: Qualys VM cvss == 5.6 was: $(echo $qualys_vuln_doc | jq '.cvss') instead"
     ((return_code = return_code + 1))
 fi
 

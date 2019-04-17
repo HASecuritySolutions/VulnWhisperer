@@ -1,5 +1,6 @@
 {
   "index_patterns": "logstash-vulnwhisperer-*",
+  "version": 2019041701,
   "mappings": {
     "doc": {
       "properties": {
@@ -22,9 +23,6 @@
         "asset_uuid": {
           "type": "keyword"
         },
-        "assign_ip": {
-          "type": "ip"
-        },
         "category": {
           "type": "keyword"
         },
@@ -34,7 +32,7 @@
         "cvss_base": {
           "type": "float"
         },
-        "cvss_temporal_vector": {
+        "cvss_severity": {
           "type": "keyword"
         },
         "cvss_temporal": {
@@ -49,7 +47,7 @@
         "cvss3_base": {
           "type": "float"
         },
-        "cvss3_temporal_vector": {
+        "cvss3_severity": {
           "type": "keyword"
         },
         "cvss3_temporal": {
@@ -117,24 +115,14 @@
         "host_start": {
           "type": "date"
         },
-        "impact": {
-          "fields": {
-            "keyword": {
-              "ignore_above": 256,
-              "type": "keyword"
-            }
-          },
-          "norms": false,
-          "type": "text"
-        },
-        "ip_status": {
-          "type": "keyword"
-        },
         "ip": {
           "type": "ip"
         },
-        "last_updated": {
-          "type": "date"
+        "mac_address": {
+          "type": "keyword"
+        },
+        "netbios": {
+          "type": "keyword"
         },
         "operating_system": {
           "type": "keyword"
@@ -170,17 +158,8 @@
         "protocol": {
           "type": "keyword"
         },
-        "results": {
-          "type": "text"
-        },
         "risk_number": {
           "type": "integer"
-        },
-        "risk_score_name": {
-          "type": "keyword"
-        },
-        "risk_score": {
-          "type": "float"
         },
         "risk": {
           "type": "keyword"
@@ -191,40 +170,31 @@
         "scan_name": {
           "type": "keyword"
         },
-        "scan_reference": {
+        "scan_source": {
           "type": "keyword"
         },
-        "see_also": {
+        "severity": {
           "type": "keyword"
         },
         "solution": {
           "type": "keyword"
         },
-        "source": {
+        "ssl": {
           "type": "keyword"
         },
-        "ssl": {
+        "state": {
           "type": "keyword"
         },
         "synopsis": {
           "type": "keyword"
         },
-        "system_type": {
-          "type": "keyword"
-        },
         "tags": {
           "type": "keyword"
-        },
-        "threat": {
-          "type": "text"
         },
         "type": {
           "type": "keyword"
         },
         "vendor_reference": {
-          "type": "keyword"
-        },
-        "vulnerability_state": {
           "type": "keyword"
         }
       }
