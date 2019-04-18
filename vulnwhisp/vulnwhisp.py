@@ -947,7 +947,7 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
 
             else:
                 try:
-                    self.logger.info('Processing report ID: {}'.format(report_id))
+                    self.logger.info('Processing {}: {}'.format(report_id, scan_name.encode('utf8')))
                     vuln_ready = self.qualys_scan.process_data(scan_id=report_id)
                     # Map and transform fields
                     vuln_ready = self.qualys_scan.normalise(vuln_ready)

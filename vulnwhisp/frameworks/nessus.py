@@ -227,7 +227,7 @@ class NessusAPI(object):
 
         # Map risk to a SEVERITY MAPPING value
         self.logger.debug('Mapping risk to severity number')
-        df['risk_number'] = df['risk'].str.lower().map(self.SEVERITY_MAPPING)
+        df['risk_number'] = df['risk'].map(self.SEVERITY_MAPPING)
 
         df.fillna('', inplace=True)
 

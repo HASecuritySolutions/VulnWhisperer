@@ -8,6 +8,7 @@ services:
       - bootstrap.memory_lock=true
       - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
       - xpack.security.enabled=false
+      - path.repo=/snapshots
     ulimits:
       memlock:
         soft: -1
@@ -18,6 +19,7 @@ services:
     mem_limit: 8g
     volumes:
       - esdata1:/usr/share/elasticsearch/data
+      - ./data/es_snapshots:/snapshots
     ports:
       - 9200:9200
     #restart: always
