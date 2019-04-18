@@ -476,4 +476,5 @@ class qualysScanReport:
     
     def transform_values(self, df):
         self.logger.debug('Transforming values')
+        df.fillna('', inplace=True)
         return df

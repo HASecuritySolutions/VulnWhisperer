@@ -156,32 +156,35 @@ class qualysVulnScan:
     def transform_values(self, df):
         self.logger.info('Transforming values')
 
+        df.fillna('', inplace=True)
+
         # upper/lowercase fields
         self.logger.info('Changing case of fields')
         df['cve'] = df['cve'].str.upper()
         df['protocol'] = df['protocol'].str.lower()
 
         # Contruct the CVSS vector
+        self.logger.info('Extracting CVSS components')
         df['cvss_vector'] = (
-            df.loc[df['cvss_base'].notnull(), 'cvss_base']
+            df.loc[df['cvss_base'].str.contains(' \('), 'cvss_base']
             .str.split()
             .apply(lambda x: x[1])
             .str.strip('()')
         )
         df['cvss_base'] = (
-            df.loc[df['cvss_base'].notnull(), 'cvss_base']
+            df.loc[df['cvss_base'].str.contains(' \('), 'cvss_base']
             .str.split()
             .apply(lambda x: x[0])
         )
 
         df['cvss_temporal_vector'] = (
-            df.loc[df['cvss_temporal'].notnull(), 'cvss_temporal']
+            df.loc[df['cvss_temporal'].str.contains(' \('), 'cvss_temporal']
             .str.split()
             .apply(lambda x: x[1])
             .str.strip('()')
         )
         df['cvss_temporal'] = (
-            df.loc[df['cvss_temporal'].notnull(), 'cvss_temporal']
+            df.loc[df['cvss_temporal'].str.contains(' \('), 'cvss_temporal']
             .str.split()
             .apply(lambda x: x[0])
         )

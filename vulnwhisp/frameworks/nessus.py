@@ -33,6 +33,7 @@ class NessusAPI(object):
         'cvss3 temporal vector': 'cvss3_temporal_vector',
         'fqdn': 'dns',
         'host': 'asset',
+        'ip address': 'ip',
         'name': 'plugin_name',
         'os': 'operating_system',
         'see also': 'exploitability',
@@ -200,8 +201,11 @@ class NessusAPI(object):
         if self.profile == 'tenable':
             # Prefer CVSS Base Score over CVSS for tenable
             self.logger.debug('Dropping redundant tenable fields')
-            df.drop('CVSS', axis=1, inplace=True)
-            df.drop('IP Address', axis=1, inplace=True)
+            df.drop('CVSS', axis=1, inplace=True, errors='ignore')
+
+        if self.profile == 'nessus':
+            # Set IP from Host field
+            df['ip'] = df['Host']
 
         # Lowercase and map fields from COLUMN_MAPPING
         df.columns = [x.lower() for x in df.columns]
@@ -213,18 +217,18 @@ class NessusAPI(object):
     def transform_values(self, df):
         self.logger.debug('Transforming values')
 
+        df.fillna('', inplace=True)
+
         # upper/lowercase fields
         self.logger.debug('Changing case of fields')
         df['cve'] = df['cve'].str.upper()
         df['protocol'] = df['protocol'].str.lower()
         df['risk'] = df['risk'].str.lower()
 
-        # Copy asset to IP
-        df['ip'] = df['asset']
-
         # Map risk to a SEVERITY MAPPING value
         self.logger.debug('Mapping risk to severity number')
         df['risk_number'] = df['risk'].str.lower().map(self.SEVERITY_MAPPING)
 
         df.fillna('', inplace=True)
+
         return df
