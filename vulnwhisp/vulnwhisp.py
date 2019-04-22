@@ -278,7 +278,7 @@ class vulnWhispererBase(object):
                 df.loc[(df[cvss_version] >= 6) & (df[cvss_version] < 9), cvss_version + '_severity'] = 'high'
                 df.loc[(df[cvss_version] > 9) & (df[cvss_version].notnull()), cvss_version + '_severity'] = 'critical'
 
-        # Make rename cvss to cvss2
+        # Rename cvss to cvss2
         # Make cvss with no suffix == cvss3 else cvss2
         # cvss = cvss3 if cvss3 else cvss2
         # cvss_severity = cvss3_severity if cvss3_severity else cvss2_severity
@@ -497,9 +497,7 @@ class vulnWhispererNessus(vulnWhispererBase):
                         # Set common fields
                         vuln_ready['scan_name'] = scan_name.encode('utf8')
                         vuln_ready['scan_id'] = uuid
-
-                        # Add timestamp
-                        vuln_ready['_timestamp'] = norm_time
+                        vuln_ready['scan_time'] = norm_time
                         vuln_ready['scan_source'] = self.CONFIG_SECTION
 
                         vuln_ready.to_json(relative_path_name, orient='records', lines=True)
@@ -658,8 +656,7 @@ class vulnWhispererQualys(vulnWhispererBase):
                     # Set common fields
                     vuln_ready['scan_name'] = scan_name.encode('utf8')
                     vuln_ready['scan_id'] = report_id
-                    # Add timestamp
-                    vuln_ready['_timestamp'] = launched_date
+                    vuln_ready['scan_time'] = launched_date
                     vuln_ready['scan_source'] = self.CONFIG_SECTION
 
                     record_meta = (
@@ -680,7 +677,7 @@ class vulnWhispererQualys(vulnWhispererBase):
                         vuln_ready.to_json(relative_path_name, orient='records', lines=True)
 
                     elif output_format == 'csv':
-                        vuln_ready.to_csv(relative_path_name, index=False, header=True)  # add when timestamp occured
+                        vuln_ready.to_csv(relative_path_name, index=False, header=True)
 
                     self.logger.info('Report written to {}'.format(report_name))
 
@@ -833,8 +830,7 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
                 # Set common fields
                 vuln_ready['scan_name'] = scan_name.encode('utf8')
                 vuln_ready['scan_id'] = report_id
-                # Add _timestamp and convert to milliseconds
-                vuln_ready['_timestamp'] = launched_date
+                vuln_ready['scan_time'] = launched_date
                 vuln_ready['scan_source'] = self.CONFIG_SECTION
 
                 vuln_ready.to_json(relative_path_name, orient='records', lines=True)
@@ -935,9 +931,7 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
                     # Set common fields
                     vuln_ready['scan_name'] = scan_name.encode('utf8')
                     vuln_ready['scan_id'] = report_id
-
-                    # Add timestamp
-                    vuln_ready['_timestamp'] = launched_date
+                    vuln_ready['scan_time'] = launched_date
                     vuln_ready['scan_source'] = self.CONFIG_SECTION
 
                 except Exception as e:
