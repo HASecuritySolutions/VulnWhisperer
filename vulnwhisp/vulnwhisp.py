@@ -410,7 +410,6 @@ class vulnWhispererNessus(vulnWhispererBase):
                 return self.exit_code
 
             # Create scan subfolders
-
             for f in folders:
                 if not os.path.exists(self.path_check(f['name'])):
                     if f['name'] == 'Trash' and self.nessus_trash:
@@ -421,8 +420,6 @@ class vulnWhispererNessus(vulnWhispererBase):
                     os.path.exists(self.path_check(f['name']))
                     self.logger.info('Directory already exists for {scan} - Skipping creation'.format(
                         scan=self.path_check(f['name']).encode('utf8')))
-
-            # try download and save scans into each folder the belong to
 
             scan_count = 0
 
@@ -495,10 +492,11 @@ class vulnWhispererNessus(vulnWhispererBase):
                         vuln_ready = self.common_normalise(vuln_ready)
 
                         # Set common fields
-                        vuln_ready['scan_name'] = scan_name.encode('utf8')
+                        vuln_ready['history_id'] = history_id
                         vuln_ready['scan_id'] = uuid
-                        vuln_ready['scan_time'] = norm_time
+                        vuln_ready['scan_name'] = scan_name.encode('utf8')
                         vuln_ready['scan_source'] = self.CONFIG_SECTION
+                        vuln_ready['scan_time'] = norm_time
 
                         vuln_ready.to_json(relative_path_name, orient='records', lines=True)
 
@@ -654,10 +652,11 @@ class vulnWhispererQualys(vulnWhispererBase):
                     vuln_ready.rename(columns=self.COLUMN_MAPPING, inplace=True)
 
                     # Set common fields
+                    vuln_ready['app_id'] = report_id
+                    vuln_ready['scan_id'] = scan_reference
                     vuln_ready['scan_name'] = scan_name.encode('utf8')
-                    vuln_ready['scan_id'] = report_id
-                    vuln_ready['scan_time'] = launched_date
                     vuln_ready['scan_source'] = self.CONFIG_SECTION
+                    vuln_ready['scan_time'] = launched_date
 
                     record_meta = (
                         scan_name,
