@@ -2,23 +2,25 @@
 # -*- coding: utf-8 -*-
 __author__ = 'Austin Taylor'
 
-from base.config import vwConfig
-from frameworks.nessus import NessusAPI
-from frameworks.qualys_web import qualysScanReport
-from frameworks.qualys_vuln import qualysVulnScan
-from frameworks.openvas import OpenVAS_API
-from reporting.jira_api import JiraAPI
-import pandas as pd
-import numpy as np
-from lxml import objectify
-import sys
-import os
 import io
-import time
-import sqlite3
 import json
 import logging
+import os
 import socket
+import sqlite3
+import sys
+import time
+
+import numpy as np
+import pandas as pd
+from lxml import objectify
+
+from base.config import vwConfig
+from frameworks.nessus import NessusAPI
+from frameworks.openvas import OpenVAS_API
+from frameworks.qualys_vuln import qualysVulnScan
+from frameworks.qualys_web import qualysScanReport
+from reporting.jira_api import JiraAPI
 
 
 class vulnWhispererBase(object):
@@ -845,7 +847,6 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
                 )
                 self.record_insert(record_meta)
                 self.logger.info('Scan {} ({}) written to database'.format(scan_name.encode('utf8'), report_id))
-
 
         return report
 

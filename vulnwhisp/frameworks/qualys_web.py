@@ -2,18 +2,19 @@
 # -*- coding: utf-8 -*-
 __author__ = 'Austin Taylor'
 
-from lxml import objectify
-from lxml.builder import E
+import csv
+import logging
+import os
+import sys
 import xml.etree.ElementTree as ET
+
+import dateutil.parser as dp
 import pandas as pd
 import qualysapi
 import qualysapi.config as qcconf
 import requests
-import sys
-import os
-import csv
-import logging
-import dateutil.parser as dp
+from lxml import objectify
+from lxml.builder import E
 
 
 class qualysWhisperAPI(object):
