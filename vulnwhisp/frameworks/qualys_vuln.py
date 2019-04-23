@@ -165,9 +165,9 @@ class qualysVulnScan:
         # Contruct the CVSS vector
         self.logger.info('Extracting CVSS components')
         df['cvss_vector'] = df['cvss_base'].str.extract('\((.*)\)', expand=False)
-        df['cvss_base'] = df['cvss_base'].str.extract('^([^ ]+)', expand=False)
+        df['cvss_base'] = df['cvss_base'].str.extract('^(\d+(?:\.\d+)?)', expand=False)
         df['cvss_temporal_vector'] = df['cvss_temporal'].str.extract('\((.*)\)', expand=False)
-        df['cvss_temporal'] = df['cvss_temporal'].str.extract('^([^ ]+)', expand=False)
+        df['cvss_temporal'] = df['cvss_temporal'].str.extract('^(\d+(?:\.\d+)?)', expand=False)
 
 
         # Convert Qualys severity to standardised risk number
