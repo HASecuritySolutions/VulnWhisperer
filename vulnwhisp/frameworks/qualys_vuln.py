@@ -11,7 +11,6 @@ import pandas as pd
 import qualysapi
 
 
-
 class qualysWhisperAPI(object):
     SCANS = 'api/2.0/fo/scan'
 
@@ -165,29 +164,11 @@ class qualysVulnScan:
 
         # Contruct the CVSS vector
         self.logger.info('Extracting CVSS components')
-        df['cvss_vector'] = (
-            df.loc[df['cvss_base'].str.contains(' \('), 'cvss_base']
-            .str.split()
-            .apply(lambda x: x[1])
-            .str.strip('()')
-        )
-        df['cvss_base'] = (
-            df.loc[df['cvss_base'].str.contains(' \('), 'cvss_base']
-            .str.split()
-            .apply(lambda x: x[0])
-        )
+        df['cvss_vector'] = df['cvss_base'].str.extract('\((.*)\)', expand=False)
+        df['cvss_base'] = df['cvss_base'].str.extract('^([^ ]+)', expand=False)
+        df['cvss_temporal_vector'] = df['cvss_temporal'].str.extract('\((.*)\)', expand=False)
+        df['cvss_temporal'] = df['cvss_temporal'].str.extract('^([^ ]+)', expand=False)
 
-        df['cvss_temporal_vector'] = (
-            df.loc[df['cvss_temporal'].str.contains(' \('), 'cvss_temporal']
-            .str.split()
-            .apply(lambda x: x[1])
-            .str.strip('()')
-        )
-        df['cvss_temporal'] = (
-            df.loc[df['cvss_temporal'].str.contains(' \('), 'cvss_temporal']
-            .str.split()
-            .apply(lambda x: x[0])
-        )
 
         # Convert Qualys severity to standardised risk number
         df['risk_number'] =  df['severity'].astype(int)-1
