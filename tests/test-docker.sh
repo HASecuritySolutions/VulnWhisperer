@@ -34,6 +34,7 @@ until [[ $(curl -s "$logstash_url/_node/stats" | jq '.events.out') -ge 1232 ]]; 
     ((count++)) && ((count==60)) && break
     sleep 5
 done
+green "$(curl -s "$logstash_url/_node/stats" | jq '.events.out') logs processed"
 
 if [[ count -le 60 && $(curl -s "$logstash_url/_node/stats" | jq '.events.out') -ge 1232 ]]; then
     green "✅ Logstash load finished..."
@@ -43,26 +44,27 @@ fi
 
 
 count=0
-until [[ $(curl -s "$elasticsearch_url/logstash-vulnwhisperer-2019.03/_count" | jq '.count') -ge 1232 ]] ; do
-    yellow "Waiting for Elasticsearch index to sync... $(curl -s "$elasticsearch_url/logstash-vulnwhisperer-2019.03/_count" | jq '.count') of 1232 logs loaded (attempt $count of 150)"
+until [[ $(curl -s "$elasticsearch_url/logstash-vulnwhisperer-*/_count" | jq '.count') -ge 1232 ]] ; do
+    yellow "Waiting for Elasticsearch index to sync... $(curl -s "$elasticsearch_url/logstash-vulnwhisperer-*/_count" | jq '.count') of 1232 logs loaded (attempt $count of 150)"
     ((count++)) && ((count==150)) && break
     sleep 2
 done
-if [[ count -le 50 && $(curl -s "$elasticsearch_url/logstash-vulnwhisperer-2019.03/_count" | jq '.count') -ge 1232 ]]; then
-    green "✅ logstash-vulnwhisperer-2019.03 document count $(curl -s "$elasticsearch_url/logstash-vulnwhisperer-2019.03/_count" | jq '.count') >= 1232"
+if [[ count -le 50 && $(curl -s "$elasticsearch_url/logstash-vulnwhisperer-*/_count" | jq '.count') -ge 1232 ]]; then
+    green "✅ logstash-vulnwhisperer-* document count $(curl -s "$elasticsearch_url/logstash-vulnwhisperer-*/_count" | jq '.count') >= 1232"
 else
-    red "❌ TIMED OUT waiting for logstash-vulnwhisperer-2019.03 document count: $(curl -s "$elasticsearch_url/logstash-vulnwhisperer-2019.03/_count" | jq) != 1232"
+    red "❌ TIMED OUT waiting for logstash-vulnwhisperer-* document count: $(curl -s "$elasticsearch_url/logstash-vulnwhisperer-*/_count" | jq) != 1232"
 fi
+green "$(curl -s "$elasticsearch_url/logstash-vulnwhisperer-*/_count" | jq '.count') documents in index"
 
-# if [[ $(curl -s "$elasticsearch_url/logstash-vulnwhisperer-2019.03/_count" | jq '.count') == 1232 ]]; then
-#     green "✅ Passed: logstash-vulnwhisperer-2019.03 document count == 1232"
+# if [[ $(curl -s "$elasticsearch_url/logstash-vulnwhisperer-*/_count" | jq '.count') == 1232 ]]; then
+#     green "✅ Passed: logstash-vulnwhisperer-* document count == 1232"
 # else
-#     red "❌ Failed: logstash-vulnwhisperer-2019.03 document count == 1232 was: $(curl -s "$elasticsearch_url/logstash-vulnwhisperer-2019.03/_count") instead"
+#     red "❌ Failed: logstash-vulnwhisperer-* document count == 1232 was: $(curl -s "$elasticsearch_url/logstash-vulnwhisperer-*/_count") instead"
 #     ((return_code = return_code + 1))
 # fi
 
 # Test Nessus plugin_name:Backported Security Patch Detection (FTP)
-nessus_doc=$(curl -s "$elasticsearch_url/logstash-vulnwhisperer-2019.03/_search?q=plugin_name:%22Backported%20Security%20Patch%20Detection%20(FTP)%22%20AND%20asset:176.28.50.164%20AND%20tags:nessus" | jq '.hits.hits[]._source')
+nessus_doc=$(curl -s "$elasticsearch_url/logstash-vulnwhisperer-*/_search?q=plugin_name:%22Backported%20Security%20Patch%20Detection%20(FTP)%22%20AND%20asset:176.28.50.164%20AND%20tags:nessus" | jq '.hits.hits[]._source')
 if echo $nessus_doc | jq '.risk' | grep -q "none"; then
     green "✅ Passed: Nessus risk == none"
 else
@@ -71,7 +73,7 @@ else
 fi
 
 # Test Tenable plugin_name:Backported Security Patch Detection (FTP)
-tenable_doc=$(curl -s "$elasticsearch_url/logstash-vulnwhisperer-2019.03/_search?q=plugin_name:%22Backported%20Security%20Patch%20Detection%20(FTP)%22%20AND%20asset:176.28.50.164%20AND%20tags:tenable" | jq '.hits.hits[]._source')
+tenable_doc=$(curl -s "$elasticsearch_url/logstash-vulnwhisperer-*/_search?q=plugin_name:%22Backported%20Security%20Patch%20Detection%20(FTP)%22%20AND%20asset:176.28.50.164%20AND%20tags:tenable" | jq '.hits.hits[]._source')
 # Test asset
 if echo $tenable_doc | jq .asset | grep -q '176.28.50.164'; then
     green "✅ Passed: Tenable asset == 176.28.50.164"
@@ -89,7 +91,7 @@ else
 fi
 
 # Test Qualys plugin_name:OpenSSL Multiple Remote Security Vulnerabilities
-qualys_vuln_doc=$(curl -s "$elasticsearch_url/logstash-vulnwhisperer-2019.03/_search?q=tags:qualys_vuln%20AND%20ip:%22176.28.50.164%22%20AND%20plugin_name:%22OpenSSL%20Multiple%20Remote%20Security%20Vulnerabilities%22%20AND%20port:465" | jq '.hits.hits[]._source')
+qualys_vuln_doc=$(curl -s "$elasticsearch_url/logstash-vulnwhisperer-*/_search?q=tags:qualys_vuln%20AND%20ip:%22176.28.50.164%22%20AND%20plugin_name:%22OpenSSL%20Multiple%20Remote%20Security%20Vulnerabilities%22%20AND%20port:465" | jq '.hits.hits[]._source')
 # Test @timestamp
 if echo $qualys_vuln_doc | jq '.["@timestamp"]' | grep -q '2019-03-30T10:17:41.000Z'; then
     green "✅ Passed: Qualys VM @timestamp == 2019-03-30T10:17:41.000Z"
