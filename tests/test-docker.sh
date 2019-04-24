@@ -34,12 +34,11 @@ until [[ $(curl -s "$logstash_url/_node/stats" | jq '.events.out') -ge 1232 ]]; 
     ((count++)) && ((count==60)) && break
     sleep 5
 done
-green "$(curl -s "$logstash_url/_node/stats" | jq '.events.out') logs processed"
 
 if [[ count -le 60 && $(curl -s "$logstash_url/_node/stats" | jq '.events.out') -ge 1232 ]]; then
-    green "✅ Logstash load finished..."
+    green "✅ Logstash load finished $(curl -s "$logstash_url/_node/stats" | jq '.events.out') logs processed..."
 else
-    red "❌ Logstash load didn't complete... $(curl -s "$logstash_url/_node/stats" | jq '.events.out')"
+    red "❌ Logstash load didn't complete  $(curl -s "$logstash_url/_node/stats" | jq '.events.out') logs processed... $(curl -s "$logstash_url/_node/stats" | jq '.events.out')"
 fi
 
 
@@ -54,7 +53,6 @@ if [[ count -le 50 && $(curl -s "$elasticsearch_url/logstash-vulnwhisperer-*/_co
 else
     red "❌ TIMED OUT waiting for logstash-vulnwhisperer-* document count: $(curl -s "$elasticsearch_url/logstash-vulnwhisperer-*/_count" | jq) != 1232"
 fi
-green "$(curl -s "$elasticsearch_url/logstash-vulnwhisperer-*/_count" | jq '.count') documents in index"
 
 # if [[ $(curl -s "$elasticsearch_url/logstash-vulnwhisperer-*/_count" | jq '.count') == 1232 ]]; then
 #     green "✅ Passed: logstash-vulnwhisperer-* document count == 1232"
