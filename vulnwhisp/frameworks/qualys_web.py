@@ -110,7 +110,6 @@ class qualysWhisperAPI(object):
         _records = []
         try:
             total = int(self.get_was_scan_count(status=status))
-            self.logger.error('Already have WAS scan count')
             self.logger.info('Retrieving information for {} scans'.format(total))
             for i in range(0, total):
                 if i % limit == 0:
@@ -445,7 +444,7 @@ class qualysScanReport:
         return merged_df
 
     def download_file(self, path='', file_id=None):
-        report = self.qw.download_report(file_id)
+        report = self.qw.download_report(file_id).encode('utf-8')
         filename = path + str(file_id) + '.csv'
         file_out = open(filename, 'w')
         for line in report.splitlines():
