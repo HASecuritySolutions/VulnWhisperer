@@ -135,8 +135,6 @@ class NessusAPI(object):
 
     def download_scan(self, scan_id=None, history=None, export_format=''):
         running = True
-        counter = 0
-
         data = {'format': export_format}
         if not history:
             query = self.EXPORT.format(scan_id=scan_id)
@@ -149,19 +147,14 @@ class NessusAPI(object):
             token_id = req['token'] if 'token' in req else req['temp_token']
         except Exception as e:
             self.logger.error('{}'.format(str(e)))
-        self.logger.info('Download for file id {}'.format(str(file_id)))
+        self.logger.info('Downloading file id {}'.format(str(file_id)))
         while running:
             time.sleep(2)
-            counter += 2
             report_status = self.request(self.EXPORT_STATUS.format(scan_id=scan_id, file_id=file_id), method='GET',
                                          json_output=True)
             running = report_status['status'] != 'ready'
             sys.stdout.write('.')
             sys.stdout.flush()
-            # FIXME: why? can this be removed in favour of a counter?
-            if counter % 60 == 0:
-                self.logger.info('Completed: {}'.format(counter))
-        self.logger.info('Done: {}'.format(counter))
         if self.profile == 'tenable':
             content = self.request(self.EXPORT_FILE_DOWNLOAD.format(scan_id=scan_id, file_id=file_id), method='GET', download=True)
         else:
