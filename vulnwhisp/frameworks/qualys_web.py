@@ -297,6 +297,16 @@ class qualysScanReport:
     WEB_SCAN_VULN_HEADER[WEB_SCAN_VULN_BLOCK.index(qualysReportFields.CATEGORIES[0])] = \
         'Vulnerability Category'
 
+    # Add an alternative vulnerability header
+    WEB_SCAN_VULN_BLOCK_ALT = WEB_SCAN_VULN_BLOCK[:]
+    WEB_SCAN_VULN_BLOCK_ALT.insert(WEB_SCAN_VULN_BLOCK_ALT.index('First Time Detected'), 'Detection Date')
+    remove_fields = ['Last Time Tested', 'Times Detected', 'First Time Detected', 'Last Time Detected']
+    WEB_SCAN_VULN_BLOCK_ALT = [x for x in WEB_SCAN_VULN_BLOCK_ALT if x not in remove_fields]
+
+    WEB_SCAN_VULN_HEADER_ALT = WEB_SCAN_VULN_BLOCK_ALT[:]
+    WEB_SCAN_VULN_HEADER_ALT[WEB_SCAN_VULN_BLOCK_ALT.index(qualysReportFields.CATEGORIES[0])] = \
+        'Vulnerability Category'
+
     WEB_SCAN_SENSITIVE_HEADER = list(WEB_SCAN_VULN_HEADER)
     WEB_SCAN_SENSITIVE_HEADER.insert(WEB_SCAN_SENSITIVE_HEADER.index('Url'
                                                                      ), 'Content')
@@ -358,6 +368,17 @@ class qualysScanReport:
                                                                                            self.WEB_SCAN_INFO_BLOCK],
                                                                                        pop_last=True),
                                                                columns=self.WEB_SCAN_VULN_HEADER)
+            if len(dict_tracker['WEB_SCAN_VULN_BLOCK']) == 0:
+                # Try alternative headers
+                dict_tracker["WEB_SCAN_VULN_BLOCK"] = pd.DataFrame(
+                    self.utils.grab_section(
+                        report,
+                        self.WEB_SCAN_VULN_BLOCK_ALT,
+                        end=[self.WEB_SCAN_SENSITIVE_BLOCK, self.WEB_SCAN_INFO_BLOCK],
+                        pop_last=True,
+                    ),
+                    columns=self.WEB_SCAN_VULN_HEADER_ALT,
+                )
             dict_tracker['WEB_SCAN_SENSITIVE_BLOCK'] = pd.DataFrame(self.utils.grab_section(report,
                                                                                             self.WEB_SCAN_SENSITIVE_BLOCK,
                                                                                             end=[
