@@ -282,13 +282,24 @@ class qualysUtils:
     def iso_to_epoch(self, dt):
         return dp.parse(dt).strftime('%s')
 
-    def cleanser(self, _data):
-        repls = (('\n', '|||'), ('\r', '|||'), (',', ';'), ('\t', '|||'))
-        if _data:
-            _data = reduce(lambda a, kv: a.replace(*kv), repls, str(_data))
-        return _data
-
 class qualysScanReport:
+
+    COLUMN_MAPPING = {
+        'DescriptionCatSev': 'category_description',
+        'DescriptionSeverity': 'severity_description',
+        'Evidence #1': 'evidence',
+        'Payload #1': 'payload',
+        'Request Headers #1': 'request_headers',
+        'Request Method #1': 'request_method',
+        'Request URL #1': 'request_url',
+        'Response #1': 'response',
+        'URL': 'url',
+        'Url': 'uri',
+        'QID': 'plugin_id',
+    }
+
+    SEVERITY_MAPPING = {0: 'none', 1: 'low', 2: 'medium', 3: 'high',4: 'critical'}
+
     # URL Vulnerability Information
     WEB_SCAN_VULN_BLOCK = list(qualysReportFields.VULN_BLOCK)
     WEB_SCAN_VULN_BLOCK.insert(WEB_SCAN_VULN_BLOCK.index('QID'), 'Detection ID')
@@ -444,9 +455,6 @@ class qualysScanReport:
                               'Request Headers #1', 'Response #1', 'Evidence #1',
                               'Description', 'Impact', 'Solution', 'Url', 'Content']
 
-        for col in columns_to_cleanse:
-            merged_df[col] = merged_df[col].apply(self.utils.cleanser)
-
         merged_df = merged_df.drop(['QID_y', 'QID_x'], axis=1)
         merged_df = merged_df.rename(columns={'Id': 'QID'})
         
@@ -493,9 +501,25 @@ class qualysScanReport:
 
     def map_fields(self, df):
         self.logger.debug('Mapping fields')
+
+        df.rename(columns=self.COLUMN_MAPPING, inplace=True)
+
+        # Lowercase and map fields from COLUMN_MAPPING
+        df.columns = [x.lower() for x in df.columns]
+        df.columns = [x.replace(' ', '_') for x in df.columns]
+
         return df
-    
+
     def transform_values(self, df):
         self.logger.debug('Transforming values')
+        df.fillna('', inplace=True)
+
+        self.logger.info('Changing case of fields')
+        df['cwe'] = df['cwe'].str.upper()
+
+        # Convert Qualys severity to standardised risk number
+        df['risk_number'] =  df['severity'].astype(int)-1
+        df['risk'] = df['risk_number'].map(self.SEVERITY_MAPPING)
+
         df.fillna('', inplace=True)
         return df

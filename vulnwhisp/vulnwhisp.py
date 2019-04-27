@@ -532,54 +532,6 @@ class vulnWhispererNessus(vulnWhispererBase):
 class vulnWhispererQualys(vulnWhispererBase):
 
     CONFIG_SECTION = 'qualys_web'
-    COLUMN_MAPPING = {'Access Path': 'access_path',
-                     'Ajax Request': 'ajax_request',
-                     'Ajax Request ID': 'ajax_request_id',
-                     'Authentication': 'authentication',
-                     'CVSS Base': 'cvss',
-                     'CVSS Temporal': 'cvss_temporal',
-                     'CWE': 'cwe',
-                     'Category': 'category',
-                     'Content': 'content',
-                     'DescriptionSeverity': 'severity_description',
-                     'DescriptionCatSev': 'category_description',
-                     'Detection ID': 'detection_id',
-                     'Evidence #1': 'evidence_1',
-                     'First Time Detected': 'first_time_detected',
-                     'Form Entry Point': 'form_entry_point',
-                     'Function': 'function',
-                     'Groups': 'groups',
-                     'ID': 'id',
-                     'Ignore Comments': 'ignore_comments',
-                     'Ignore Date': 'ignore_date',
-                     'Ignore Reason': 'ignore_reason',
-                     'Ignore User': 'ignore_user',
-                     'Ignored': 'ignored',
-                     'Impact': 'impact',
-                     'Last Time Detected': 'last_time_detected',
-                     'Last Time Tested': 'last_time_tested',
-                     'Level': 'level',
-                     'OWASP': 'owasp',
-                     'Operating System': 'operating_system',
-                     'Owner': 'owner',
-                     'Param': 'param',
-                     'Payload #1': 'payload_1',
-                     'QID': 'plugin_id',
-                     'Request Headers #1': 'request_headers_1',
-                     'Request Method #1': 'request_method_1',
-                     'Request URL #1': 'request_url_1',
-                     'Response #1': 'response_1',
-                     'Scope': 'scope',
-                     'Severity': 'risk',
-                     'Severity Level': 'security_level',
-                     'Solution': 'solution',
-                     'Times Detected': 'times_detected',
-                     'Title': 'plugin_name',
-                     'URL': 'url',
-                     'Url': 'uri',
-                     'Vulnerability Category': 'vulnerability_category',
-                     'WASC': 'wasc',
-                     'Web Application Name': 'web_application_name'}
     def __init__(
             self,
             config=None,
@@ -654,8 +606,6 @@ class vulnWhispererQualys(vulnWhispererBase):
                     # Map and transform fields
                     vuln_ready = self.qualys_scan.normalise(vuln_ready)
                     vuln_ready = self.common_normalise(vuln_ready)
-                    # TODO remove the line below once normalising complete
-                    vuln_ready.rename(columns=self.COLUMN_MAPPING, inplace=True)
 
                     # Set common fields
                     vuln_ready['app_id'] = report_id
@@ -690,9 +640,8 @@ class vulnWhispererQualys(vulnWhispererBase):
 
                     if cleanup:
                         self.logger.info('Removing report {} from Qualys Database'.format(generated_report_id))
-                        cleaning_up = \
-                            self.qualys_scan.qw.delete_report(generated_report_id)
-                        os.remove(self.path_check(str(generated_report_id) + '.csv'))
+                        cleaning_up = self.qualys_scan.qw.delete_report(generated_report_id)
+                        # os.remove(self.path_check(str(generated_report_id) + '.csv'))
                         self.logger.info('Deleted report from local disk: {}'.format(self.path_check(str(generated_report_id))))
                 else:
                     self.logger.error('Could not process report ID: {}'.format(status))
