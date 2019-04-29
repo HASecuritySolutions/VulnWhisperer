@@ -74,8 +74,8 @@ class NessusAPI(object):
             'X-Cookie': None
         }
 
-        if self.profile == 'tenable' and all((self.access_key, self.secret_key)):
-            self.logger.debug('Using Tenable API keys')
+        if all((self.access_key, self.secret_key)):
+            self.logger.debug('Using {} API keys'.format(self.profile))
             self.api_keys = True
             self.session.headers['X-ApiKeys'] = 'accessKey={}; secretKey={}'.format(self.access_key, self.secret_key)
         else:
@@ -155,7 +155,7 @@ class NessusAPI(object):
         req = self.request(query, data=json.dumps(data), method='POST', json_output=True)
         try:
             file_id = req['file']
-            if not self.api_keys:
+            if self.profile == 'nessus':
                 token_id = req['token'] if 'token' in req else req['temp_token']
         except Exception as e:
             self.logger.error('{}'.format(str(e)))
@@ -167,7 +167,7 @@ class NessusAPI(object):
             running = report_status['status'] != 'ready'
             sys.stdout.write('.')
             sys.stdout.flush()
-        if self.profile == 'tenable':
+        if self.profile == 'tenable' or self.api_keys:
             content = self.request(self.EXPORT_FILE_DOWNLOAD.format(scan_id=scan_id, file_id=file_id), method='GET', download=True)
         else:
             content = self.request(self.EXPORT_TOKEN_DOWNLOAD.format(token_id=token_id), method='GET', download=True)
