@@ -452,7 +452,7 @@ class vulnWhispererNessus(vulnWhispererBase):
                         try:
                             file_req = \
                                 self.nessus.download_scan(scan_id=scan_id, history=history_id,
-                                                        export_format='csv', profile=self.CONFIG_SECTION)
+                                                        export_format='csv')
                         except Exception as e:
                             self.logger.error('Could not download {} scan {}: {}'.format(self.CONFIG_SECTION, scan_id, str(e)))
                             self.exit_code += 1

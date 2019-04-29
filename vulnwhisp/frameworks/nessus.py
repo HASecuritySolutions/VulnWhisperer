@@ -56,8 +56,8 @@ class NessusAPI(object):
             'X-Cookie': None
         }
 
-        if self.profile == 'tenable' and all((self.access_key, self.secret_key)):
-            self.logger.debug('Using Tenable API keys')
+        if all((self.access_key, self.secret_key)):
+            self.logger.debug('Using {} API keys'.format(self.profile))
             self.api_keys = True
             self.session.headers['X-ApiKeys'] = 'accessKey={}; secretKey={}'.format(self.access_key, self.secret_key)
         else:
@@ -126,7 +126,7 @@ class NessusAPI(object):
         data = self.request(self.SCAN_ID.format(scan_id=scan_id), method='GET', json_output=True)
         return data['history']
 
-    def download_scan(self, scan_id=None, history=None, export_format="", profile=""):
+    def download_scan(self, scan_id=None, history=None, export_format=""):
         running = True
         counter = 0
 
@@ -139,7 +139,7 @@ class NessusAPI(object):
         req = self.request(query, data=json.dumps(data), method='POST', json_output=True)
         try:
             file_id = req['file']
-            if not self.api_keys:
+            if self.profile == 'nessus':
                 token_id = req['token'] if 'token' in req else req['temp_token']
         except Exception as e:
             self.logger.error('{}'.format(str(e)))
@@ -156,7 +156,7 @@ class NessusAPI(object):
             if counter % 60 == 0:
                 self.logger.info("Completed: {}".format(counter))
         self.logger.info("Done: {}".format(counter))
-        if profile == 'tenable':
+        if self.profile == 'tenable' or self.api_keys:
             content = self.request(self.EXPORT_FILE_DOWNLOAD.format(scan_id=scan_id, file_id=file_id), method='GET', download=True)
         else:
             content = self.request(self.EXPORT_TOKEN_DOWNLOAD.format(token_id=token_id), method='GET', download=True)
