@@ -42,7 +42,7 @@ class NessusAPI(object):
     }
     SEVERITY_MAPPING = {'none': 0, 'low': 1, 'medium': 2, 'high': 3, 'critical': 4}
 
-    def __init__(self, hostname=None, port=None, username=None, password=None, verbose=True, profile=None):
+    def __init__(self, hostname=None, port=None, username=None, password=None, verbose=True, profile=None, access_key=None, secret_key=None):
         self.logger = logging.getLogger('NessusAPI')
         if verbose:
             self.logger.setLevel(logging.DEBUG)
@@ -51,6 +51,9 @@ class NessusAPI(object):
 
         self.user = username
         self.password = password
+        self.api_keys = False
+        self.access_key = access_key
+        self.secret_key = secret_key
         self.base = 'https://{hostname}:{port}'.format(hostname=hostname, port=port)
         self.verbose = verbose
         self.profile = profile
@@ -71,7 +74,13 @@ class NessusAPI(object):
             'X-Cookie': None
         }
 
+        if self.profile == 'tenable' and all((self.access_key, self.secret_key)):
+            self.logger.debug('Using Tenable API keys')
+            self.api_keys = True
+            self.session.headers['X-ApiKeys'] = 'accessKey={}; secretKey={}'.format(self.access_key, self.secret_key)
+        else:
         self.login()
+
         self.scans = self.get_scans()
         self.scan_ids = self.get_scan_ids()
 
@@ -97,8 +106,10 @@ class NessusAPI(object):
                 if url == self.base + self.SESSION:
                     break
                 try:
-                    self.login()
                     timeout += 1
+                    if self.api_keys:
+                        continue
+                    self.login()
                     self.logger.info('Token refreshed')
                 except Exception as e:
                     self.logger.error('Could not refresh token\nReason: {}'.format(str(e)))
@@ -144,6 +155,7 @@ class NessusAPI(object):
         req = self.request(query, data=json.dumps(data), method='POST', json_output=True)
         try:
             file_id = req['file']
+            if not self.api_keys:
             token_id = req['token'] if 'token' in req else req['temp_token']
         except Exception as e:
             self.logger.error('{}'.format(str(e)))

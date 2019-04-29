@@ -315,6 +315,8 @@ class vulnWhispererNessus(vulnWhispererBase):
 
         self.develop = True
         self.purge = purge
+        self.access_key = None
+        self.secret_key = None
 
         if config is not None:
             try:
@@ -324,21 +326,30 @@ class vulnWhispererNessus(vulnWhispererBase):
                                                         'trash')
 
                 try:
-                    self.logger.info('Attempting to connect to nessus...')
+                    self.access_key = self.config.get(self.CONFIG_SECTION,'access_key')
+                    self.secret_key = self.config.get(self.CONFIG_SECTION,'secret_key')
+                except:     
+                    pass                                
+
+                try:
+                    self.logger.info('Attempting to connect to {}...'.format(self.CONFIG_SECTION))
                     self.nessus = \
                         NessusAPI(hostname=self.hostname,
                                   port=self.nessus_port,
                                   username=self.username,
                                   password=self.password,
-                                  profile=self.CONFIG_SECTION
+                                  profile=self.CONFIG_SECTION,
+                                  access_key=self.access_key,
+                                  secret_key=self.secret_key
                                   )
                     self.nessus_connect = True
-                    self.logger.info('Connected to nessus on {host}:{port}'.format(host=self.hostname,
+                    self.logger.info('Connected to {} on {host}:{port}'.format(self.CONFIG_SECTION, host=self.hostname,
                                                                                    port=str(self.nessus_port)))
                 except Exception as e:
                     self.logger.error('Exception: {}'.format(str(e)))
                     raise Exception(
-                        'Could not connect to nessus -- Please verify your settings in {config} are correct and try again.\nReason: {e}'.format(
+                        'Could not connect to {} -- Please verify your settings in {config} are correct and try again.\nReason: {e}'.format(
+                            self.CONFIG_SECTION,
                             config=self.config.config_in,
                             e=e))
             except Exception as e:
@@ -641,7 +652,7 @@ class vulnWhispererQualys(vulnWhispererBase):
                     if cleanup:
                         self.logger.info('Removing report {} from Qualys Database'.format(generated_report_id))
                         cleaning_up = self.qualys_scan.qw.delete_report(generated_report_id)
-                        # os.remove(self.path_check(str(generated_report_id) + '.csv'))
+                        os.remove(self.path_check(str(generated_report_id) + '.csv'))
                         self.logger.info('Deleted report from local disk: {}'.format(self.path_check(str(generated_report_id))))
                 else:
                     self.logger.error('Could not process report ID: {}'.format(status))
@@ -1266,9 +1277,6 @@ class vulnWhisperer(object):
 
         if self.profile == 'nessus':
             vw = vulnWhispererNessus(config=self.config,
-                                     username=self.username,
-                                     password=self.password,
-                                     verbose=self.verbose,
                                      profile=self.profile)
             self.exit_code += vw.whisper_nessus()
 
@@ -1282,9 +1290,6 @@ class vulnWhisperer(object):
 
         elif self.profile == 'tenable':
             vw = vulnWhispererNessus(config=self.config,
-                                     username=self.username,
-                                     password=self.password,
-                                     verbose=self.verbose,
                                      profile=self.profile)
             self.exit_code += vw.whisper_nessus()
 
