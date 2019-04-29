@@ -151,7 +151,7 @@ class qualysVulnScan:
         df.columns = [x.replace(' ', '_') for x in df.columns]
 
         return df
-    
+
     def transform_values(self, df):
         self.logger.info('Transforming values')
 

@@ -200,7 +200,7 @@ class OpenVAS_API(object):
     def map_fields(self, df):
         self.logger.debug('Mapping fields')
         return df
-    
+
     def transform_values(self, df):
         self.logger.debug('Transforming values')
         df.fillna('', inplace=True)

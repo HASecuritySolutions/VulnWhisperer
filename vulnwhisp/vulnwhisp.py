@@ -63,7 +63,7 @@ class vulnWhispererBase(object):
                 self.password = self.config.get(self.CONFIG_SECTION, 'password')
             except:
                 self.username = None
-                self.password = None 
+                self.password = None
             self.write_path = self.config.get(self.CONFIG_SECTION, 'write_path')
             self.db_path = self.config.get(self.CONFIG_SECTION, 'db_path')
             self.verbose = self.config.getbool(self.CONFIG_SECTION, 'verbose')
@@ -146,7 +146,7 @@ class vulnWhispererBase(object):
 
     def record_insert(self, record):
         #for backwards compatibility with older versions without "reported" field
-        
+
         try:
             #-1 to get the latest column, 1 to get the column name (old version would be "processed", new "reported")
             #TODO delete backward compatibility check after some versions
@@ -173,7 +173,7 @@ class vulnWhispererBase(object):
             return True
         except Exception as e:
             self.logger.error('Failed while setting scan with file {} as processed'.format(filename))
-            
+
         return False
 
     def retrieve_uuids(self):
@@ -202,7 +202,7 @@ class vulnWhispererBase(object):
     def get_latest_results(self, source, scan_name):
         processed = 0
         results = []
-        
+
         try:
             self.conn.text_factory = str
             self.cur.execute('SELECT filename FROM scan_history WHERE source="{}" AND scan_name="{}" ORDER BY last_modified DESC LIMIT 1;'.format(source, scan_name))
@@ -221,10 +221,10 @@ class vulnWhispererBase(object):
         except Exception as e:
             self.logger.error("Error when getting latest results from {}.{} : {}".format(source, scan_name, e))
         return results, reported
-        
+
     def get_scan_profiles(self):
         # Returns a list of source.scan_name elements from the database
-        
+
         # we get the list of sources
         try:
             self.conn.text_factory = str
@@ -233,7 +233,7 @@ class vulnWhispererBase(object):
         except:
             sources = []
             self.logger.error("Process failed at executing 'SELECT DISTINCT source FROM scan_history;'")
-        
+
         results = []
 
         # we get the list of scans within each source
@@ -251,7 +251,7 @@ class vulnWhispererBase(object):
         return results
 
     def common_normalise(self, df):
-        """Map and transform common data values""" 
+        """Map and transform common data values"""
         self.logger.info('Start common normalisation')
 
         self.logger.info('Normalising CVSS')
@@ -332,8 +332,8 @@ class vulnWhispererNessus(vulnWhispererBase):
                 try:
                     self.access_key = self.config.get(self.CONFIG_SECTION,'access_key')
                     self.secret_key = self.config.get(self.CONFIG_SECTION,'secret_key')
-                except:     
-                    pass                                
+                except:
+                    pass
 
                 try:
                     self.logger.info('Attempting to connect to {}...'.format(self.CONFIG_SECTION))
@@ -504,7 +504,7 @@ class vulnWhispererNessus(vulnWhispererBase):
                         self.logger.error('Could not download {} scan {}: {}'.format(self.CONFIG_SECTION, scan_id, str(e)))
                         self.exit_code += 1
                         continue
-                    
+
                     self.logger.info('Processing {}/{} for scan: {}'.format(scan_count, len(scan_list), scan_name.encode('utf8')))
                     vuln_ready = pd.read_csv(io.StringIO(file_req.decode('utf-8')))
 
@@ -562,7 +562,7 @@ class vulnWhispererQualys(vulnWhispererBase):
         self.logger = logging.getLogger('vulnWhispererQualys')
         if debug:
             self.logger.setLevel(logging.DEBUG)
-        
+
         self.qualys_scan = qualysScanReport(config=config)
         self.latest_scans = self.qualys_scan.qw.get_all_scans()
         self.directory_check()
@@ -782,11 +782,11 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
                 # Map and transform fields
                 vuln_ready = self.openvas_api.normalise(vuln_ready)
                 vuln_ready = self.common_normalise(vuln_ready)
-                # TODO move the following to the openvas_api.transform_values 
+                # TODO move the following to the openvas_api.transform_values
                 vuln_ready.rename(columns=self.COLUMN_MAPPING, inplace=True)
                 vuln_ready.port = vuln_ready.port.fillna(0).astype(int)
                 vuln_ready.fillna('', inplace=True)
-                
+
                 # Set common fields
                 vuln_ready['scan_name'] = scan_name.encode('utf8')
                 vuln_ready['scan_id'] = report_id
@@ -853,7 +853,7 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
             username=None,
             password=None,
         ):
-        
+
         super(vulnWhispererQualysVuln, self).__init__(config=config)
         self.logger = logging.getLogger('vulnWhispererQualysVuln')
         if debug:
@@ -989,8 +989,8 @@ class vulnWhispererJIRA(vulnWhispererBase):
         self.config_path = config
         self.config = vwConfig(config)
         self.host_resolv_cache = {}
-        self.directory_check()   
-                 
+        self.directory_check()
+
         if config is not None:
             try:
                 self.logger.info('Attempting to connect to jira...')
@@ -1007,16 +1007,16 @@ class vulnWhispererJIRA(vulnWhispererBase):
                     'Could not connect to nessus -- Please verify your settings in {config} are correct and try again.\nReason: {e}'.format(
                         config=self.config.config_in, e=e))
                 sys.exit(1)
-   
+
         profiles = []
         profiles = self.get_scan_profiles()
-        
+
         if not self.config.exists_jira_profiles(profiles):
             self.config.update_jira_profiles(profiles)
             self.logger.info("Jira profiles have been created in {config}, please fill the variables before rerunning the module.".format(config=self.config_path))
             sys.exit(0)
-    
-   
+
+
     def get_env_variables(self, source, scan_name):
         # function returns an array with [jira_project, jira_components, datafile_path]
 
@@ -1027,32 +1027,32 @@ class vulnWhispererJIRA(vulnWhispererBase):
         if project == "":
             self.logger.error('JIRA project is missing on the configuration file!')
             sys.exit(0)
-        
+
         # check that project actually exists
         if not self.jira.project_exists(project):
             self.logger.error("JIRA project '{project}' doesn't exist!".format(project=project))
             sys.exit(0)
-         
+
         components = self.config.get(jira_section,'components').split(',')
-        
+
         #cleaning empty array from ''
         if not components[0]:
             components = []
-        
+
         min_critical = self.config.get(jira_section,'min_critical_to_report')
         if not min_critical:
             self.logger.error('"min_critical_to_report" variable on config file is empty.')
             sys.exit(0)
-            
+
         #datafile path
         filename, reported = self.get_latest_results(source, scan_name)
         fullpath = ""
-        
+
         # search data files under user specified directory
         for root, dirnames, filenames in os.walk(vwConfig(self.config_path).get(source,'write_path')):
             if filename in filenames:
                 fullpath = "{}/{}".format(root,filename)
-        
+
         if reported:
             self.logger.warn('Last Scan of "{scan_name}" for source "{source}" has already been reported; will be skipped.'.format(scan_name=scan_name, source=source))
             return [False] * 5
@@ -1060,7 +1060,7 @@ class vulnWhispererJIRA(vulnWhispererBase):
         if not fullpath:
             self.logger.error('Scan of "{scan_name}" for source "{source}" has not been found. Please check that the scanner data files are in place.'.format(scan_name=scan_name, source=source))
             sys.exit(1)
-    
+
         dns_resolv = self.config.get('jira','dns_resolv')
         if dns_resolv in ('False', 'false', ''):
             dns_resolv = False
@@ -1074,22 +1074,22 @@ class vulnWhispererJIRA(vulnWhispererBase):
 
 
     def parse_nessus_vulnerabilities(self, fullpath, source, scan_name, min_critical):
-        
+
         vulnerabilities = []
 
         # we need to parse the CSV
-        risks = ['none', 'low', 'medium', 'high', 'critical'] 
+        risks = ['none', 'low', 'medium', 'high', 'critical']
         min_risk = int([i for i,x in enumerate(risks) if x == min_critical][0])
 
         df = pd.read_csv(fullpath, delimiter=',')
-        
+
         #nessus fields we want - ['Host','Protocol','Port', 'Name', 'Synopsis', 'Description', 'Solution', 'See Also']
         for index in range(len(df)):
             # filtering vulnerabilities by criticality, discarding low risk
             to_report = int([i for i,x in enumerate(risks) if x == df.loc[index]['Risk'].lower()][0])
             if to_report < min_risk:
                 continue
-            
+
             if not vulnerabilities or df.loc[index]['Name'] not in [entry['title'] for entry in vulnerabilities]:
                 vuln = {}
                 #vulnerabilities should have all the info for creating all JIRA labels
@@ -1103,7 +1103,7 @@ class vulnWhispererJIRA(vulnWhispererBase):
                 vuln['ips'] = []
                 vuln['ips'].append("{} - {}/{}".format(df.loc[index]['Host'], df.loc[index]['Protocol'], df.loc[index]['Port']))
                 vuln['risk'] = df.loc[index]['Risk'].lower()
-                
+
                 # Nessus "nan" value gets automatically casted to float by python
                 if not (type(df.loc[index]['See Also']) is float):
                     vuln['references'] = df.loc[index]['See Also'].split("\\n")
@@ -1116,24 +1116,24 @@ class vulnWhispererJIRA(vulnWhispererBase):
                 for vuln in vulnerabilities:
                     if vuln['title'] == df.loc[index]['Name']:
                         vuln['ips'].append("{} - {}/{}".format(df.loc[index]['Host'], df.loc[index]['Protocol'], df.loc[index]['Port']))
-        
+
         return vulnerabilities
-    
+
     def parse_qualys_vuln_vulnerabilities(self, fullpath, source, scan_name, min_critical, dns_resolv = False):
         #parsing of the qualys vulnerabilities schema
         #parse json
         vulnerabilities = []
 
-        risks = ['info', 'low', 'medium', 'high', 'critical'] 
+        risks = ['info', 'low', 'medium', 'high', 'critical']
         # +1 as array is 0-4, but score is 1-5
         min_risk = int([i for i,x in enumerate(risks) if x == min_critical][0])+1
-        
+
         try:
-            data=[json.loads(line) for line in open(fullpath).readlines()] 
+            data=[json.loads(line) for line in open(fullpath).readlines()]
         except Exception as e:
             self.logger.warn("Scan has no vulnerabilities, skipping.")
             return vulnerabilities
-       
+
         #qualys fields we want - []
         for index in range(len(data)):
             if int(data[index]['risk']) < min_risk:
@@ -1142,7 +1142,7 @@ class vulnWhispererJIRA(vulnWhispererBase):
             elif data[index]['type'] == 'Practice' or data[index]['type'] == 'Ig':
                 self.logger.debug("Vulnerability '{vuln}' ignored, as it is 'Practice/Potential', not verified.".format(vuln=data[index]['plugin_name']))
                 continue
-            
+
             if not vulnerabilities or data[index]['plugin_name'] not in [entry['title'] for entry in vulnerabilities]:
                 vuln = {}
                 #vulnerabilities should have all the info for creating all JIRA labels
@@ -1155,12 +1155,12 @@ class vulnWhispererJIRA(vulnWhispererBase):
                 vuln['solution'] = data[index]['solution'].replace('\\n',' ')
                 vuln['ips'] = []
                 #TODO ADDED DNS RESOLUTION FROM QUALYS! \n SEPARATORS INSTEAD OF \\n!
-                
+
                 vuln['ips'].append("{ip} - {protocol}/{port} - {dns}".format(**self.get_asset_fields(data[index], dns_resolv)))
 
                 #different risk system than Nessus!
                 vuln['risk'] = risks[int(data[index]['risk'])-1]
-                
+
                 # Nessus "nan" value gets automatically casted to float by python
                 if not (type(data[index]['vendor_reference']) is float or data[index]['vendor_reference'] == None):
                     vuln['references'] = data[index]['vendor_reference'].split("\\n")
@@ -1178,8 +1178,8 @@ class vulnWhispererJIRA(vulnWhispererBase):
     def get_asset_fields(self, vuln, dns_resolv):
         values = {}
         values['ip'] = vuln['ip']
-        values['protocol'] = vuln['protocol'] 
-        values['port'] = vuln['port'] 
+        values['protocol'] = vuln['protocol']
+        values['port'] = vuln['port']
         values['dns'] = ''
         if dns_resolv:
             if vuln['dns']:
@@ -1229,12 +1229,12 @@ class vulnWhispererJIRA(vulnWhispererBase):
         #***Qualys VM parsing***
         if source == "qualys_vuln":
             vulnerabilities = self.parse_qualys_vuln_vulnerabilities(fullpath, source, scan_name, min_critical, dns_resolv)
-        
+
         #***JIRA sync***
         if vulnerabilities:
             self.logger.info('{source} data has been successfuly parsed'.format(source=source.upper()))
             self.logger.info('Starting JIRA sync')
-            
+
             self.jira.sync(vulnerabilities, project, components)
         else:
             self.logger.info("[{source}.{scan_name}] No vulnerabilities or vulnerabilities not parsed.".format(source=source, scan_name=scan_name))
@@ -1300,7 +1300,7 @@ class vulnWhisperer(object):
         elif self.profile == 'qualys_vuln':
             vw = vulnWhispererQualysVuln(config=self.config)
             self.exit_code += vw.process_vuln_scans()
-        
+
         elif self.profile == 'jira':
             #first we check config fields are created, otherwise we create them
             vw = vulnWhispererJIRA(config=self.config)

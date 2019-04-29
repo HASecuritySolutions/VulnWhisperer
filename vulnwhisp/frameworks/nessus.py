@@ -218,7 +218,7 @@ class NessusAPI(object):
         df.columns = [x.replace(' ', '_') for x in df.columns]
 
         return df
-    
+
     def transform_values(self, df):
         self.logger.debug('Transforming values')
 
