@@ -286,19 +286,21 @@ class qualysScanReport:
 
     COLUMN_MAPPING = {
         'DescriptionCatSev': 'category_description',
-        'DescriptionSeverity': 'severity_description',
+        'DescriptionSeverity': 'synopsis',
         'Evidence #1': 'evidence',
         'Payload #1': 'payload',
+        'QID': 'plugin_id',
         'Request Headers #1': 'request_headers',
         'Request Method #1': 'request_method',
         'Request URL #1': 'request_url',
-        'Response #1': 'response',
-        'URL': 'url',
+        'Response #1': 'plugin_output',
+        'Title': 'plugin_name',
         'Url': 'uri',
-        'QID': 'plugin_id',
+        'URL': 'url',
+        'Vulnerability Category': 'type',
     }
 
-    SEVERITY_MAPPING = {0: 'none', 1: 'low', 2: 'medium', 3: 'high',4: 'critical'}
+    SEVERITY_MAPPING = {0: 'none', 1: 'low', 2: 'medium', 3: 'high', 4: 'critical'}
 
     # URL Vulnerability Information
     WEB_SCAN_VULN_BLOCK = list(qualysReportFields.VULN_BLOCK)
@@ -520,6 +522,10 @@ class qualysScanReport:
         # Convert Qualys severity to standardised risk number
         df['risk_number'] =  df['severity'].astype(int)-1
         df['risk'] = df['risk_number'].map(self.SEVERITY_MAPPING)
+
+        # Extract dns field from URL
+        df['dns'] = df['url'].str.extract('https?://([^/]+)', expand=False)
+        df.loc[df['uri'] != '','dns'] = df.loc[df['uri'] != '','uri'].str.extract('https?://([^/]+)', expand=False)
 
         df.fillna('', inplace=True)
         return df
