@@ -28,7 +28,7 @@ class NessusAPI(object):
         self.logger = logging.getLogger('NessusAPI')
         if verbose:
             self.logger.setLevel(logging.DEBUG)
-        if username is None or password is None and not all((self.access_key, self.secret_key)):
+        if not all((username, password)) and not all((access_key, secret_key)):
             raise Exception('ERROR: Missing username, password or API keys.')
 
         self.profile = profile
@@ -77,7 +77,7 @@ class NessusAPI(object):
     def request(self, url, data=None, headers=None, method='POST', download=False, json_output=False):
         timeout = 0
         success = False
-        
+
         method = method.lower()
         url = self.base + url
         self.logger.debug('Requesting to url {}'.format(url))
