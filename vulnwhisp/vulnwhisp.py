@@ -58,8 +58,12 @@ class vulnWhispererBase(object):
             except:
                 self.enabled = False
             self.hostname = self.config.get(self.CONFIG_SECTION, 'hostname')
-            self.username = self.config.get(self.CONFIG_SECTION, 'username')
-            self.password = self.config.get(self.CONFIG_SECTION, 'password')
+            try:
+                self.username = self.config.get(self.CONFIG_SECTION, 'username')
+                self.password = self.config.get(self.CONFIG_SECTION, 'password')
+            except:
+                self.username = None
+                self.password = None 
             self.write_path = self.config.get(self.CONFIG_SECTION, 'write_path')
             self.db_path = self.config.get(self.CONFIG_SECTION, 'db_path')
             self.verbose = self.config.getbool(self.CONFIG_SECTION, 'verbose')

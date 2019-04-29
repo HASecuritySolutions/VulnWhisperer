@@ -46,8 +46,8 @@ class NessusAPI(object):
         self.logger = logging.getLogger('NessusAPI')
         if verbose:
             self.logger.setLevel(logging.DEBUG)
-        if username is None or password is None:
-            raise Exception('ERROR: Missing username or password.')
+        if not all((username, password)) and not all((access_key, secret_key)):
+            raise Exception('ERROR: Missing username, password or API keys.')
 
         self.user = username
         self.password = password
