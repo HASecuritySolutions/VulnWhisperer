@@ -24,15 +24,19 @@ class NessusAPI(object):
     EXPORT_STATUS = EXPORT + '/{file_id}/status'
     EXPORT_HISTORY = EXPORT + '?history_id={history_id}'
 
-    def __init__(self, hostname=None, port=None, username=None, password=None, verbose=True):
+    def __init__(self, hostname=None, port=None, username=None, password=None, verbose=True, profile=None, access_key=None, secret_key=None):
         self.logger = logging.getLogger('NessusAPI')
         if verbose:
             self.logger.setLevel(logging.DEBUG)
-        if username is None or password is None:
-            raise Exception('ERROR: Missing username or password.')
+        if username is None or password is None and not all((self.access_key, self.secret_key)):
+            raise Exception('ERROR: Missing username, password or API keys.')
 
+        self.profile = profile
         self.user = username
         self.password = password
+        self.api_keys = False
+        self.access_key = access_key
+        self.secret_key = secret_key
         self.base = 'https://{hostname}:{port}'.format(hostname=hostname, port=port)
         self.verbose = verbose
 
@@ -52,7 +56,13 @@ class NessusAPI(object):
             'X-Cookie': None
         }
 
-        self.login()
+        if self.profile == 'tenable' and all((self.access_key, self.secret_key)):
+            self.logger.debug('Using Tenable API keys')
+            self.api_keys = True
+            self.session.headers['X-ApiKeys'] = 'accessKey={}; secretKey={}'.format(self.access_key, self.secret_key)
+        else:
+            self.login()
+
         self.scans = self.get_scans()
         self.scan_ids = self.get_scan_ids()
 
@@ -78,8 +88,10 @@ class NessusAPI(object):
                 if url == self.base + self.SESSION:
                     break
                 try:
-                    self.login()
                     timeout += 1
+                    if self.api_keys:
+                        continue
+                    self.login()
                     self.logger.info('Token refreshed')
                 except Exception as e:
                     self.logger.error('Could not refresh token\nReason: {}'.format(str(e)))
@@ -127,7 +139,8 @@ class NessusAPI(object):
         req = self.request(query, data=json.dumps(data), method='POST', json_output=True)
         try:
             file_id = req['file']
-            token_id = req['token'] if 'token' in req else req['temp_token']
+            if not self.api_keys:
+                token_id = req['token'] if 'token' in req else req['temp_token']
         except Exception as e:
             self.logger.error('{}'.format(str(e)))
         self.logger.info('Download for file id {}'.format(str(file_id)))
