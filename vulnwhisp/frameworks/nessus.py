@@ -79,7 +79,7 @@ class NessusAPI(object):
             self.api_keys = True
             self.session.headers['X-ApiKeys'] = 'accessKey={}; secretKey={}'.format(self.access_key, self.secret_key)
         else:
-        self.login()
+            self.login()
 
         self.scans = self.get_scans()
         self.scan_ids = self.get_scan_ids()
@@ -156,7 +156,7 @@ class NessusAPI(object):
         try:
             file_id = req['file']
             if not self.api_keys:
-            token_id = req['token'] if 'token' in req else req['temp_token']
+                token_id = req['token'] if 'token' in req else req['temp_token']
         except Exception as e:
             self.logger.error('{}'.format(str(e)))
         self.logger.info('Downloading file id {}'.format(str(file_id)))
