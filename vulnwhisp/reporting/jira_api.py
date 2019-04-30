@@ -40,12 +40,12 @@ class JiraAPI(object):
             self.close_obsolete_tickets()
         # deletes the tag "server_decommission" from those tickets closed <=3 months ago
         self.decommission_cleanup()
-        
+
         self.jira_still_vulnerable_comment = '''This ticket has been reopened due to the vulnerability not having been fixed (if multiple assets are affected, all need to be fixed; if the server is down, lastest known vulnerability might be the one reported).
         - In the case of the team accepting the risk and wanting to close the ticket, please add the label "*risk_accepted*" to the ticket before closing it.
         - If server has been decommissioned, please add the label "*server_decommission*" to the ticket before closing it.
         - If when checking the vulnerability it looks like a false positive, _+please elaborate in a comment+_ and add the label "*false_positive*" before closing it; we will review it and report it to the vendor.
-        
+
         If you have further doubts, please contact the Security Team.'''
 
     def create_ticket(self, title, desc, project="IS", components=[], tags=[], attachment_contents = []):
@@ -67,31 +67,31 @@ class JiraAPI(object):
             if not exists:
                 self.logger.error("Error creating Ticket: component {} not found".format(component))
                 return 0
-                    
+
         new_issue = self.jira.create_issue(project=project,
                                            summary=title,
                                            description=desc,
                                            issuetype={'name': 'Bug'},
                                            labels=labels,
                                            components=components_ticket)
-        
+
         self.logger.info("Ticket {} created successfully".format(new_issue))
-        
+
         if attachment_contents:
             self.add_content_as_attachment(new_issue, attachment_contents)
-        
+
         return new_issue
-    
+
     #Basic JIRA Metrics
     def metrics_open_tickets(self, project=None):
-        jql = "labels= vulnerability_management and resolution = Unresolved" 
+        jql = "labels= vulnerability_management and resolution = Unresolved"
         if project:
             jql += " and (project='{}')".format(project)
-        self.logger.debug('Executing: {}'.format(jql)) 
+        self.logger.debug('Executing: {}'.format(jql))
         return len(self.jira.search_issues(jql, maxResults=0))
 
     def metrics_closed_tickets(self, project=None):
-        jql = "labels= vulnerability_management and NOT resolution = Unresolved AND created >=startOfMonth(-{})".format(self.max_time_tracking) 
+        jql = "labels= vulnerability_management and NOT resolution = Unresolved AND created >=startOfMonth(-{})".format(self.max_time_tracking)
         if project:
             jql += " and (project='{}')".format(project)
         return len(self.jira.search_issues(jql, maxResults=0))
@@ -105,10 +105,10 @@ class JiraAPI(object):
             # if it has, they will be replaced by "_"
             if " " in  vuln['scan_name']:
                 vuln['scan_name'] = "_".join(vuln['scan_name'].split(" "))
-            
+
             # we exclude from the vulnerabilities to report those assets that already exist with *risk_accepted*/*server_decommission*
             vuln = self.exclude_accepted_assets(vuln)
-            
+
             # make sure after exclusion of risk_accepted assets there are still assets
             if vuln['ips']:
                 exists = False
@@ -140,18 +140,18 @@ class JiraAPI(object):
                 self.create_ticket(title=vuln['title'], desc=tpl, project=project, components=components, tags=[vuln['source'], vuln['scan_name'], 'vulnerability', vuln['risk']], attachment_contents = attachment_contents)
             else:
                 self.logger.info("Ignoring vulnerability as all assets are already reported in a risk_accepted ticket")
-        
+
         self.close_fixed_tickets(vulnerabilities)
         # we reinitialize so the next sync redoes the query with their specific variables
         self.all_tickets = []
         self.excluded_tickets = []
         return True
-    
+
     def exclude_accepted_assets(self, vuln):
         # we want to check JIRA tickets with risk_accepted/server_decommission or false_positive labels sharing the same source
         # will exclude tickets older than 12 months, old tickets will get closed for higiene and recreated if still vulnerable
-        labels = [vuln['source'], vuln['scan_name'], 'vulnerability_management', 'vulnerability'] 
-        
+        labels = [vuln['source'], vuln['scan_name'], 'vulnerability_management', 'vulnerability']
+
         if not self.excluded_tickets:
             jql = "{} AND labels in (risk_accepted,server_decommission, false_positive) AND NOT labels=advisory AND created >=startOfMonth(-{})".format(" AND ".join(["labels={}".format(label) for label in labels]), self.max_time_tracking)
             self.excluded_tickets = self.jira.search_issues(jql, maxResults=0)
@@ -169,14 +169,14 @@ class JiraAPI(object):
                     #checking_assets is a list, we add to our full list for later delete all assets
                     assets_to_exclude+=checking_assets
                     tickets_excluded_assets.append(checking_ticketid)
-       
+
         if assets_to_exclude:
             assets_to_remove = []
             self.logger.warn("Vulnerable Assets seen on an already existing risk_accepted Jira ticket: {}".format(', '.join(tickets_excluded_assets)))
             self.logger.debug("Original assets: {}".format(vuln['ips']))
-            #assets in vulnerability have the structure "ip - hostname - port", so we need to match by partial 
+            #assets in vulnerability have the structure "ip - hostname - port", so we need to match by partial
             for exclusion in assets_to_exclude:
-                # for efficiency, we walk the backwards the array of ips from the scanners, as we will be popping out the matches 
+                # for efficiency, we walk the backwards the array of ips from the scanners, as we will be popping out the matches
                 # and we don't want it to affect the rest of the processing (otherwise, it would miss the asset right after the removed one)
                 for index in range(len(vuln['ips']))[::-1]:
                     if exclusion == vuln['ips'][index].split(" - ")[0]:
@@ -194,28 +194,28 @@ class JiraAPI(object):
         # we need to return if the vulnerability has already been reported and the ID of the ticket for further processing
         #function returns array [duplicated(bool), update(bool), ticketid, ticket_assets]
         title = vuln['title']
-        labels = [vuln['source'], vuln['scan_name'], 'vulnerability_management', 'vulnerability'] 
+        labels = [vuln['source'], vuln['scan_name'], 'vulnerability_management', 'vulnerability']
         #list(set()) to remove duplicates
         assets = list(set(re.findall(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b", ",".join(vuln['ips']))))
-        
+
         if not self.all_tickets:
             self.logger.info("Retrieving all JIRA tickets with the following tags {}".format(labels))
             # we want to check all JIRA tickets, to include tickets moved to other queues
             # will exclude tickets older than 12 months, old tickets will get closed for higiene and recreated if still vulnerable
             jql = "{} AND NOT labels=advisory AND created >=startOfMonth(-{})".format(" AND ".join(["labels={}".format(label) for label in labels]), self.max_time_tracking)
-            
+
             self.all_tickets = self.jira.search_issues(jql, maxResults=0)
-        
+
         #WARNING: function IGNORES DUPLICATES, after finding a "duplicate" will just return it exists
         #it wont iterate over the rest of tickets looking for other possible duplicates/similar issues
         self.logger.info("Comparing Vulnerabilities to created tickets")
         for index in range(len(self.all_tickets)):
             checking_ticketid, checking_title, checking_assets = self.ticket_get_unique_fields(self.all_tickets[index])
             # added "not risk_accepted", as if it is risk_accepted, we will create a new ticket excluding the accepted assets
-            if title.encode('ascii') == checking_title.encode('ascii') and not self.is_risk_accepted(self.jira.issue(checking_ticketid)): 
+            if title.encode('ascii') == checking_title.encode('ascii') and not self.is_risk_accepted(self.jira.issue(checking_ticketid)):
                 difference = list(set(assets).symmetric_difference(checking_assets))
                 #to check intersection - set(assets) & set(checking_assets)
-                if difference: 
+                if difference:
                     self.logger.info("Asset mismatch, ticket to update. Ticket ID: {}".format(checking_ticketid))
                     return False, True, checking_ticketid, checking_assets #this will automatically validate
                 else:
@@ -230,12 +230,12 @@ class JiraAPI(object):
         try:
             affected_assets_section = ticket.raw.get('fields', {}).get('description').encode("ascii").split("{panel:title=Affected Assets}")[1].split("{panel}")[0]
             assets = list(set(re.findall(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b", affected_assets_section)))
-        
+
         except Exception as e:
             self.logger.error("Ticket IPs regex failed. Ticket ID: {}. Reason: {}".format(ticketid, e))
             assets = []
-        
-        try:     
+
+        try:
             if not assets:
                 #check if attachment, if so, get assets from attachment
                 affected_assets_section = self.check_ips_attachment(ticket)
@@ -243,7 +243,7 @@ class JiraAPI(object):
                     assets = list(set(re.findall(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b", affected_assets_section)))
         except Exception as e:
             self.logger.error("Ticket IPs Attachment regex failed. Ticket ID: {}. Reason: {}".format(ticketid, e))
-                
+
         return ticketid, title, assets
 
     def check_ips_attachment(self, ticket):
@@ -260,11 +260,11 @@ class JiraAPI(object):
                     if item.get('filename') == self.attachment_filename:
                         if not latest:
                             latest = item.get('created')
-                            attachment_id = item.get('id') 
+                            attachment_id = item.get('id')
                         else:
                             if latest < item.get('created'):
-                                latest = item.get('created')         
-                                attachment_id = item.get('id') 
+                                latest = item.get('created')
+                                attachment_id = item.get('id')
             affected_assets_section = self.jira.attachment(attachment_id).get()
 
         except Exception as e:
@@ -300,7 +300,7 @@ class JiraAPI(object):
         return True
 
     def get_ticket_reported_assets(self, ticket):
-        #[METRICS] return a list with all the affected assets for that vulnerability (including already resolved ones) 
+        #[METRICS] return a list with all the affected assets for that vulnerability (including already resolved ones)
         return list(set(re.findall(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b",str(self.jira.issue(ticket).raw))))
 
     def get_resolution_time(self, ticket):
@@ -311,7 +311,7 @@ class JiraAPI(object):
             #dates follow format '2018-11-06T10:36:13.849+0100'
             created = [int(x) for x in ticket_data['created'].split('.')[0].replace('T', '-').replace(':','-').split('-')]
             resolved =[int(x) for x in ticket_data['resolutiondate'].split('.')[0].replace('T', '-').replace(':','-').split('-')]
-            
+
             start = datetime(created[0],created[1],created[2],created[3],created[4],created[5])
             end = datetime(resolved[0],resolved[1],resolved[2],resolved[3],resolved[4],resolved[5])
             return (end-start).days
@@ -323,7 +323,7 @@ class JiraAPI(object):
     def ticket_update_assets(self, vuln, ticketid, ticket_assets):
         # correct description will always be in the vulnerability to report, only needed to update description to new one
         self.logger.info("Ticket {} exists, UPDATE requested".format(ticketid))
-        
+
         #for now, if a vulnerability has been accepted ('accepted_risk'), ticket is completely ignored and not updated (no new assets)
 
         #TODO when vulnerability accepted, create a new ticket with only the non-accepted vulnerable assets
@@ -335,12 +335,12 @@ class JiraAPI(object):
             if self.is_risk_accepted(ticket_obj):
                 return 0
             self.reopen_ticket(ticketid=ticketid, comment=self.jira_still_vulnerable_comment)
-        
+
         #First will do the comparison of assets
         ticket_obj.update()
         assets = list(set(re.findall(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b", ",".join(vuln['ips']))))
         difference = list(set(assets).symmetric_difference(ticket_assets))
-        
+
         comment = ''
         added = ''
         removed = ''
@@ -356,13 +356,13 @@ class JiraAPI(object):
                 removed += '* {}\n'.format(asset)
 
         comment = added + removed
-        
+
         #then will check if assets are too many that need to be added as an attachment
         attachment_contents = []
         if len(vuln['ips']) > self.max_ips_ticket:
             attachment_contents = vuln['ips']
             vuln['ips'] = ["Affected hosts ({assets}) exceed Jira's allowed character limit, added as an attachment.".format(assets = len(attachment_contents))]
-        
+
         #fill the ticket description template
         try:
             tpl = template(self.template_path, vuln)
@@ -376,7 +376,7 @@ class JiraAPI(object):
             if attachment_contents:
                 self.clean_old_attachments(ticket_obj)
                 self.add_content_as_attachment(ticket_obj, attachment_contents)
-                
+
             ticket_obj.update(description=tpl, comment=comment, fields={"labels":ticket_obj.fields.labels})
             self.logger.info("Ticket {} updated successfully".format(ticketid))
             self.add_label(ticketid, 'updated')
@@ -386,24 +386,24 @@ class JiraAPI(object):
 
     def add_label(self, ticketid, label):
         ticket_obj = self.jira.issue(ticketid)
-        
+
         if label not in [x.encode('utf8') for x in ticket_obj.fields.labels]:
             ticket_obj.fields.labels.append(label)
-        
+
             try:
                 ticket_obj.update(fields={"labels":ticket_obj.fields.labels})
                 self.logger.info("Added label {label} to ticket {ticket}".format(label=label, ticket=ticketid))
             except:
                 self.logger.error("Error while trying to add label {label} to ticket {ticket}".format(label=label, ticket=ticketid))
-        
+
         return 0
 
     def remove_label(self, ticketid, label):
         ticket_obj = self.jira.issue(ticketid)
-        
+
         if label in [x.encode('utf8') for x in ticket_obj.fields.labels]:
             ticket_obj.fields.labels.remove(label)
-        
+
             try:
                 ticket_obj.update(fields={"labels":ticket_obj.fields.labels})
                 self.logger.info("Removed label {label} from ticket {ticket}".format(label=label, ticket=ticketid))
@@ -411,7 +411,7 @@ class JiraAPI(object):
                 self.logger.error("Error while trying to remove label {label} to ticket {ticket}".format(label=label, ticket=ticketid))
         else:
             self.logger.error("Error: label {label} not in ticket {ticket}".format(label=label, ticket=ticketid))
-        
+
         return 0
 
     def close_fixed_tickets(self, vulnerabilities):
@@ -431,7 +431,7 @@ class JiraAPI(object):
                 self.logger.info("Ticket {} is still vulnerable".format(ticket))
                 continue
             self.logger.info("Ticket {} is no longer vulnerable".format(ticket))
-            self.close_ticket(ticket, self.JIRA_RESOLUTION_FIXED, comment) 
+            self.close_ticket(ticket, self.JIRA_RESOLUTION_FIXED, comment)
         return 0
 
 
@@ -484,7 +484,7 @@ class JiraAPI(object):
         self.logger.debug("Ticket {} exists, REOPEN requested".format(ticketid))
         # this will reopen a ticket by ticketid
         ticket_obj = self.jira.issue(ticketid)
-        
+
         if self.is_ticket_resolved(ticket_obj):
             if (not self.is_risk_accepted(ticket_obj) or ignore_labels):
                 try:
@@ -516,21 +516,21 @@ class JiraAPI(object):
                 # continue with ticket data so that a new ticket is created in place of the "lost" one
                 self.logger.error("error closing ticket {}: {}".format(ticketid, e))
                 return 0
-                
+
         return 0
 
     def close_obsolete_tickets(self):
-        # Close tickets older than 12 months, vulnerabilities not solved will get created a new ticket 
+        # Close tickets older than 12 months, vulnerabilities not solved will get created a new ticket
         self.logger.info("Closing obsolete tickets older than {} months".format(self.max_time_tracking))
         jql = "labels=vulnerability_management AND created <startOfMonth(-{}) and resolution=Unresolved".format(self.max_time_tracking)
         tickets_to_close = self.jira.search_issues(jql, maxResults=0)
-        
+
         comment = '''This ticket is being closed for hygiene, as it is more than {} months old.
         If the vulnerability still exists, a new ticket will be opened.'''.format(self.max_time_tracking)
-        
+
         for ticket in tickets_to_close:
                 self.close_ticket(ticket, self.JIRA_RESOLUTION_OBSOLETE, comment)
-        
+
         return 0
 
     def project_exists(self, project):
@@ -547,7 +547,7 @@ class JiraAPI(object):
         '''
         #check if file already exists
         check_date = str(date.today())
-        fname = '{}jira_{}.json'.format(path, check_date) 
+        fname = '{}jira_{}.json'.format(path, check_date)
         if os.path.isfile(fname):
             self.logger.info("File {} already exists, skipping ticket download".format(fname))
             return True
@@ -555,23 +555,23 @@ class JiraAPI(object):
             self.logger.info("Saving locally tickets from the last {} months".format(self.max_time_tracking))
             jql = "labels=vulnerability_management AND created >=startOfMonth(-{})".format(self.max_time_tracking)
             tickets_data = self.jira.search_issues(jql, maxResults=0)
-            
+
             #end of line needed, as writelines() doesn't add it automatically, otherwise one big line
             to_save = [json.dumps(ticket.raw.get('fields'))+"\n" for ticket in tickets_data]
             with open(fname, 'w') as outfile:
                 outfile.writelines(to_save)
                 self.logger.info("Tickets saved succesfully.")
-            
+
             return True
 
         except Exception as e:
             self.logger.error("Tickets could not be saved locally: {}.".format(e))
-        
-        return False 
+
+        return False
 
     def decommission_cleanup(self):
         '''
-        deletes the server_decomission tag from those tickets that have been 
+        deletes the server_decomission tag from those tickets that have been
         closed already for more than x months (default is 3 months) in order to clean solved issues
         for statistics purposes
         '''
@@ -579,15 +579,15 @@ class JiraAPI(object):
 
         jql = "labels=vulnerability_management AND labels=server_decommission and resolutiondate <=startOfMonth(-{})".format(self.max_decommission_time)
         decommissioned_tickets = self.jira.search_issues(jql, maxResults=0)
-        
+
         comment = '''This ticket is having deleted the *server_decommission* tag, as it is more than {} months old and is expected to already have been decommissioned.
         If that is not the case and the vulnerability still exists, the vulnerability will be opened again.'''.format(self.max_decommission_time)
-        
+
         for ticket in decommissioned_tickets:
-            #we open first the ticket, as we want to make sure the process is not blocked due to 
+            #we open first the ticket, as we want to make sure the process is not blocked due to
             #an unexisting jira workflow or unallowed edit from closed tickets
             self.reopen_ticket(ticketid=ticket, ignore_labels=True)
             self.remove_label(ticket, 'server_decommission')
             self.close_ticket(ticket, self.JIRA_RESOLUTION_FIXED, comment)
-        
+
         return 0
