@@ -35,13 +35,13 @@ class mockAPI(object):
         elif 'fetch' in request.parsed_body['action']:
             try:
                 response_body = open('{}/{}'.format(
-                                      self.qualys_vuln_path, 
+                                      self.qualys_vuln_path,
                                       request.parsed_body['scan_ref'][0].replace('/', '_'))
                                     ).read()
             except:
                 # Can't find the file, just send an empty response
                 response_body = ''
-        return [200, response_headers, response_body] 
+        return [200, response_headers, response_body]
 
     def create_nessus_resource(self, framework):
         for filename in self.get_files('{}/{}'.format(self.mock_dir, framework)):
@@ -60,7 +60,7 @@ class mockAPI(object):
                 httpretty.GET,
                 'https://{}:443/{}'.format(framework, 'msp/about.php'),
                 body='')
-        
+
         self.logger.debug('Adding mocked {} endpoint {} {}'.format(framework, 'POST', 'api/2.0/fo/scan'))
         httpretty.register_uri(
             httpretty.POST, 'https://{}:443/{}'.format(framework, 'api/2.0/fo/scan/'),
