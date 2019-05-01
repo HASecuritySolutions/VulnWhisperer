@@ -527,5 +527,8 @@ class qualysScanReport:
         df['dns'] = df['url'].str.extract('https?://([^/]+)', expand=False)
         df.loc[df['uri'] != '','dns'] = df.loc[df['uri'] != '','uri'].str.extract('https?://([^/]+)', expand=False)
 
+        # Set asset to dns
+        df['asset'] = df['dns']
+
         df.fillna('', inplace=True)
         return df

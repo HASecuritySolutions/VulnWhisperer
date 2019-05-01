@@ -169,6 +169,8 @@ class qualysVulnScan:
         df['cvss_temporal_vector'] = df['cvss_temporal'].str.extract('\((.*)\)', expand=False)
         df['cvss_temporal'] = df['cvss_temporal'].str.extract('^(\d+(?:\.\d+)?)', expand=False)
 
+        # Set asset to ip
+        df['asset'] = df['ip']
 
         # Convert Qualys severity to standardised risk number
         df['risk_number'] =  df['severity'].astype(int)-1

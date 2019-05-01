@@ -275,7 +275,7 @@ class vulnWhispererBase(object):
             if cvss_version in df:
                 self.logger.info('Normalising {} severity'.format(cvss_version))
                 # Map CVSS to severity name
-                df.loc[df[cvss_version] == '', cvss_version] = None
+                df.loc[df[cvss_version].astype(str) == '', cvss_version] = None
                 df[cvss_version] = df[cvss_version].astype('float')
                 # df.loc[df[cvss_version].isnull(), cvss_version + '_severity'] = 'info'
                 df.loc[df[cvss_version] == 0, cvss_version + '_severity'] = 'info'
@@ -283,6 +283,13 @@ class vulnWhispererBase(object):
                 df.loc[(df[cvss_version] >= 3) & (df[cvss_version] < 6), cvss_version + '_severity'] = 'medium'
                 df.loc[(df[cvss_version] >= 6) & (df[cvss_version] < 9), cvss_version + '_severity'] = 'high'
                 df.loc[(df[cvss_version] > 9) & (df[cvss_version].notnull()), cvss_version + '_severity'] = 'critical'
+
+        self.logger.info('Creating Unique Document ID')
+        df['_unique'] = df.index.values
+        if 'history_id' in df:
+            df['_unique'] = df[['scan_id', 'history_id', '_unique']].apply(lambda x: '_'.join(x.astype(str)), axis=1)
+        else:
+            df['_unique'] = df[['scan_id', '_unique']].apply(lambda x: '_'.join(x.astype(str)), axis=1)
 
         # Rename cvss to cvss2
         # Make cvss with no suffix == cvss3 else cvss2
@@ -510,7 +517,6 @@ class vulnWhispererNessus(vulnWhispererBase):
 
                     # Map and transform fields
                     vuln_ready = self.nessus.normalise(vuln_ready)
-                    vuln_ready = self.common_normalise(vuln_ready)
 
                     # Set common fields
                     vuln_ready['history_id'] = history_id
@@ -518,6 +524,8 @@ class vulnWhispererNessus(vulnWhispererBase):
                     vuln_ready['scan_name'] = scan_name.encode('utf8')
                     vuln_ready['scan_source'] = self.CONFIG_SECTION
                     vuln_ready['scan_time'] = norm_time
+
+                    vuln_ready = self.common_normalise(vuln_ready)
 
                     vuln_ready.to_json(relative_path_name + '.tmp', orient='records', lines=True)
                     os.rename(relative_path_name + '.tmp', relative_path_name)
@@ -621,7 +629,6 @@ class vulnWhispererQualys(vulnWhispererBase):
                     vuln_ready = self.qualys_scan.process_data(path=self.write_path, file_id=str(generated_report_id))
                     # Map and transform fields
                     vuln_ready = self.qualys_scan.normalise(vuln_ready)
-                    vuln_ready = self.common_normalise(vuln_ready)
 
                     # Set common fields
                     vuln_ready['app_id'] = report_id
@@ -629,6 +636,8 @@ class vulnWhispererQualys(vulnWhispererBase):
                     vuln_ready['scan_name'] = scan_name.encode('utf8')
                     vuln_ready['scan_source'] = self.CONFIG_SECTION
                     vuln_ready['scan_time'] = launched_date
+
+                    vuln_ready = self.common_normalise(vuln_ready)
 
                     if output_format == 'json':
                         vuln_ready.to_json(relative_path_name + '.tmp', orient='records', lines=True)
@@ -699,6 +708,7 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
                       'Hostname': 'hostname',
                       'Port': 'port',
                       'Port Protocol': 'protocol',
+                      'CVEs': 'cve',
                       'CVSS': 'cvss',
                       'Severity': 'severity',
                       'Solution Type': 'category',
@@ -782,17 +792,18 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
                 vuln_ready = self.openvas_api.process_report(report_id=report_id)
                 # Map and transform fields
                 vuln_ready = self.openvas_api.normalise(vuln_ready)
-                vuln_ready = self.common_normalise(vuln_ready)
+
                 # TODO move the following to the openvas_api.transform_values
                 vuln_ready.rename(columns=self.COLUMN_MAPPING, inplace=True)
-                vuln_ready.port = vuln_ready.port.fillna(0).astype(int)
-                vuln_ready.fillna('', inplace=True)
+                vuln_ready.port = vuln_ready.port.replace('', 0).astype(int)
 
                 # Set common fields
                 vuln_ready['scan_name'] = scan_name.encode('utf8')
                 vuln_ready['scan_id'] = report_id
                 vuln_ready['scan_time'] = launched_date
                 vuln_ready['scan_source'] = self.CONFIG_SECTION
+
+                vuln_ready = self.common_normalise(vuln_ready)
 
                 vuln_ready.to_json(relative_path_name + '.tmp', orient='records', lines=True)
                 os.rename(relative_path_name + '.tmp', relative_path_name)
@@ -904,13 +915,14 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
                     vuln_ready = self.qualys_scan.process_data(scan_id=report_id)
                     # Map and transform fields
                     vuln_ready = self.qualys_scan.normalise(vuln_ready)
-                    vuln_ready = self.common_normalise(vuln_ready)
 
                     # Set common fields
                     vuln_ready['scan_name'] = scan_name.encode('utf8')
                     vuln_ready['scan_id'] = report_id
                     vuln_ready['scan_time'] = launched_date
                     vuln_ready['scan_source'] = self.CONFIG_SECTION
+
+                    vuln_ready = self.common_normalise(vuln_ready)
 
                 except Exception as e:
                     self.logger.error('Could not process {}: {}'.format(report_id, str(e)))

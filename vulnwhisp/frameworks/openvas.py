@@ -110,6 +110,7 @@ class OpenVAS_API(object):
         ]
         token = requests.post(self.base + self.OMP, data=data, verify=False)
         return token
+
     def get_report_formats(self):
         params = (
             ('cmd', 'get_report_formats'),
