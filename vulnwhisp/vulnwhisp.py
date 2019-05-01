@@ -448,7 +448,8 @@ class vulnWhispererNessus(vulnWhispererBase):
                             columns_to_cleanse = ['CVSS','CVE','Description','Synopsis','Solution','See Also','Plugin Output', 'MAC Address']
 
                             for col in columns_to_cleanse:
-                                clean_csv[col] = clean_csv[col].astype(str).apply(self.cleanser)
+                                if col in clean_csv:
+                                    clean_csv[col] = clean_csv[col].astype(str).apply(self.cleanser)
 
                             clean_csv.to_csv(relative_path_name, index=False)
                             record_meta = (
