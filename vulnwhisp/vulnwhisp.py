@@ -519,7 +519,8 @@ class vulnWhispererNessus(vulnWhispererBase):
                     vuln_ready['scan_source'] = self.CONFIG_SECTION
                     vuln_ready['scan_time'] = norm_time
 
-                    vuln_ready.to_json(relative_path_name, orient='records', lines=True)
+                    vuln_ready.to_json(relative_path_name + '.tmp', orient='records', lines=True)
+                    os.rename(relative_path_name + '.tmp', relative_path_name)
                     self.logger.info('{records} records written to {path} '.format(records=vuln_ready.shape[0],
                                                                                    path=relative_path_name))
 
@@ -630,10 +631,10 @@ class vulnWhispererQualys(vulnWhispererBase):
                     vuln_ready['scan_time'] = launched_date
 
                     if output_format == 'json':
-                        vuln_ready.to_json(relative_path_name, orient='records', lines=True)
-
+                        vuln_ready.to_json(relative_path_name + '.tmp', orient='records', lines=True)
                     elif output_format == 'csv':
-                        vuln_ready.to_csv(relative_path_name, index=False, header=True)
+                        vuln_ready.to_csv(relative_path_name + '.tmp', index=False, header=True)
+                    os.rename(relative_path_name + '.tmp', relative_path_name)
 
                     self.logger.info('{records} records written to {path} '.format(records=vuln_ready.shape[0],
                                                                                    path=relative_path_name))
@@ -793,7 +794,8 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
                 vuln_ready['scan_time'] = launched_date
                 vuln_ready['scan_source'] = self.CONFIG_SECTION
 
-                vuln_ready.to_json(relative_path_name, orient='records', lines=True)
+                vuln_ready.to_json(relative_path_name + '.tmp', orient='records', lines=True)
+                os.rename(relative_path_name + '.tmp', relative_path_name)
                 self.logger.info('{records} records written to {path} '.format(records=vuln_ready.shape[0],
                                                                                path=relative_path_name))
 
@@ -916,8 +918,10 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
                     return self.exit_code
 
                 if output_format == 'json':
-                    vuln_ready.to_json(relative_path_name, orient='records', lines=True)
-
+                    vuln_ready.to_json(relative_path_name + '.tmp', orient='records', lines=True)
+                elif output_format == 'csv':
+                    vuln_ready.to_csv(relative_path_name + '.tmp', index=False, header=True)
+                os.rename(relative_path_name + '.tmp', relative_path_name)
                 self.logger.info('{records} records written to {path} '.format(records=vuln_ready.shape[0],
                                                                                path=relative_path_name))
 
