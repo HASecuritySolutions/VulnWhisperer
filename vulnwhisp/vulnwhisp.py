@@ -450,7 +450,6 @@ class vulnWhispererNessus(vulnWhispererBase):
                             for col in columns_to_cleanse:
                                 clean_csv[col] = clean_csv[col].astype(str).apply(self.cleanser)
 
-
                             clean_csv.to_csv(relative_path_name, index=False)
                             record_meta = (
                                 scan_name,
