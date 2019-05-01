@@ -717,7 +717,7 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
                       'Specific Result': 'plugin_output',
                       'NVT OID': 'nvt_oid',
                       'Task ID': 'task_id',
-                      'Task Name': 'task_name',
+                      'Task Name': 'scan_name',
                       'Timestamp': 'timestamp',
                       'Result ID': 'result_id',
                       'Impact': 'description',
@@ -798,7 +798,7 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
                 vuln_ready.port = vuln_ready.port.replace('', 0).astype(int)
 
                 # Set common fields
-                vuln_ready['scan_name'] = scan_name.encode('utf8')
+                # vuln_ready['scan_name'] = scan_name.encode('utf8')
                 vuln_ready['scan_id'] = report_id
                 vuln_ready['scan_time'] = launched_date
                 vuln_ready['scan_source'] = self.CONFIG_SECTION
