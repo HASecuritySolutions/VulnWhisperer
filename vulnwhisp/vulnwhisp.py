@@ -440,15 +440,16 @@ class vulnWhispererNessus(vulnWhispererBase):
                             self.logger.error('Could not download {} scan {}: {}'.format(self.CONFIG_SECTION, scan_id, str(e)))
                             self.exit_code += 1
                             continue
-                            
+
                         clean_csv = \
                             pd.read_csv(io.StringIO(file_req.decode('utf-8')))
                         if len(clean_csv) > 2:
                             self.logger.info('Processing {}/{} for scan: {}'.format(scan_count, len(scan_list), scan_name.encode('utf8')))
-                            columns_to_cleanse = ['CVSS','CVE','Description','Synopsis','Solution','See Also','Plugin Output']
+                            columns_to_cleanse = ['CVSS','CVE','Description','Synopsis','Solution','See Also','Plugin Output', 'MAC Address']
 
                             for col in columns_to_cleanse:
-                                clean_csv[col] = clean_csv[col].astype(str).apply(self.cleanser)
+                                if col in clean_csv:
+                                    clean_csv[col] = clean_csv[col].astype(str).apply(self.cleanser)
 
                             clean_csv.to_csv(relative_path_name, index=False)
                             record_meta = (
