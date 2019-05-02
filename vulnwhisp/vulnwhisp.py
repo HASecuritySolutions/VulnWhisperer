@@ -326,46 +326,42 @@ class vulnWhispererNessus(vulnWhispererBase):
 
         self.develop = True
         self.purge = purge
-        self.access_key = None
-        self.secret_key = None
 
-        if config is not None:
+        try:
+            self.nessus_port = self.config.get(self.CONFIG_SECTION, 'port')
+            self.nessus_trash = self.config.getbool(self.CONFIG_SECTION, 'trash')
+
             try:
-                self.nessus_port = self.config.get(self.CONFIG_SECTION, 'port')
+                self.access_key = self.config.get(self.CONFIG_SECTION,'access_key')
+                self.secret_key = self.config.get(self.CONFIG_SECTION,'secret_key')
+            except:
+                self.access_key = None
+                self.secret_key = None
 
-                self.nessus_trash = self.config.getbool(self.CONFIG_SECTION,
-                                                        'trash')
-
-                try:
-                    self.access_key = self.config.get(self.CONFIG_SECTION,'access_key')
-                    self.secret_key = self.config.get(self.CONFIG_SECTION,'secret_key')
-                except:
-                    pass
-
-                try:
-                    self.logger.info('Attempting to connect to {}...'.format(self.CONFIG_SECTION))
-                    self.nessus = \
-                        NessusAPI(hostname=self.hostname,
-                                  port=self.nessus_port,
-                                  username=self.username,
-                                  password=self.password,
-                                  profile=self.CONFIG_SECTION,
-                                  access_key=self.access_key,
-                                  secret_key=self.secret_key
-                                  )
-                    self.nessus_connect = True
-                    self.logger.info('Connected to {} on {host}:{port}'.format(self.CONFIG_SECTION, host=self.hostname,
-                                                                                   port=str(self.nessus_port)))
-                except Exception as e:
-                    self.logger.error('Exception: {}'.format(str(e)))
-                    raise Exception(
-                        'Could not connect to {} -- Please verify your settings in {config} are correct and try again.\nReason: {e}'.format(
-                            self.CONFIG_SECTION,
-                            config=self.config.config_in,
-                            e=e))
+            try:
+                self.logger.info('Attempting to connect to {}...'.format(self.CONFIG_SECTION))
+                self.nessus = \
+                    NessusAPI(hostname=self.hostname,
+                                port=self.nessus_port,
+                                username=self.username,
+                                password=self.password,
+                                profile=self.CONFIG_SECTION,
+                                access_key=self.access_key,
+                                secret_key=self.secret_key
+                                )
+                self.nessus_connect = True
+                self.logger.info('Connected to {} on {host}:{port}'.format(self.CONFIG_SECTION, host=self.hostname,
+                                                                                port=str(self.nessus_port)))
             except Exception as e:
-                self.logger.error('Could not properly load your config!\nReason: {e}'.format(e=e))
-                sys.exit(1)
+                self.logger.error('Exception: {}'.format(str(e)))
+                raise Exception(
+                    'Could not connect to {} -- Please verify your settings in {config} are correct and try again.\nReason: {e}'.format(
+                        self.CONFIG_SECTION,
+                        config=self.config.config_in,
+                        e=e))
+        except Exception as e:
+            self.logger.error('Could not properly load your config!\nReason: {e}'.format(e=e))
+            sys.exit(1)
 
 
 
