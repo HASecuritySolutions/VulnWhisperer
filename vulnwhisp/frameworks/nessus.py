@@ -24,15 +24,19 @@ class NessusAPI(object):
     EXPORT_STATUS = EXPORT + '/{file_id}/status'
     EXPORT_HISTORY = EXPORT + '?history_id={history_id}'
 
-    def __init__(self, hostname=None, port=None, username=None, password=None, verbose=True):
+    def __init__(self, hostname=None, port=None, username=None, password=None, verbose=True, profile=None, access_key=None, secret_key=None):
         self.logger = logging.getLogger('NessusAPI')
         if verbose:
             self.logger.setLevel(logging.DEBUG)
-        if username is None or password is None:
-            raise Exception('ERROR: Missing username or password.')
+        if not all((username, password)) and not all((access_key, secret_key)):
+            raise Exception('ERROR: Missing username, password or API keys.')
 
+        self.profile = profile
         self.user = username
         self.password = password
+        self.api_keys = False
+        self.access_key = access_key
+        self.secret_key = secret_key
         self.base = 'https://{hostname}:{port}'.format(hostname=hostname, port=port)
         self.verbose = verbose
 
@@ -52,7 +56,13 @@ class NessusAPI(object):
             'X-Cookie': None
         }
 
-        self.login()
+        if all((self.access_key, self.secret_key)):
+            self.logger.debug('Using {} API keys'.format(self.profile))
+            self.api_keys = True
+            self.session.headers['X-ApiKeys'] = 'accessKey={}; secretKey={}'.format(self.access_key, self.secret_key)
+        else:
+            self.login()
+
         self.scans = self.get_scans()
         self.scan_ids = self.get_scan_ids()
 
@@ -67,7 +77,7 @@ class NessusAPI(object):
     def request(self, url, data=None, headers=None, method='POST', download=False, json_output=False):
         timeout = 0
         success = False
-        
+
         method = method.lower()
         url = self.base + url
         self.logger.debug('Requesting to url {}'.format(url))
@@ -78,8 +88,10 @@ class NessusAPI(object):
                 if url == self.base + self.SESSION:
                     break
                 try:
-                    self.login()
                     timeout += 1
+                    if self.api_keys:
+                        continue
+                    self.login()
                     self.logger.info('Token refreshed')
                 except Exception as e:
                     self.logger.error('Could not refresh token\nReason: {}'.format(str(e)))
@@ -114,7 +126,7 @@ class NessusAPI(object):
         data = self.request(self.SCAN_ID.format(scan_id=scan_id), method='GET', json_output=True)
         return data['history']
 
-    def download_scan(self, scan_id=None, history=None, export_format="", profile=""):
+    def download_scan(self, scan_id=None, history=None, export_format=""):
         running = True
         counter = 0
 
@@ -127,7 +139,8 @@ class NessusAPI(object):
         req = self.request(query, data=json.dumps(data), method='POST', json_output=True)
         try:
             file_id = req['file']
-            token_id = req['token'] if 'token' in req else req['temp_token']
+            if self.profile == 'nessus':
+                token_id = req['token'] if 'token' in req else req['temp_token']
         except Exception as e:
             self.logger.error('{}'.format(str(e)))
         self.logger.info('Download for file id {}'.format(str(file_id)))
@@ -143,7 +156,7 @@ class NessusAPI(object):
             if counter % 60 == 0:
                 self.logger.info("Completed: {}".format(counter))
         self.logger.info("Done: {}".format(counter))
-        if profile == 'tenable':
+        if self.profile == 'tenable' or self.api_keys:
             content = self.request(self.EXPORT_FILE_DOWNLOAD.format(scan_id=scan_id, file_id=file_id), method='GET', download=True)
         else:
             content = self.request(self.EXPORT_TOKEN_DOWNLOAD.format(token_id=token_id), method='GET', download=True)

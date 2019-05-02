@@ -428,7 +428,7 @@ class qualysScanReport:
 
         merged_df = merged_df.drop(['QID_y', 'QID_x'], axis=1)
         merged_df = merged_df.rename(columns={'Id': 'QID'})
-        
+
         merged_df = merged_df.assign(**df_dict['SCAN_META'].to_dict(orient='records')[0])
 
         merged_df = pd.merge(merged_df, df_dict['CATEGORY_HEADER'], how='left', left_on=['Category', 'Severity Level'],
