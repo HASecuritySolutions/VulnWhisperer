@@ -3,13 +3,14 @@
 __author__ = 'Austin Taylor'
 
 
-from vulnwhisp.vulnwhisp import vulnWhisperer
+import argparse
+import logging
+import os
+import sys
+
 from vulnwhisp.base.config import vwConfig
 from vulnwhisp.test.mock import mockAPI
-import os
-import argparse
-import sys
-import logging
+from vulnwhisp.vulnwhisp import vulnWhisperer
 
 
 def isFileValid(parser, arg):
@@ -78,7 +79,7 @@ def main():
                             \nPlease specify a section using -s. \
                                                     \nExample vuln_whisperer -c config.ini -s nessus'))
             logger.info('No section was specified, vulnwhisperer will scrape enabled modules from the config file.')
-            
+
             config = vwConfig(config_in=args.config)
             enabled_sections = config.get_sections_with_attribute('enabled')
 

@@ -110,6 +110,7 @@ class OpenVAS_API(object):
         ]
         token = requests.post(self.base + self.OMP, data=data, verify=False)
         return token
+
     def get_report_formats(self):
         params = (
             ('cmd', 'get_report_formats'),
@@ -190,3 +191,18 @@ class OpenVAS_API(object):
         self.processed_reports += 1
         merged_df = pd.merge(report_df, self.openvas_reports, on='report_ids').reset_index().drop('index', axis=1)
         return merged_df
+
+    def normalise(self, df):
+        self.logger.debug('Normalising data')
+        df = self.map_fields(df)
+        df = self.transform_values(df)
+        return df
+
+    def map_fields(self, df):
+        self.logger.debug('Mapping fields')
+        return df
+
+    def transform_values(self, df):
+        self.logger.debug('Transforming values')
+        df.fillna('', inplace=True)
+        return df

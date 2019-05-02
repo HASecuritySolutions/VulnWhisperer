@@ -31,7 +31,7 @@ class vwConfig(object):
         for section in self.config.sections():
             try:
                 if self.get(section, attribute) in check:
-                    sections.append(section)	
+                    sections.append(section)
             except:
                 self.logger.warn("Section {} has no option '{}'".format(section, attribute))
         return sections
@@ -45,7 +45,7 @@ class vwConfig(object):
         return True
 
     def update_jira_profiles(self, profiles):
-        # create JIRA profiles in the ini config file 
+        # create JIRA profiles in the ini config file
         self.logger.debug('Updating Jira profiles: {}'.format(str(profiles)))
 
         for profile in profiles:
@@ -67,7 +67,7 @@ class vwConfig(object):
                 self.config.set(section_name, 'min_critical_to_report', 'high')
                 self.config.set(section_name, '; automatically report, boolean value ')
                 self.config.set(section_name, 'autoreport', 'false')
-        
+
         # TODO: try/catch this
         # writing changes back to file
         with open(self.config_in, 'w') as configfile:

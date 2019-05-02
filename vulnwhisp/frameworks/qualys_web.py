@@ -2,18 +2,19 @@
 # -*- coding: utf-8 -*-
 __author__ = 'Austin Taylor'
 
-from lxml import objectify
-from lxml.builder import E
+import csv
+import logging
+import os
+import sys
 import xml.etree.ElementTree as ET
+
+import dateutil.parser as dp
 import pandas as pd
 import qualysapi
 import qualysapi.config as qcconf
 import requests
-import sys
-import os
-import csv
-import logging
-import dateutil.parser as dp
+from lxml import objectify
+from lxml.builder import E
 
 
 class qualysWhisperAPI(object):
@@ -109,7 +110,6 @@ class qualysWhisperAPI(object):
         _records = []
         try:
             total = int(self.get_was_scan_count(status=status))
-            self.logger.error('Already have WAS scan count')
             self.logger.info('Retrieving information for {} scans'.format(total))
             for i in range(0, total):
                 if i % limit == 0:
@@ -282,19 +282,42 @@ class qualysUtils:
     def iso_to_epoch(self, dt):
         return dp.parse(dt).strftime('%s')
 
-    def cleanser(self, _data):
-        repls = (('\n', '|||'), ('\r', '|||'), (',', ';'), ('\t', '|||'))
-        if _data:
-            _data = reduce(lambda a, kv: a.replace(*kv), repls, str(_data))
-        return _data
-
 class qualysScanReport:
+
+    COLUMN_MAPPING = {
+        'DescriptionCatSev': 'category_description',
+        'DescriptionSeverity': 'synopsis',
+        'Evidence #1': 'evidence',
+        'Payload #1': 'payload',
+        'QID': 'plugin_id',
+        'Request Headers #1': 'request_headers',
+        'Request Method #1': 'request_method',
+        'Request URL #1': 'request_url',
+        'Response #1': 'plugin_output',
+        'Title': 'plugin_name',
+        'Url': 'uri',
+        'URL': 'url',
+        'Vulnerability Category': 'type',
+    }
+
+    SEVERITY_MAPPING = {0: 'none', 1: 'low', 2: 'medium', 3: 'high', 4: 'critical'}
+
     # URL Vulnerability Information
     WEB_SCAN_VULN_BLOCK = list(qualysReportFields.VULN_BLOCK)
     WEB_SCAN_VULN_BLOCK.insert(WEB_SCAN_VULN_BLOCK.index('QID'), 'Detection ID')
 
     WEB_SCAN_VULN_HEADER = list(WEB_SCAN_VULN_BLOCK)
     WEB_SCAN_VULN_HEADER[WEB_SCAN_VULN_BLOCK.index(qualysReportFields.CATEGORIES[0])] = \
+        'Vulnerability Category'
+
+    # Add an alternative vulnerability header
+    WEB_SCAN_VULN_BLOCK_ALT = WEB_SCAN_VULN_BLOCK[:]
+    WEB_SCAN_VULN_BLOCK_ALT.insert(WEB_SCAN_VULN_BLOCK_ALT.index('First Time Detected'), 'Detection Date')
+    remove_fields = ['Last Time Tested', 'Times Detected', 'First Time Detected', 'Last Time Detected']
+    WEB_SCAN_VULN_BLOCK_ALT = [x for x in WEB_SCAN_VULN_BLOCK_ALT if x not in remove_fields]
+
+    WEB_SCAN_VULN_HEADER_ALT = WEB_SCAN_VULN_BLOCK_ALT[:]
+    WEB_SCAN_VULN_HEADER_ALT[WEB_SCAN_VULN_BLOCK_ALT.index(qualysReportFields.CATEGORIES[0])] = \
         'Vulnerability Category'
 
     WEB_SCAN_SENSITIVE_HEADER = list(WEB_SCAN_VULN_HEADER)
@@ -358,6 +381,17 @@ class qualysScanReport:
                                                                                            self.WEB_SCAN_INFO_BLOCK],
                                                                                        pop_last=True),
                                                                columns=self.WEB_SCAN_VULN_HEADER)
+            if len(dict_tracker['WEB_SCAN_VULN_BLOCK']) == 0:
+                # Try alternative headers
+                dict_tracker["WEB_SCAN_VULN_BLOCK"] = pd.DataFrame(
+                    self.utils.grab_section(
+                        report,
+                        self.WEB_SCAN_VULN_BLOCK_ALT,
+                        end=[self.WEB_SCAN_SENSITIVE_BLOCK, self.WEB_SCAN_INFO_BLOCK],
+                        pop_last=True,
+                    ),
+                    columns=self.WEB_SCAN_VULN_HEADER_ALT,
+                )
             dict_tracker['WEB_SCAN_SENSITIVE_BLOCK'] = pd.DataFrame(self.utils.grab_section(report,
                                                                                             self.WEB_SCAN_SENSITIVE_BLOCK,
                                                                                             end=[
@@ -423,12 +457,9 @@ class qualysScanReport:
                               'Request Headers #1', 'Response #1', 'Evidence #1',
                               'Description', 'Impact', 'Solution', 'Url', 'Content']
 
-        for col in columns_to_cleanse:
-            merged_df[col] = merged_df[col].apply(self.utils.cleanser)
-
         merged_df = merged_df.drop(['QID_y', 'QID_x'], axis=1)
         merged_df = merged_df.rename(columns={'Id': 'QID'})
-        
+
         merged_df = merged_df.assign(**df_dict['SCAN_META'].to_dict(orient='records')[0])
 
         merged_df = pd.merge(merged_df, df_dict['CATEGORY_HEADER'], how='left', left_on=['Category', 'Severity Level'],
@@ -444,7 +475,7 @@ class qualysScanReport:
         return merged_df
 
     def download_file(self, path='', file_id=None):
-        report = self.qw.download_report(file_id)
+        report = self.qw.download_report(file_id).encode('utf-8')
         filename = path + str(file_id) + '.csv'
         file_out = open(filename, 'w')
         for line in report.splitlines():
@@ -463,3 +494,41 @@ class qualysScanReport:
         merged_data.sort_index(axis=1, inplace=True)
 
         return merged_data
+
+    def normalise(self, df):
+        self.logger.debug('Normalising data')
+        df = self.map_fields(df)
+        df = self.transform_values(df)
+        return df
+
+    def map_fields(self, df):
+        self.logger.debug('Mapping fields')
+
+        df.rename(columns=self.COLUMN_MAPPING, inplace=True)
+
+        # Lowercase and map fields from COLUMN_MAPPING
+        df.columns = [x.lower() for x in df.columns]
+        df.columns = [x.replace(' ', '_') for x in df.columns]
+
+        return df
+
+    def transform_values(self, df):
+        self.logger.debug('Transforming values')
+        df.fillna('', inplace=True)
+
+        self.logger.info('Changing case of fields')
+        df['cwe'] = df['cwe'].str.upper()
+
+        # Convert Qualys severity to standardised risk number
+        df['risk_number'] =  df['severity'].astype(int)-1
+        df['risk'] = df['risk_number'].map(self.SEVERITY_MAPPING)
+
+        # Extract dns field from URL
+        df['dns'] = df['url'].str.extract('https?://([^/]+)', expand=False)
+        df.loc[df['uri'] != '','dns'] = df.loc[df['uri'] != '','uri'].str.extract('https?://([^/]+)', expand=False)
+
+        # Set asset to web_application_name
+        df['asset'] = df['web_application_name']
+
+        df.fillna('', inplace=True)
+        return df

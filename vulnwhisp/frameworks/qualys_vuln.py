@@ -28,7 +28,7 @@ class qualysWhisperAPI(object):
 
     def scan_xml_parser(self, xml):
         all_records = []
-        root = ET.XML(xml.encode("utf-8"))
+        root = ET.XML(xml.encode('utf-8'))
         for child in root.find('.//SCAN_LIST'):
             all_records.append({
                 'name': child.find('TITLE').text,
@@ -78,6 +78,19 @@ class qualysUtils:
 
 class qualysVulnScan:
 
+    COLUMN_MAPPING = {
+        'cve_id': 'cve',
+        'impact': 'synopsis',
+        'ip_status': 'state',
+        'os': 'operating_system',
+        'qid': 'plugin_id',
+        'results': 'plugin_output',
+        'threat': 'description',
+        'title': 'plugin_name'
+    }
+
+    SEVERITY_MAPPING = {0: 'none', 1: 'low', 2: 'medium', 3: 'high',4: 'critical'}
+
     def __init__(
         self,
         config=None,
@@ -122,3 +135,47 @@ class qualysVulnScan:
             return scan_report
 
         return scan_report
+
+    def normalise(self, df):
+        self.logger.debug('Normalising data')
+        df = self.map_fields(df)
+        df = self.transform_values(df)
+        return df
+
+    def map_fields(self, df):
+        self.logger.info('Mapping fields')
+
+        # Lowercase and map fields from COLUMN_MAPPING
+        df.columns = [x.lower() for x in df.columns]
+        df.rename(columns=self.COLUMN_MAPPING, inplace=True)
+        df.columns = [x.replace(' ', '_') for x in df.columns]
+
+        return df
+
+    def transform_values(self, df):
+        self.logger.info('Transforming values')
+
+        df.fillna('', inplace=True)
+
+        # upper/lowercase fields
+        self.logger.info('Changing case of fields')
+        df['cve'] = df['cve'].str.upper()
+        df['protocol'] = df['protocol'].str.lower()
+
+        # Contruct the CVSS vector
+        self.logger.info('Extracting CVSS components')
+        df['cvss_vector'] = df['cvss_base'].str.extract('\((.*)\)', expand=False)
+        df['cvss_base'] = df['cvss_base'].str.extract('^(\d+(?:\.\d+)?)', expand=False)
+        df['cvss_temporal_vector'] = df['cvss_temporal'].str.extract('\((.*)\)', expand=False)
+        df['cvss_temporal'] = df['cvss_temporal'].str.extract('^(\d+(?:\.\d+)?)', expand=False)
+
+        # Set asset to ip
+        df['asset'] = df['ip']
+
+        # Convert Qualys severity to standardised risk number
+        df['risk_number'] =  df['severity'].astype(int)-1
+        df['risk'] = df['risk_number'].map(self.SEVERITY_MAPPING)
+
+        df.fillna('', inplace=True)
+
+        return df

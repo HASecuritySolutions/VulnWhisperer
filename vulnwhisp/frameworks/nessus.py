@@ -23,18 +23,40 @@ class NessusAPI(object):
     EXPORT_FILE_DOWNLOAD = EXPORT + '/{file_id}/download'
     EXPORT_STATUS = EXPORT + '/{file_id}/status'
     EXPORT_HISTORY = EXPORT + '?history_id={history_id}'
+    # All column mappings should be lowercase
+    COLUMN_MAPPING = {
+        'cvss base score': 'cvss_base',
+        'cvss temporal score': 'cvss_temporal',
+        'cvss temporal vector': 'cvss_temporal_vector',
+        'cvss3 base score': 'cvss3_base',
+        'cvss3 temporal score': 'cvss3_temporal',
+        'cvss3 temporal vector': 'cvss3_temporal_vector',
+        'fqdn': 'dns',
+        'host': 'asset',
+        'ip address': 'ip',
+        'name': 'plugin_name',
+        'os': 'operating_system',
+        'see also': 'exploitability',
+        'system type': 'category',
+        'vulnerability state': 'state'
+    }
+    SEVERITY_MAPPING = {'none': 0, 'low': 1, 'medium': 2, 'high': 3, 'critical': 4}
 
-    def __init__(self, hostname=None, port=None, username=None, password=None, verbose=True):
+    def __init__(self, hostname=None, port=None, username=None, password=None, verbose=True, profile=None, access_key=None, secret_key=None):
         self.logger = logging.getLogger('NessusAPI')
         if verbose:
             self.logger.setLevel(logging.DEBUG)
-        if username is None or password is None:
-            raise Exception('ERROR: Missing username or password.')
+        if not all((username, password)) and not all((access_key, secret_key)):
+            raise Exception('ERROR: Missing username, password or API keys.')
 
         self.user = username
         self.password = password
+        self.api_keys = False
+        self.access_key = access_key
+        self.secret_key = secret_key
         self.base = 'https://{hostname}:{port}'.format(hostname=hostname, port=port)
         self.verbose = verbose
+        self.profile = profile
 
         self.session = requests.Session()
         self.session.verify = False
@@ -52,7 +74,13 @@ class NessusAPI(object):
             'X-Cookie': None
         }
 
-        self.login()
+        if all((self.access_key, self.secret_key)):
+            self.logger.debug('Using {} API keys'.format(self.profile))
+            self.api_keys = True
+            self.session.headers['X-ApiKeys'] = 'accessKey={}; secretKey={}'.format(self.access_key, self.secret_key)
+        else:
+            self.login()
+
         self.scans = self.get_scans()
         self.scan_ids = self.get_scan_ids()
 
@@ -67,7 +95,7 @@ class NessusAPI(object):
     def request(self, url, data=None, headers=None, method='POST', download=False, json_output=False):
         timeout = 0
         success = False
-        
+
         method = method.lower()
         url = self.base + url
         self.logger.debug('Requesting to url {}'.format(url))
@@ -78,8 +106,10 @@ class NessusAPI(object):
                 if url == self.base + self.SESSION:
                     break
                 try:
-                    self.login()
                     timeout += 1
+                    if self.api_keys:
+                        continue
+                    self.login()
                     self.logger.info('Token refreshed')
                 except Exception as e:
                     self.logger.error('Could not refresh token\nReason: {}'.format(str(e)))
@@ -114,10 +144,8 @@ class NessusAPI(object):
         data = self.request(self.SCAN_ID.format(scan_id=scan_id), method='GET', json_output=True)
         return data['history']
 
-    def download_scan(self, scan_id=None, history=None, export_format="", profile=""):
+    def download_scan(self, scan_id=None, history=None, export_format=''):
         running = True
-        counter = 0
-
         data = {'format': export_format}
         if not history:
             query = self.EXPORT.format(scan_id=scan_id)
@@ -127,23 +155,19 @@ class NessusAPI(object):
         req = self.request(query, data=json.dumps(data), method='POST', json_output=True)
         try:
             file_id = req['file']
-            token_id = req['token'] if 'token' in req else req['temp_token']
+            if self.profile == 'nessus':
+                token_id = req['token'] if 'token' in req else req['temp_token']
         except Exception as e:
             self.logger.error('{}'.format(str(e)))
-        self.logger.info('Download for file id {}'.format(str(file_id)))
+        self.logger.info('Downloading file id {}'.format(str(file_id)))
         while running:
             time.sleep(2)
-            counter += 2
             report_status = self.request(self.EXPORT_STATUS.format(scan_id=scan_id, file_id=file_id), method='GET',
                                          json_output=True)
             running = report_status['status'] != 'ready'
-            sys.stdout.write(".")
+            sys.stdout.write('.')
             sys.stdout.flush()
-            # FIXME: why? can this be removed in favour of a counter?
-            if counter % 60 == 0:
-                self.logger.info("Completed: {}".format(counter))
-        self.logger.info("Done: {}".format(counter))
-        if profile == 'tenable':
+        if self.profile == 'tenable' or self.api_keys:
             content = self.request(self.EXPORT_FILE_DOWNLOAD.format(scan_id=scan_id, file_id=file_id), method='GET', download=True)
         else:
             content = self.request(self.EXPORT_TOKEN_DOWNLOAD.format(token_id=token_id), method='GET', download=True)
@@ -169,3 +193,47 @@ class NessusAPI(object):
                     'Pacific Standard Time': 'US/Pacific',
                     'None': 'US/Central'}
         return time_map.get(tz, None)
+
+    def normalise(self, df):
+        self.logger.debug('Normalising data')
+        df = self.map_fields(df)
+        df = self.transform_values(df)
+        return df
+
+    def map_fields(self, df):
+        self.logger.debug('Mapping fields')
+        # Any specific mappings here
+        if self.profile == 'tenable':
+            # Prefer CVSS Base Score over CVSS for tenable
+            self.logger.debug('Dropping redundant tenable fields')
+            df.drop('CVSS', axis=1, inplace=True, errors='ignore')
+
+        if self.profile == 'nessus':
+            # Set IP from Host field
+            df['ip'] = df['Host']
+
+        # Lowercase and map fields from COLUMN_MAPPING
+        df.columns = [x.lower() for x in df.columns]
+        df.rename(columns=self.COLUMN_MAPPING, inplace=True)
+        df.columns = [x.replace(' ', '_') for x in df.columns]
+
+        return df
+
+    def transform_values(self, df):
+        self.logger.debug('Transforming values')
+
+        df.fillna('', inplace=True)
+
+        # upper/lowercase fields
+        self.logger.debug('Changing case of fields')
+        df['cve'] = df['cve'].str.upper()
+        df['protocol'] = df['protocol'].str.lower()
+        df['risk'] = df['risk'].str.lower()
+
+        # Map risk to a SEVERITY MAPPING value
+        self.logger.debug('Mapping risk to severity number')
+        df['risk_number'] = df['risk'].map(self.SEVERITY_MAPPING)
+
+        df.fillna('', inplace=True)
+
+        return df

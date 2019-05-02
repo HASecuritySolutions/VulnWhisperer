@@ -2,22 +2,25 @@
 # -*- coding: utf-8 -*-
 __author__ = 'Austin Taylor'
 
-from base.config import vwConfig
-from frameworks.nessus import NessusAPI
-from frameworks.qualys_web import qualysScanReport
-from frameworks.qualys_vuln import qualysVulnScan
-from frameworks.openvas import OpenVAS_API
-from reporting.jira_api import JiraAPI
-import pandas as pd
-from lxml import objectify
-import sys
-import os
 import io
-import time
-import sqlite3
 import json
 import logging
+import os
 import socket
+import sqlite3
+import sys
+import time
+
+import numpy as np
+import pandas as pd
+from lxml import objectify
+
+from base.config import vwConfig
+from frameworks.nessus import NessusAPI
+from frameworks.openvas import OpenVAS_API
+from frameworks.qualys_vuln import qualysVulnScan
+from frameworks.qualys_web import qualysScanReport
+from reporting.jira_api import JiraAPI
 
 
 class vulnWhispererBase(object):
@@ -55,8 +58,12 @@ class vulnWhispererBase(object):
             except:
                 self.enabled = False
             self.hostname = self.config.get(self.CONFIG_SECTION, 'hostname')
-            self.username = self.config.get(self.CONFIG_SECTION, 'username')
-            self.password = self.config.get(self.CONFIG_SECTION, 'password')
+            try:
+                self.username = self.config.get(self.CONFIG_SECTION, 'username')
+                self.password = self.config.get(self.CONFIG_SECTION, 'password')
+            except:
+                self.username = None
+                self.password = None
             self.write_path = self.config.get(self.CONFIG_SECTION, 'write_path')
             self.db_path = self.config.get(self.CONFIG_SECTION, 'db_path')
             self.verbose = self.config.getbool(self.CONFIG_SECTION, 'verbose')
@@ -84,7 +91,7 @@ class vulnWhispererBase(object):
                 self.cur = self.conn.cursor()
                 self.logger.info('Connected to database at {loc}'.format(loc=self.database))
             except Exception as e:
-                self.logger.error('Could not connect to database at {loc}\nReason: {e} - Please ensure the path exist'.format(
+                self.logger.error('Could not connect to database at {loc}\nReason: {e} - Please ensure the path exists'.format(
                         e=e,
                         loc=self.database))
         else:
@@ -129,11 +136,6 @@ class vulnWhispererBase(object):
             self.delete_table()
         self.create_table()
 
-    def cleanser(self, _data):
-        repls = (('\n', r'\n'), ('\r', r'\r'))
-        data = reduce(lambda a, kv: a.replace(*kv), repls, _data)
-        return data
-
     def path_check(self, _data):
         if self.write_path:
             if '/' or '\\' in _data[-1]:
@@ -144,7 +146,7 @@ class vulnWhispererBase(object):
 
     def record_insert(self, record):
         #for backwards compatibility with older versions without "reported" field
-        
+
         try:
             #-1 to get the latest column, 1 to get the column name (old version would be "processed", new "reported")
             #TODO delete backward compatibility check after some versions
@@ -171,7 +173,7 @@ class vulnWhispererBase(object):
             return True
         except Exception as e:
             self.logger.error('Failed while setting scan with file {} as processed'.format(filename))
-            
+
         return False
 
     def retrieve_uuids(self):
@@ -194,13 +196,13 @@ class vulnWhispererBase(object):
                 scan=self.write_path.encode('utf8')))
         else:
             os.path.exists(self.write_path)
-            self.logger.info('Directory already exist for {scan} - Skipping creation'.format(
+            self.logger.info('Directory already exists for {scan} - Skipping creation'.format(
                 scan=self.write_path.encode('utf8')))
 
     def get_latest_results(self, source, scan_name):
         processed = 0
         results = []
-        
+
         try:
             self.conn.text_factory = str
             self.cur.execute('SELECT filename FROM scan_history WHERE source="{}" AND scan_name="{}" ORDER BY last_modified DESC LIMIT 1;'.format(source, scan_name))
@@ -219,10 +221,10 @@ class vulnWhispererBase(object):
         except Exception as e:
             self.logger.error("Error when getting latest results from {}.{} : {}".format(source, scan_name, e))
         return results, reported
-        
+
     def get_scan_profiles(self):
         # Returns a list of source.scan_name elements from the database
-        
+
         # we get the list of sources
         try:
             self.conn.text_factory = str
@@ -231,7 +233,7 @@ class vulnWhispererBase(object):
         except:
             sources = []
             self.logger.error("Process failed at executing 'SELECT DISTINCT source FROM scan_history;'")
-        
+
         results = []
 
         # we get the list of scans within each source
@@ -247,6 +249,56 @@ class vulnWhispererBase(object):
                 scan_names = []
 
         return results
+
+    def common_normalise(self, df):
+        """Map and transform common data values"""
+        self.logger.info('Start common normalisation')
+
+        self.logger.info('Normalising CVSS')
+        for cvss_version in ['cvss', 'cvss3']:
+            if cvss_version + '_base' in df:
+                self.logger.info('Normalising {} base'.format(cvss_version))
+                # CVSS = cvss_temporal or cvss_base
+                df[cvss_version] = df[cvss_version + '_base']
+                df.loc[df[cvss_version + '_temporal'] != '', cvss_version] = df[cvss_version + '_temporal']
+
+            # Combine CVSS and CVSS3 vectors
+            if cvss_version + '_vector' in df and cvss_version + '_temporal_vector' in df:
+                self.logger.info('Normalising {} vector'.format(cvss_version))
+                df[cvss_version + '_vector'] = (
+                    df[[cvss_version + '_vector', cvss_version + '_temporal_vector']]
+                    .apply(lambda x: '{}/{}'.format(x[0], x[1]), axis=1)
+                    .str.rstrip('/nan')
+                )
+                df.drop(cvss_version + '_temporal_vector', axis=1, inplace=True)
+
+            if cvss_version in df:
+                self.logger.info('Normalising {} severity'.format(cvss_version))
+                # Map CVSS to severity name
+                df.loc[df[cvss_version].astype(str) == '', cvss_version] = None
+                df[cvss_version] = df[cvss_version].astype('float')
+                # df.loc[df[cvss_version].isnull(), cvss_version + '_severity'] = 'info'
+                df.loc[df[cvss_version] == 0, cvss_version + '_severity'] = 'info'
+                df.loc[(df[cvss_version] > 0) & (df[cvss_version] < 3), cvss_version + '_severity'] = 'low'
+                df.loc[(df[cvss_version] >= 3) & (df[cvss_version] < 6), cvss_version + '_severity'] = 'medium'
+                df.loc[(df[cvss_version] >= 6) & (df[cvss_version] < 9), cvss_version + '_severity'] = 'high'
+                df.loc[(df[cvss_version] > 9) & (df[cvss_version].notnull()), cvss_version + '_severity'] = 'critical'
+
+        self.logger.info('Creating Unique Document ID')
+        df['_unique'] = df.index.values
+        if 'history_id' in df:
+            df['_unique'] = df[['scan_id', 'history_id', '_unique']].apply(lambda x: '_'.join(x.astype(str)), axis=1)
+        else:
+            df['_unique'] = df[['scan_id', '_unique']].apply(lambda x: '_'.join(x.astype(str)), axis=1)
+
+        # Rename cvss to cvss2
+        # Make cvss with no suffix == cvss3 else cvss2
+        # cvss = cvss3 if cvss3 else cvss2
+        # cvss_severity = cvss3_severity if cvss3_severity else cvss2_severity
+        df.replace({'': np.nan}, inplace=True)
+
+        return df
+
 
 class vulnWhispererNessus(vulnWhispererBase):
 
@@ -274,6 +326,8 @@ class vulnWhispererNessus(vulnWhispererBase):
 
         self.develop = True
         self.purge = purge
+        self.access_key = None
+        self.secret_key = None
 
         if config is not None:
             try:
@@ -283,19 +337,30 @@ class vulnWhispererNessus(vulnWhispererBase):
                                                         'trash')
 
                 try:
-                    self.logger.info('Attempting to connect to nessus...')
+                    self.access_key = self.config.get(self.CONFIG_SECTION,'access_key')
+                    self.secret_key = self.config.get(self.CONFIG_SECTION,'secret_key')
+                except:
+                    pass
+
+                try:
+                    self.logger.info('Attempting to connect to {}...'.format(self.CONFIG_SECTION))
                     self.nessus = \
                         NessusAPI(hostname=self.hostname,
                                   port=self.nessus_port,
                                   username=self.username,
-                                  password=self.password)
+                                  password=self.password,
+                                  profile=self.CONFIG_SECTION,
+                                  access_key=self.access_key,
+                                  secret_key=self.secret_key
+                                  )
                     self.nessus_connect = True
-                    self.logger.info('Connected to nessus on {host}:{port}'.format(host=self.hostname,
+                    self.logger.info('Connected to {} on {host}:{port}'.format(self.CONFIG_SECTION, host=self.hostname,
                                                                                    port=str(self.nessus_port)))
                 except Exception as e:
                     self.logger.error('Exception: {}'.format(str(e)))
                     raise Exception(
-                        'Could not connect to nessus -- Please verify your settings in {config} are correct and try again.\nReason: {e}'.format(
+                        'Could not connect to {} -- Please verify your settings in {config} are correct and try again.\nReason: {e}'.format(
+                            self.CONFIG_SECTION,
                             config=self.config.config_in,
                             e=e))
             except Exception as e:
@@ -329,13 +394,13 @@ class vulnWhispererNessus(vulnWhispererBase):
                         record['uuid'] = h.get('uuid', '')
                         record['status'] = h.get('status', '')
                         record['history_id'] = h.get('history_id', '')
-                        record['last_modification_date'] = \
-                            h.get('last_modification_date', '')
-                        record['norm_time'] = \
-                            self.nessus.get_utc_from_local(int(record['last_modification_date'
-                                                               ]),
-                                                           local_tz=self.nessus.tz_conv(record['timezone'
-                                                                                        ]))
+                        record["last_modification_date"] = h.get(
+                            "last_modification_date", ""
+                        )
+                        record["norm_time"] = self.nessus.get_utc_from_local(
+                            int(record["last_modification_date"]),
+                            local_tz=self.nessus.tz_conv(record["timezone"]),
+                        )
                         scan_records.append(record.copy())
                 except Exception as e:
                     # Generates error each time nonetype is encountered.
@@ -347,199 +412,150 @@ class vulnWhispererNessus(vulnWhispererBase):
 
 
     def whisper_nessus(self):
-        if self.nessus_connect:
-            scan_data = self.nessus.scans
-            folders = scan_data['folders']
-            scans = scan_data['scans'] if scan_data['scans'] else []
-            all_scans = self.scan_count(scans)
-            if self.uuids:
-                scan_list = [scan for scan in all_scans if scan['uuid']
-                             not in self.uuids and scan['status'] in ['completed', 'imported']]
-            else:
-                scan_list = all_scans
-            self.logger.info('Identified {new} scans to be processed'.format(new=len(scan_list)))
-
-            if not scan_list:
-                self.logger.warn('No new scans to process. Exiting...')
-                return self.exit_code
-
-            # Create scan subfolders
-
-            for f in folders:
-                if not os.path.exists(self.path_check(f['name'])):
-                    if f['name'] == 'Trash' and self.nessus_trash:
-                        os.makedirs(self.path_check(f['name']))
-                    elif f['name'] != 'Trash':
-                        os.makedirs(self.path_check(f['name']))
-                else:
-                    os.path.exists(self.path_check(f['name']))
-                    self.logger.info('Directory already exist for {scan} - Skipping creation'.format(
-                        scan=self.path_check(f['name']).encode('utf8')))
-
-            # try download and save scans into each folder the belong to
-
-            scan_count = 0
-
-            # TODO Rewrite this part to go through the scans that have aleady been processed
-
-            for s in scan_list:
-                scan_count += 1
-                (
-                    scan_name,
-                    scan_id,
-                    history_id,
-                    norm_time,
-                    status,
-                    uuid,
-                ) = (
-                    s['scan_name'],
-                    s['scan_id'],
-                    s['history_id'],
-                    s['norm_time'],
-                    s['status'],
-                    s['uuid'],
-                )
-
-                # TODO Create directory sync function which scans the directory for files that exist already and populates the database
-
-                folder_id = s['folder_id']
-                if self.CONFIG_SECTION == 'tenable':
-                    folder_name = ''
-                else:
-                    folder_name = next(f['name'] for f in folders if f['id'] == folder_id)
-                if status in ['completed', 'imported']:
-                    file_name = '%s_%s_%s_%s.%s' % (scan_name, scan_id,
-                                                    history_id, norm_time, 'csv')
-                    repls = (('\\', '_'), ('/', '_'), (' ', '_'))
-                    file_name = reduce(lambda a, kv: a.replace(*kv), repls, file_name)
-                    relative_path_name = self.path_check(folder_name + '/' + file_name).encode('utf8')
-
-                    if os.path.isfile(relative_path_name):
-                        if self.develop:
-                            csv_in = pd.read_csv(relative_path_name)
-                            record_meta = (
-                                scan_name,
-                                scan_id,
-                                norm_time,
-                                file_name,
-                                time.time(),
-                                csv_in.shape[0],
-                                self.CONFIG_SECTION,
-                                uuid,
-                                1,
-                                0,
-                            )
-                            self.record_insert(record_meta)
-                            self.logger.info('File {filename} already exist! Updating database'.format(filename=relative_path_name))
-                    else:
-                        try:
-                            file_req = \
-                                self.nessus.download_scan(scan_id=scan_id, history=history_id,
-                                                        export_format='csv', profile=self.CONFIG_SECTION)
-                        except Exception as e:
-                            self.logger.error('Could not download {} scan {}: {}'.format(self.CONFIG_SECTION, scan_id, str(e)))
-                            self.exit_code += 1
-                            continue
-                            
-                        clean_csv = \
-                            pd.read_csv(io.StringIO(file_req.decode('utf-8')))
-                        if len(clean_csv) > 2:
-                            self.logger.info('Processing {}/{} for scan: {}'.format(scan_count, len(scan_list), scan_name.encode('utf8')))
-                            columns_to_cleanse = ['CVSS','CVE','Description','Synopsis','Solution','See Also','Plugin Output']
-
-                            for col in columns_to_cleanse:
-                                clean_csv[col] = clean_csv[col].astype(str).apply(self.cleanser)
-
-                            clean_csv.to_csv(relative_path_name, index=False)
-                            record_meta = (
-                                scan_name,
-                                scan_id,
-                                norm_time,
-                                file_name,
-                                time.time(),
-                                clean_csv.shape[0],
-                                self.CONFIG_SECTION,
-                                uuid,
-                                1,
-                                0,
-                            )
-                            self.record_insert(record_meta)
-                            self.logger.info('{filename} records written to {path} '.format(filename=clean_csv.shape[0],
-                                                                                            path=file_name.encode('utf8')))
-                        else:
-                            record_meta = (
-                                scan_name,
-                                scan_id,
-                                norm_time,
-                                file_name,
-                                time.time(),
-                                clean_csv.shape[0],
-                                self.CONFIG_SECTION,
-                                uuid,
-                                1,
-                                0,
-                            )
-                            self.record_insert(record_meta)
-                            self.logger.warn('{} has no host available... Updating database and skipping!'.format(file_name))
-            self.conn.close()
-            self.logger.info('Scan aggregation complete! Connection to database closed.')
-        else:
+        if not self.nessus_connect:
             self.logger.error('Failed to use scanner at {host}:{port}'.format(host=self.hostname, port=self.nessus_port))
             self.exit_code += 1
+            return self.exit_code
+
+        scan_data = self.nessus.scans
+        folders = scan_data['folders']
+        scans = scan_data['scans'] if scan_data['scans'] else []
+        all_scans = self.scan_count(scans)
+        if self.uuids:
+            scan_list = [
+                scan for scan in all_scans
+                if scan["uuid"] not in self.uuids
+                and scan["status"] in ["completed", "imported"]
+            ]
+        else:
+            scan_list = all_scans
+        self.logger.info(
+            "Identified {new} scans to be processed".format(new=len(scan_list))
+        )
+
+        if not scan_list:
+            self.logger.warn("No new scans to process. Exiting...")
+            return self.exit_code
+
+        # Create scan subfolders
+        for f in folders:
+            if not os.path.exists(self.path_check(f['name'])):
+                if f['name'] == 'Trash' and self.nessus_trash:
+                    os.makedirs(self.path_check(f['name']))
+                elif f['name'] != 'Trash':
+                    os.makedirs(self.path_check(f['name']))
+            else:
+                os.path.exists(self.path_check(f['name']))
+                self.logger.info('Directory already exists for {scan} - Skipping creation'.format(
+                    scan=self.path_check(f['name']).encode('utf8')))
+
+        scan_count = 0
+
+        # TODO Rewrite this part to go through the scans that have aleady been processed
+
+        for s in scan_list:
+            scan_count += 1
+            (
+                scan_name,
+                scan_id,
+                history_id,
+                norm_time,
+                status,
+                uuid,
+            ) = (
+                s['scan_name'],
+                s['scan_id'],
+                s['history_id'],
+                s['norm_time'],
+                s['status'],
+                s['uuid'],
+            )
+
+            # TODO Create directory sync function which scans the directory for files that exist already and populates the database
+
+            folder_id = s['folder_id']
+            if self.CONFIG_SECTION == 'tenable':
+                folder_name = ''
+            else:
+                folder_name = next(f['name'] for f in folders if f['id'] == folder_id)
+            if status in ['completed', 'imported']:
+                file_name = '%s_%s_%s_%s.%s' % (scan_name, scan_id,
+                                                history_id, norm_time, 'json')
+                repls = (('\\', '_'), ('/', '_'), (' ', '_'))
+                file_name = reduce(lambda a, kv: a.replace(*kv), repls, file_name)
+                relative_path_name = self.path_check(folder_name + '/' + file_name).encode('utf8')
+
+                if os.path.isfile(relative_path_name):
+                    if self.develop:
+                        csv_in = pd.read_json(relative_path_name, lines=True)
+                        record_meta = (
+                            scan_name,
+                            scan_id,
+                            norm_time,
+                            file_name,
+                            time.time(),
+                            csv_in.shape[0],
+                            self.CONFIG_SECTION,
+                            uuid,
+                            1,
+                            0,
+                        )
+                        self.record_insert(record_meta)
+                        self.logger.info('File {filename} already exists! Updating database'.format(filename=relative_path_name))
+                else:
+                    try:
+                        file_req = \
+                            self.nessus.download_scan(scan_id=scan_id, history=history_id,
+                                                    export_format='csv')
+                    except Exception as e:
+                        self.logger.error('Could not download {} scan {}: {}'.format(self.CONFIG_SECTION, scan_id, str(e)))
+                        self.exit_code += 1
+                        continue
+
+                    self.logger.info('Processing {}/{} for scan: {}'.format(scan_count, len(scan_list), scan_name.encode('utf8')))
+                    vuln_ready = pd.read_csv(io.StringIO(file_req.decode('utf-8')))
+
+                    # Map and transform fields
+                    vuln_ready = self.nessus.normalise(vuln_ready)
+
+                    # Set common fields
+                    vuln_ready['history_id'] = history_id
+                    vuln_ready['scan_id'] = uuid
+                    vuln_ready['scan_name'] = scan_name.encode('utf8')
+                    vuln_ready['scan_source'] = self.CONFIG_SECTION
+                    vuln_ready['scan_time'] = norm_time
+
+                    vuln_ready = self.common_normalise(vuln_ready)
+
+                    vuln_ready.to_json(relative_path_name + '.tmp', orient='records', lines=True)
+                    os.rename(relative_path_name + '.tmp', relative_path_name)
+                    self.logger.info('{records} records written to {path} '.format(records=vuln_ready.shape[0],
+                                                                                   path=relative_path_name))
+
+                    record_meta = (
+                        scan_name,
+                        scan_id,
+                        norm_time,
+                        file_name,
+                        time.time(),
+                        vuln_ready.shape[0],
+                        self.CONFIG_SECTION,
+                        uuid,
+                        1,
+                        0,
+                    )
+                    self.record_insert(record_meta)
+                    self.logger.info('Scan {} ({}) written to database'.format(scan_name.encode('utf8'), uuid))
+
+        self.conn.close()
+        self.logger.info('Scan aggregation complete! Connection to database closed.')
+
         return self.exit_code
 
 
 class vulnWhispererQualys(vulnWhispererBase):
 
     CONFIG_SECTION = 'qualys_web'
-    COLUMN_MAPPING = {'Access Path': 'access_path',
-                     'Ajax Request': 'ajax_request',
-                     'Ajax Request ID': 'ajax_request_id',
-                     'Authentication': 'authentication',
-                     'CVSS Base': 'cvss',
-                     'CVSS Temporal': 'cvss_temporal',
-                     'CWE': 'cwe',
-                     'Category': 'category',
-                     'Content': 'content',
-                     'DescriptionSeverity': 'severity_description',
-                     'DescriptionCatSev': 'category_description',
-                     'Detection ID': 'detection_id',
-                     'Evidence #1': 'evidence_1',
-                     'First Time Detected': 'first_time_detected',
-                     'Form Entry Point': 'form_entry_point',
-                     'Function': 'function',
-                     'Groups': 'groups',
-                     'ID': 'id',
-                     'Ignore Comments': 'ignore_comments',
-                     'Ignore Date': 'ignore_date',
-                     'Ignore Reason': 'ignore_reason',
-                     'Ignore User': 'ignore_user',
-                     'Ignored': 'ignored',
-                     'Impact': 'impact',
-                     'Last Time Detected': 'last_time_detected',
-                     'Last Time Tested': 'last_time_tested',
-                     'Level': 'level',
-                     'OWASP': 'owasp',
-                     'Operating System': 'operating_system',
-                     'Owner': 'owner',
-                     'Param': 'param',
-                     'Payload #1': 'payload_1',
-                     'QID': 'plugin_id',
-                     'Request Headers #1': 'request_headers_1',
-                     'Request Method #1': 'request_method_1',
-                     'Request URL #1': 'request_url_1',
-                     'Response #1': 'response_1',
-                     'Scope': 'scope',
-                     'Severity': 'risk',
-                     'Severity Level': 'security_level',
-                     'Solution': 'solution',
-                     'Times Detected': 'times_detected',
-                     'Title': 'plugin_name',
-                     'URL': 'url',
-                     'Url': 'uri',
-                     'Vulnerability Category': 'vulnerability_category',
-                     'WASC': 'wasc',
-                     'Web Application Name': 'web_application_name'}
     def __init__(
             self,
             config=None,
@@ -555,7 +571,7 @@ class vulnWhispererQualys(vulnWhispererBase):
         self.logger = logging.getLogger('vulnWhispererQualys')
         if debug:
             self.logger.setLevel(logging.DEBUG)
-        
+
         self.qualys_scan = qualysScanReport(config=config)
         self.latest_scans = self.qualys_scan.qw.get_all_scans()
         self.directory_check()
@@ -599,7 +615,7 @@ class vulnWhispererQualys(vulnWhispererBase):
                     0,
                 )
                 self.record_insert(record_meta)
-                self.logger.info('File {filename} already exist! Updating database'.format(filename=relative_path_name))
+                self.logger.info('File {filename} already exists! Updating database'.format(filename=relative_path_name))
 
             else:
                 self.logger.info('Generating report for {}'.format(report_id))
@@ -611,10 +627,26 @@ class vulnWhispererQualys(vulnWhispererBase):
                     self.logger.info('New Report ID: {}'.format(generated_report_id))
 
                     vuln_ready = self.qualys_scan.process_data(path=self.write_path, file_id=str(generated_report_id))
+                    # Map and transform fields
+                    vuln_ready = self.qualys_scan.normalise(vuln_ready)
 
-                    vuln_ready['scan_name'] = scan_name
-                    vuln_ready['scan_reference'] = scan_reference
-                    vuln_ready.rename(columns=self.COLUMN_MAPPING, inplace=True)
+                    # Set common fields
+                    vuln_ready['app_id'] = report_id
+                    vuln_ready['scan_id'] = scan_reference
+                    vuln_ready['scan_name'] = scan_name.encode('utf8')
+                    vuln_ready['scan_source'] = self.CONFIG_SECTION
+                    vuln_ready['scan_time'] = launched_date
+
+                    vuln_ready = self.common_normalise(vuln_ready)
+
+                    if output_format == 'json':
+                        vuln_ready.to_json(relative_path_name + '.tmp', orient='records', lines=True)
+                    elif output_format == 'csv':
+                        vuln_ready.to_csv(relative_path_name + '.tmp', index=False, header=True)
+                    os.rename(relative_path_name + '.tmp', relative_path_name)
+
+                    self.logger.info('{records} records written to {path} '.format(records=vuln_ready.shape[0],
+                                                                                   path=relative_path_name))
 
                     record_meta = (
                         scan_name,
@@ -629,21 +661,11 @@ class vulnWhispererQualys(vulnWhispererBase):
                         0,
                     )
                     self.record_insert(record_meta)
-
-                    if output_format == 'json':
-                        with open(relative_path_name, 'w') as f:
-                            f.write(vuln_ready.to_json(orient='records', lines=True))
-                            f.write('\n')
-
-                    elif output_format == 'csv':
-                       vuln_ready.to_csv(relative_path_name, index=False, header=True)  # add when timestamp occured
-
-                    self.logger.info('Report written to {}'.format(report_name))
+                    self.logger.info('Scan {} ({}) written to database'.format(scan_name.encode('utf8'), report_id))
 
                     if cleanup:
                         self.logger.info('Removing report {} from Qualys Database'.format(generated_report_id))
-                        cleaning_up = \
-                            self.qualys_scan.qw.delete_report(generated_report_id)
+                        cleaning_up = self.qualys_scan.qw.delete_report(generated_report_id)
                         os.remove(self.path_check(str(generated_report_id) + '.csv'))
                         self.logger.info('Deleted report from local disk: {}'.format(self.path_check(str(generated_report_id))))
                 else:
@@ -686,6 +708,7 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
                       'Hostname': 'hostname',
                       'Port': 'port',
                       'Port Protocol': 'protocol',
+                      'CVEs': 'cve',
                       'CVSS': 'cvss',
                       'Severity': 'severity',
                       'Solution Type': 'category',
@@ -694,7 +717,7 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
                       'Specific Result': 'plugin_output',
                       'NVT OID': 'nvt_oid',
                       'Task ID': 'task_id',
-                      'Task Name': 'task_name',
+                      'Task Name': 'scan_name',
                       'Timestamp': 'timestamp',
                       'Result ID': 'result_id',
                       'Impact': 'description',
@@ -762,7 +785,30 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
                     0,
                 )
                 self.record_insert(record_meta)
-                self.logger.info('File {filename} already exist! Updating database'.format(filename=relative_path_name))
+                self.logger.info('File {filename} already exists! Updating database'.format(filename=relative_path_name))
+
+
+            else:
+                vuln_ready = self.openvas_api.process_report(report_id=report_id)
+                # Map and transform fields
+                vuln_ready = self.openvas_api.normalise(vuln_ready)
+
+                # TODO move the following to the openvas_api.transform_values
+                vuln_ready.rename(columns=self.COLUMN_MAPPING, inplace=True)
+                vuln_ready.port = vuln_ready.port.replace('', 0).astype(int)
+
+                # Set common fields
+                # vuln_ready['scan_name'] = scan_name.encode('utf8')
+                vuln_ready['scan_id'] = report_id
+                vuln_ready['scan_time'] = launched_date
+                vuln_ready['scan_source'] = self.CONFIG_SECTION
+
+                vuln_ready = self.common_normalise(vuln_ready)
+
+                vuln_ready.to_json(relative_path_name + '.tmp', orient='records', lines=True)
+                os.rename(relative_path_name + '.tmp', relative_path_name)
+                self.logger.info('{records} records written to {path} '.format(records=vuln_ready.shape[0],
+                                                                               path=relative_path_name))
 
                 record_meta = (
                     scan_name,
@@ -770,24 +816,14 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
                     launched_date,
                     report_name,
                     time.time(),
-                    file_length,
+                    vuln_ready.shape[0],
                     self.CONFIG_SECTION,
                     report_id,
                     1,
+                    0,
                 )
-
-            else:
-                vuln_ready = self.openvas_api.process_report(report_id=report_id)
-                vuln_ready['scan_name'] = scan_name
-                vuln_ready['scan_reference'] = report_id
-                vuln_ready.rename(columns=self.COLUMN_MAPPING, inplace=True)
-                vuln_ready.port = vuln_ready.port.fillna(0).astype(int)
-                vuln_ready.fillna('', inplace=True)
-                if output_format == 'json':
-                    with open(relative_path_name, 'w') as f:
-                        f.write(vuln_ready.to_json(orient='records', lines=True))
-                        f.write('\n')
-                self.logger.info('Report written to {}'.format(report_name))
+                self.record_insert(record_meta)
+                self.logger.info('Scan {} ({}) written to database'.format(scan_name.encode('utf8'), report_id))
 
         return report
 
@@ -819,13 +855,6 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
 class vulnWhispererQualysVuln(vulnWhispererBase):
 
     CONFIG_SECTION = 'qualys_vuln'
-    COLUMN_MAPPING = {'cvss_base': 'cvss',
-                     'cvss3_base': 'cvss3',
-                     'cve_id': 'cve',
-                     'os': 'operating_system',
-                     'qid': 'plugin_id',
-                     'severity': 'risk',
-                     'title': 'plugin_name'}
 
     def __init__(
             self,
@@ -837,7 +866,7 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
             username=None,
             password=None,
         ):
-        
+
         super(vulnWhispererQualysVuln, self).__init__(config=config)
         self.logger = logging.getLogger('vulnWhispererQualysVuln')
         if debug:
@@ -854,12 +883,11 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
                         scan_reference=None,
                         output_format='json',
                         cleanup=True):
-            launched_date
             if 'Z' in launched_date:
                 launched_date = self.qualys_scan.utils.iso_to_epoch(launched_date)
             report_name = 'qualys_vuln_' + report_id.replace('/','_') \
                           + '_{last_updated}'.format(last_updated=launched_date) \
-                          + '.json'
+                          + '.{extension}'.format(extension=output_format)
 
             relative_path_name = self.path_check(report_name).encode('utf8')
 
@@ -879,19 +907,35 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
                     0,
                 )
                 self.record_insert(record_meta)
-                self.logger.info('File {filename} already exist! Updating database'.format(filename=relative_path_name))
+                self.logger.info('File {filename} already exists! Updating database'.format(filename=relative_path_name))
 
             else:
                 try:
-                    self.logger.info('Processing report ID: {}'.format(report_id))
+                    self.logger.info('Processing {}: {}'.format(report_id, scan_name.encode('utf8')))
                     vuln_ready = self.qualys_scan.process_data(scan_id=report_id)
-                    vuln_ready['scan_name'] = scan_name
-                    vuln_ready['scan_reference'] = report_id
-                    vuln_ready.rename(columns=self.COLUMN_MAPPING, inplace=True)
+                    # Map and transform fields
+                    vuln_ready = self.qualys_scan.normalise(vuln_ready)
+
+                    # Set common fields
+                    vuln_ready['scan_name'] = scan_name.encode('utf8')
+                    vuln_ready['scan_id'] = report_id
+                    vuln_ready['scan_time'] = launched_date
+                    vuln_ready['scan_source'] = self.CONFIG_SECTION
+
+                    vuln_ready = self.common_normalise(vuln_ready)
+
                 except Exception as e:
                     self.logger.error('Could not process {}: {}'.format(report_id, str(e)))
                     self.exit_code += 1
                     return self.exit_code
+
+                if output_format == 'json':
+                    vuln_ready.to_json(relative_path_name + '.tmp', orient='records', lines=True)
+                elif output_format == 'csv':
+                    vuln_ready.to_csv(relative_path_name + '.tmp', index=False, header=True)
+                os.rename(relative_path_name + '.tmp', relative_path_name)
+                self.logger.info('{records} records written to {path} '.format(records=vuln_ready.shape[0],
+                                                                               path=relative_path_name))
 
                 record_meta = (
                     scan_name,
@@ -906,13 +950,8 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
                     0,
                 )
                 self.record_insert(record_meta)
+                self.logger.info('Scan {} ({}) written to database'.format(scan_name.encode('utf8'), report_id))
 
-                if output_format == 'json':
-                    with open(relative_path_name, 'w') as f:
-                        f.write(vuln_ready.to_json(orient='records', lines=True))
-                        f.write('\n')
-
-                self.logger.info('Report written to {}'.format(report_name))
             return self.exit_code
 
 
@@ -966,8 +1005,8 @@ class vulnWhispererJIRA(vulnWhispererBase):
         self.config_path = config
         self.config = vwConfig(config)
         self.host_resolv_cache = {}
-        self.directory_check()   
-                 
+        self.directory_check()
+
         if config is not None:
             try:
                 self.logger.info('Attempting to connect to jira...')
@@ -984,16 +1023,16 @@ class vulnWhispererJIRA(vulnWhispererBase):
                     'Could not connect to nessus -- Please verify your settings in {config} are correct and try again.\nReason: {e}'.format(
                         config=self.config.config_in, e=e))
                 sys.exit(1)
-   
+
         profiles = []
         profiles = self.get_scan_profiles()
-        
+
         if not self.config.exists_jira_profiles(profiles):
             self.config.update_jira_profiles(profiles)
             self.logger.info("Jira profiles have been created in {config}, please fill the variables before rerunning the module.".format(config=self.config_path))
             sys.exit(0)
-    
-   
+
+
     def get_env_variables(self, source, scan_name):
         # function returns an array with [jira_project, jira_components, datafile_path]
 
@@ -1004,32 +1043,32 @@ class vulnWhispererJIRA(vulnWhispererBase):
         if project == "":
             self.logger.error('JIRA project is missing on the configuration file!')
             sys.exit(0)
-        
+
         # check that project actually exists
         if not self.jira.project_exists(project):
             self.logger.error("JIRA project '{project}' doesn't exist!".format(project=project))
             sys.exit(0)
-         
+
         components = self.config.get(jira_section,'components').split(',')
-        
+
         #cleaning empty array from ''
         if not components[0]:
             components = []
-        
+
         min_critical = self.config.get(jira_section,'min_critical_to_report')
         if not min_critical:
             self.logger.error('"min_critical_to_report" variable on config file is empty.')
             sys.exit(0)
-            
+
         #datafile path
         filename, reported = self.get_latest_results(source, scan_name)
         fullpath = ""
-        
+
         # search data files under user specified directory
         for root, dirnames, filenames in os.walk(vwConfig(self.config_path).get(source,'write_path')):
             if filename in filenames:
                 fullpath = "{}/{}".format(root,filename)
-        
+
         if reported:
             self.logger.warn('Last Scan of "{scan_name}" for source "{source}" has already been reported; will be skipped.'.format(scan_name=scan_name, source=source))
             return [False] * 5
@@ -1037,7 +1076,7 @@ class vulnWhispererJIRA(vulnWhispererBase):
         if not fullpath:
             self.logger.error('Scan of "{scan_name}" for source "{source}" has not been found. Please check that the scanner data files are in place.'.format(scan_name=scan_name, source=source))
             sys.exit(1)
-    
+
         dns_resolv = self.config.get('jira','dns_resolv')
         if dns_resolv in ('False', 'false', ''):
             dns_resolv = False
@@ -1051,22 +1090,22 @@ class vulnWhispererJIRA(vulnWhispererBase):
 
 
     def parse_nessus_vulnerabilities(self, fullpath, source, scan_name, min_critical):
-        
+
         vulnerabilities = []
 
         # we need to parse the CSV
-        risks = ['none', 'low', 'medium', 'high', 'critical'] 
+        risks = ['none', 'low', 'medium', 'high', 'critical']
         min_risk = int([i for i,x in enumerate(risks) if x == min_critical][0])
 
         df = pd.read_csv(fullpath, delimiter=',')
-        
+
         #nessus fields we want - ['Host','Protocol','Port', 'Name', 'Synopsis', 'Description', 'Solution', 'See Also']
         for index in range(len(df)):
             # filtering vulnerabilities by criticality, discarding low risk
             to_report = int([i for i,x in enumerate(risks) if x == df.loc[index]['Risk'].lower()][0])
             if to_report < min_risk:
                 continue
-            
+
             if not vulnerabilities or df.loc[index]['Name'] not in [entry['title'] for entry in vulnerabilities]:
                 vuln = {}
                 #vulnerabilities should have all the info for creating all JIRA labels
@@ -1080,7 +1119,7 @@ class vulnWhispererJIRA(vulnWhispererBase):
                 vuln['ips'] = []
                 vuln['ips'].append("{} - {}/{}".format(df.loc[index]['Host'], df.loc[index]['Protocol'], df.loc[index]['Port']))
                 vuln['risk'] = df.loc[index]['Risk'].lower()
-                
+
                 # Nessus "nan" value gets automatically casted to float by python
                 if not (type(df.loc[index]['See Also']) is float):
                     vuln['references'] = df.loc[index]['See Also'].split("\\n")
@@ -1093,24 +1132,24 @@ class vulnWhispererJIRA(vulnWhispererBase):
                 for vuln in vulnerabilities:
                     if vuln['title'] == df.loc[index]['Name']:
                         vuln['ips'].append("{} - {}/{}".format(df.loc[index]['Host'], df.loc[index]['Protocol'], df.loc[index]['Port']))
-        
+
         return vulnerabilities
-    
+
     def parse_qualys_vuln_vulnerabilities(self, fullpath, source, scan_name, min_critical, dns_resolv = False):
         #parsing of the qualys vulnerabilities schema
         #parse json
         vulnerabilities = []
 
-        risks = ['info', 'low', 'medium', 'high', 'critical'] 
+        risks = ['info', 'low', 'medium', 'high', 'critical']
         # +1 as array is 0-4, but score is 1-5
         min_risk = int([i for i,x in enumerate(risks) if x == min_critical][0])+1
-        
+
         try:
-            data=[json.loads(line) for line in open(fullpath).readlines()] 
+            data=[json.loads(line) for line in open(fullpath).readlines()]
         except Exception as e:
             self.logger.warn("Scan has no vulnerabilities, skipping.")
             return vulnerabilities
-       
+
         #qualys fields we want - []
         for index in range(len(data)):
             if int(data[index]['risk']) < min_risk:
@@ -1119,7 +1158,7 @@ class vulnWhispererJIRA(vulnWhispererBase):
             elif data[index]['type'] == 'Practice' or data[index]['type'] == 'Ig':
                 self.logger.debug("Vulnerability '{vuln}' ignored, as it is 'Practice/Potential', not verified.".format(vuln=data[index]['plugin_name']))
                 continue
-            
+
             if not vulnerabilities or data[index]['plugin_name'] not in [entry['title'] for entry in vulnerabilities]:
                 vuln = {}
                 #vulnerabilities should have all the info for creating all JIRA labels
@@ -1132,12 +1171,12 @@ class vulnWhispererJIRA(vulnWhispererBase):
                 vuln['solution'] = data[index]['solution'].replace('\\n',' ')
                 vuln['ips'] = []
                 #TODO ADDED DNS RESOLUTION FROM QUALYS! \n SEPARATORS INSTEAD OF \\n!
-                
+
                 vuln['ips'].append("{ip} - {protocol}/{port} - {dns}".format(**self.get_asset_fields(data[index], dns_resolv)))
 
                 #different risk system than Nessus!
                 vuln['risk'] = risks[int(data[index]['risk'])-1]
-                
+
                 # Nessus "nan" value gets automatically casted to float by python
                 if not (type(data[index]['vendor_reference']) is float or data[index]['vendor_reference'] == None):
                     vuln['references'] = data[index]['vendor_reference'].split("\\n")
@@ -1155,8 +1194,8 @@ class vulnWhispererJIRA(vulnWhispererBase):
     def get_asset_fields(self, vuln, dns_resolv):
         values = {}
         values['ip'] = vuln['ip']
-        values['protocol'] = vuln['protocol'] 
-        values['port'] = vuln['port'] 
+        values['protocol'] = vuln['protocol']
+        values['port'] = vuln['port']
         values['dns'] = ''
         if dns_resolv:
             if vuln['dns']:
@@ -1206,12 +1245,12 @@ class vulnWhispererJIRA(vulnWhispererBase):
         #***Qualys VM parsing***
         if source == "qualys_vuln":
             vulnerabilities = self.parse_qualys_vuln_vulnerabilities(fullpath, source, scan_name, min_critical, dns_resolv)
-        
+
         #***JIRA sync***
         if vulnerabilities:
             self.logger.info('{source} data has been successfuly parsed'.format(source=source.upper()))
             self.logger.info('Starting JIRA sync')
-            
+
             self.jira.sync(vulnerabilities, project, components)
         else:
             self.logger.info("[{source}.{scan_name}] No vulnerabilities or vulnerabilities not parsed.".format(source=source, scan_name=scan_name))
@@ -1258,9 +1297,6 @@ class vulnWhisperer(object):
 
         if self.profile == 'nessus':
             vw = vulnWhispererNessus(config=self.config,
-                                     username=self.username,
-                                     password=self.password,
-                                     verbose=self.verbose,
                                      profile=self.profile)
             self.exit_code += vw.whisper_nessus()
 
@@ -1274,16 +1310,13 @@ class vulnWhisperer(object):
 
         elif self.profile == 'tenable':
             vw = vulnWhispererNessus(config=self.config,
-                                     username=self.username,
-                                     password=self.password,
-                                     verbose=self.verbose,
                                      profile=self.profile)
             self.exit_code += vw.whisper_nessus()
 
         elif self.profile == 'qualys_vuln':
             vw = vulnWhispererQualysVuln(config=self.config)
             self.exit_code += vw.process_vuln_scans()
-        
+
         elif self.profile == 'jira':
             #first we check config fields are created, otherwise we create them
             vw = vulnWhispererJIRA(config=self.config)
