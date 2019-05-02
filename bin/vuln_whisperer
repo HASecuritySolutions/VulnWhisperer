@@ -32,12 +32,8 @@ def main():
                         help='JIRA required only! Source scanner to report')
     parser.add_argument('-n', '--scanname', dest='scanname', required=False,
                         help='JIRA required only! Scan name from scan to report')
-    parser.add_argument('-v', '--verbose', dest='verbose', action='store_true', default=True,
+    parser.add_argument('-v', '--verbose', dest='verbose', action='store_true',
                         help='Prints status out to screen (defaults to True)')
-    parser.add_argument('-u', '--username', dest='username', required=False, default=None,
-                        help='The NESSUS username', type=lambda x: x.strip())
-    parser.add_argument('-p', '--password', dest='password', required=False, default=None,
-                        help='The NESSUS password', type=lambda x: x.strip())
     parser.add_argument('-F', '--fancy', action='store_true',
                         help='Enable colourful logging output')
     parser.add_argument('-d', '--debug', action='store_true',
@@ -51,14 +47,14 @@ def main():
     # First setup logging
     logging.basicConfig(
         stream=sys.stdout,
-        #format only applies when not using -F flag for colouring
+        # format only applies when not using -F flag for colouring
         format='%(levelname)s:%(name)s:%(funcName)s:%(message)s',
-        level=logging.DEBUG if args.debug else logging.INFO
+        level=logging.DEBUG if args.debug else logging.INFO if args.verbose else logging.WARNING
     )
     logger = logging.getLogger()
     # we set up the logger to log as well to file
     fh = logging.FileHandler('vulnwhisperer.log')
-    fh.setLevel(logging.DEBUG if args.debug else logging.INFO)
+    fh.setLevel(logging.DEBUG if args.debug else logging.INFO if args.verbose else logging.WARNING)
     fh.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(name)s - %(funcName)s:%(message)s", "%Y-%m-%d %H:%M:%S"))
     logger.addHandler(fh)
 
@@ -87,8 +83,7 @@ def main():
                 vw = vulnWhisperer(config=args.config,
                                    profile=section,
                                    verbose=args.verbose,
-                                   username=args.username,
-                                   password=args.password,
+                                   debug=args.debug,
                                    source=args.source,
                                    scanname=args.scanname)
                 exit_code += vw.whisper_vulnerabilities()
@@ -97,8 +92,7 @@ def main():
             vw = vulnWhisperer(config=args.config,
                                profile=args.section,
                                verbose=args.verbose,
-                               username=args.username,
-                               password=args.password,
+                               debug=args.debug,
                                source=args.source,
                                scanname=args.scanname)
             exit_code += vw.whisper_vulnerabilities()
@@ -107,10 +101,8 @@ def main():
         sys.exit(exit_code)
 
     except Exception as e:
-        if args.verbose:
-            # this will remain a print since we are in the main binary
-            logger.error('{}'.format(str(e)))
-            print('ERROR: {error}'.format(error=e))
+        logger.error('{}'.format(str(e)))
+        print('ERROR: {error}'.format(error=e))
         # TODO: fix this to NOT be exit 2 unless in error
         close_logging_handlers(logger)
         sys.exit(2)

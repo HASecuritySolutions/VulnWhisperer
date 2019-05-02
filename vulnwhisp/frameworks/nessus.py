@@ -44,8 +44,7 @@ class NessusAPI(object):
 
     def __init__(self, hostname=None, port=None, username=None, password=None, verbose=True, profile=None, access_key=None, secret_key=None):
         self.logger = logging.getLogger('NessusAPI')
-        if verbose:
-            self.logger.setLevel(logging.DEBUG)
+        self.logger.setLevel(logging.DEBUG if verbose else logging.INFO)
         if not all((username, password)) and not all((access_key, secret_key)):
             raise Exception('ERROR: Missing username, password or API keys.')
 
@@ -165,8 +164,6 @@ class NessusAPI(object):
             report_status = self.request(self.EXPORT_STATUS.format(scan_id=scan_id, file_id=file_id), method='GET',
                                          json_output=True)
             running = report_status['status'] != 'ready'
-            sys.stdout.write('.')
-            sys.stdout.flush()
         if self.profile == 'tenable' or self.api_keys:
             content = self.request(self.EXPORT_FILE_DOWNLOAD.format(scan_id=scan_id, file_id=file_id), method='GET', download=True)
         else:

@@ -32,16 +32,11 @@ class vulnWhispererBase(object):
             config=None,
             db_name='report_tracker.db',
             purge=False,
-            verbose=None,
+            verbose=False,
             debug=False,
-            username=None,
-            password=None,
             section=None,
             develop=False,
         ):
-        self.logger = logging.getLogger('vulnWhispererBase')
-        if debug:
-            self.logger.setLevel(logging.DEBUG)
 
         if self.CONFIG_SECTION is None:
                 raise Exception('Implementing class must define CONFIG_SECTION')
@@ -66,9 +61,11 @@ class vulnWhispererBase(object):
                 self.password = None
             self.write_path = self.config.get(self.CONFIG_SECTION, 'write_path')
             self.db_path = self.config.get(self.CONFIG_SECTION, 'db_path')
-            self.verbose = self.config.getbool(self.CONFIG_SECTION, 'verbose')
 
-
+        self.logger = logging.getLogger('vulnWhispererBase')
+        self.logger.setLevel(logging.INFO)
+        self.logger.info('Running {} framwork'.format(self.CONFIG_SECTION))
+        self.logger.setLevel(logging.DEBUG if debug else logging.INFO if verbose else logging.WARNING)
 
         if self.db_name is not None:
             if self.db_path:
@@ -254,17 +251,17 @@ class vulnWhispererBase(object):
         """Map and transform common data values"""
         self.logger.info('Start common normalisation')
 
-        self.logger.info('Normalising CVSS')
+        self.logger.debug('Normalising CVSS')
         for cvss_version in ['cvss', 'cvss3']:
             if cvss_version + '_base' in df:
-                self.logger.info('Normalising {} base'.format(cvss_version))
+                self.logger.debug('Normalising {} base'.format(cvss_version))
                 # CVSS = cvss_temporal or cvss_base
                 df[cvss_version] = df[cvss_version + '_base']
                 df.loc[df[cvss_version + '_temporal'] != '', cvss_version] = df[cvss_version + '_temporal']
 
             # Combine CVSS and CVSS3 vectors
             if cvss_version + '_vector' in df and cvss_version + '_temporal_vector' in df:
-                self.logger.info('Normalising {} vector'.format(cvss_version))
+                self.logger.debug('Normalising {} vector'.format(cvss_version))
                 df[cvss_version + '_vector'] = (
                     df[[cvss_version + '_vector', cvss_version + '_temporal_vector']]
                     .apply(lambda x: '{}/{}'.format(x[0], x[1]), axis=1)
@@ -273,18 +270,17 @@ class vulnWhispererBase(object):
                 df.drop(cvss_version + '_temporal_vector', axis=1, inplace=True)
 
             if cvss_version in df:
-                self.logger.info('Normalising {} severity'.format(cvss_version))
+                self.logger.debug('Normalising {} severity'.format(cvss_version))
                 # Map CVSS to severity name
                 df.loc[df[cvss_version].astype(str) == '', cvss_version] = None
                 df[cvss_version] = df[cvss_version].astype('float')
-                # df.loc[df[cvss_version].isnull(), cvss_version + '_severity'] = 'info'
-                df.loc[df[cvss_version] == 0, cvss_version + '_severity'] = 'info'
+                df.loc[df[cvss_version] == 0, cvss_version + '_severity'] = 'informational'
                 df.loc[(df[cvss_version] > 0) & (df[cvss_version] < 3), cvss_version + '_severity'] = 'low'
                 df.loc[(df[cvss_version] >= 3) & (df[cvss_version] < 6), cvss_version + '_severity'] = 'medium'
                 df.loc[(df[cvss_version] >= 6) & (df[cvss_version] < 9), cvss_version + '_severity'] = 'high'
                 df.loc[(df[cvss_version] > 9) & (df[cvss_version].notnull()), cvss_version + '_severity'] = 'critical'
 
-        self.logger.info('Creating Unique Document ID')
+        self.logger.debug('Creating Unique Document ID')
         df['_unique'] = df.index.values
         if 'history_id' in df:
             df['_unique'] = df[['scan_id', 'history_id', '_unique']].apply(lambda x: '_'.join(x.astype(str)), axis=1)
@@ -309,20 +305,18 @@ class vulnWhispererNessus(vulnWhispererBase):
             config=None,
             db_name='report_tracker.db',
             purge=False,
-            verbose=None,
+            verbose=False,
             debug=False,
-            username=None,
-            password=None,
             profile='nessus'
     ):
         self.CONFIG_SECTION=profile
 
-        super(vulnWhispererNessus, self).__init__(config=config)
+        super(vulnWhispererNessus, self).__init__(config=config, verbose=verbose, debug=debug)
 
         self.logger = logging.getLogger('vulnWhispererNessus')
-        if debug:
-            self.logger.setLevel(logging.DEBUG)
-        self.port = int(self.config.get(self.CONFIG_SECTION, 'port'))
+        if not verbose:
+            verbose = self.config.getbool(self.CONFIG_SECTION, 'verbose')
+        self.logger.setLevel(logging.DEBUG if debug else logging.INFO if verbose else logging.WARNING)
 
         self.develop = True
         self.purge = purge
@@ -347,7 +341,8 @@ class vulnWhispererNessus(vulnWhispererBase):
                                 password=self.password,
                                 profile=self.CONFIG_SECTION,
                                 access_key=self.access_key,
-                                secret_key=self.secret_key
+                                secret_key=self.secret_key,
+                                verbose=verbose,
                                 )
                 self.nessus_connect = True
                 self.logger.info('Connected to {} on {host}:{port}'.format(self.CONFIG_SECTION, host=self.hostname,
@@ -557,16 +552,15 @@ class vulnWhispererQualys(vulnWhispererBase):
             config=None,
             db_name='report_tracker.db',
             purge=False,
-            verbose=None,
+            verbose=False,
             debug=False,
-            username=None,
-            password=None,
         ):
 
-        super(vulnWhispererQualys, self).__init__(config=config)
+        super(vulnWhispererQualys, self).__init__(config=config, debug=debug)
         self.logger = logging.getLogger('vulnWhispererQualys')
-        if debug:
-            self.logger.setLevel(logging.DEBUG)
+        if not verbose:
+            verbose = self.config.getbool(self.CONFIG_SECTION, 'verbose')
+        self.logger.setLevel(logging.DEBUG if debug else logging.INFO if verbose else logging.WARNING)
 
         self.qualys_scan = qualysScanReport(config=config)
         self.latest_scans = self.qualys_scan.qw.get_all_scans()
@@ -732,15 +726,14 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
             config=None,
             db_name='report_tracker.db',
             purge=False,
-            verbose=None,
+            verbose=False,
             debug=False,
-            username=None,
-            password=None,
     ):
-        super(vulnWhispererOpenVAS, self).__init__(config=config)
+        super(vulnWhispererOpenVAS, self).__init__(config=config, debug=debug)
         self.logger = logging.getLogger('vulnWhispererOpenVAS')
-        if debug:
-            self.logger.setLevel(logging.DEBUG)
+        if not verbose:
+            verbose = self.config.getbool(self.CONFIG_SECTION, 'verbose')
+        self.logger.setLevel(logging.DEBUG if debug else logging.INFO if verbose else logging.WARNING)
 
         self.directory_check()
         self.port = int(self.config.get(self.CONFIG_SECTION, 'port'))
@@ -857,16 +850,15 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
             config=None,
             db_name='report_tracker.db',
             purge=False,
-            verbose=None,
+            verbose=False,
             debug=False,
-            username=None,
-            password=None,
         ):
 
-        super(vulnWhispererQualysVuln, self).__init__(config=config)
+        super(vulnWhispererQualysVuln, self).__init__(config=config, debug=debug)
         self.logger = logging.getLogger('vulnWhispererQualysVuln')
-        if debug:
-            self.logger.setLevel(logging.DEBUG)
+        if not verbose:
+            verbose = self.config.getbool(self.CONFIG_SECTION, 'verbose')
+        self.logger.setLevel(logging.DEBUG if debug else logging.INFO if verbose else logging.WARNING)
 
         self.qualys_scan = qualysVulnScan(config=config)
         self.directory_check()
@@ -989,17 +981,16 @@ class vulnWhispererJIRA(vulnWhispererBase):
             config=None,
             db_name='report_tracker.db',
             purge=False,
-            verbose=None,
+            verbose=False,
             debug=False,
-            username=None,
-            password=None,
         ):
-        super(vulnWhispererJIRA, self).__init__(config=config)
+        super(vulnWhispererJIRA, self).__init__(config=config, debug=debug)
+
         self.logger = logging.getLogger('vulnWhispererJira')
-        if debug:
-            self.logger.setLevel(logging.DEBUG)
-        self.config_path = config
-        self.config = vwConfig(config)
+        if not verbose:
+            verbose = self.config.getbool(self.CONFIG_SECTION, 'verbose')
+        self.logger.setLevel(logging.DEBUG if debug else logging.INFO if verbose else logging.WARNING)
+
         self.host_resolv_cache = {}
         self.directory_check()
 
@@ -1269,25 +1260,19 @@ class vulnWhisperer(object):
 
     def __init__(self,
                  profile=None,
-                 verbose=None,
-                 username=None,
-                 password=None,
+                 verbose=False,
+                 debug=False,
                  config=None,
                  source=None,
                  scanname=None):
 
         self.logger = logging.getLogger('vulnWhisperer')
-        if verbose:
-            self.logger.setLevel(logging.DEBUG)
+        self.logger.setLevel(logging.DEBUG if debug else logging.INFO if verbose else logging.WARNING)
         self.profile = profile
         self.config = config
-        self.username = username
-        self.password = password
-        self.verbose = verbose
         self.source = source
         self.scanname = scanname
         self.exit_code = 0
-
 
     def whisper_vulnerabilities(self):
 

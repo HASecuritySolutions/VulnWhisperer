@@ -31,14 +31,14 @@ class mockAPI(object):
         for filename in self.get_files('{}/{}'.format(self.mock_dir, framework)):
             method, resource = filename.split('_', 1)
             resource = resource.replace('_', '/')
-            self.logger.debug('Adding mocked {} endpoint {} {}'.format(framework, method, resource))
+            self.logger.info('Adding mocked {} endpoint {} {}'.format(framework, method, resource))
             httpretty.register_uri(
                 getattr(httpretty, method), 'https://{}:443/{}'.format(framework, resource),
                 body=open('{}/{}/{}'.format(self.mock_dir, framework, filename)).read()
             )
 
     def qualys_vuln_callback(self, request, uri, response_headers):
-        self.logger.debug('Simulating response for {} ({})'.format(uri, request.body))
+        self.logger.info('Simulating response for {} ({})'.format(uri, request.body))
         if 'list' in request.parsed_body['action']:
             return [200,
                     response_headers,
@@ -56,19 +56,19 @@ class mockAPI(object):
 
     def create_qualys_vuln_resource(self, framework):
         # Create health check endpoint
-        self.logger.debug('Adding mocked {} endpoint GET msp/about.php'.format(framework))
+        self.logger.info('Adding mocked {} endpoint GET msp/about.php'.format(framework))
         httpretty.register_uri(
                 httpretty.GET,
                 'https://{}:443/msp/about.php'.format(framework),
                 body='')
 
-        self.logger.debug('Adding mocked {} endpoint {} {}'.format(framework, 'POST', 'api/2.0/fo/scan'))
+        self.logger.info('Adding mocked {} endpoint {} {}'.format(framework, 'POST', 'api/2.0/fo/scan'))
         httpretty.register_uri(
             httpretty.POST, 'https://{}:443/api/2.0/fo/scan/'.format(framework),
             body=self.qualys_vuln_callback)
 
     def qualys_web_callback(self, request, uri, response_headers):
-        self.logger.debug('Simulating response for {} ({})'.format(uri, request.body))
+        self.logger.info('Simulating response for {} ({})'.format(uri, request.body))
         report_id = request.parsed_body.split('<WasScan><id>')[1].split('<')[0]
         response_body = open('{}/create_{}'.format(self.qualys_web_path, report_id)).read()
         return [200, response_headers, response_body]
@@ -78,19 +78,19 @@ class mockAPI(object):
             if filename.startswith('POST') or filename.startswith('GET'):
                 method, resource = filename.split('_', 1)
                 resource = resource.replace('_', '/')
-                self.logger.debug('Adding mocked {} endpoint {} {}'.format(framework, method, resource))
+                self.logger.info('Adding mocked {} endpoint {} {}'.format(framework, method, resource))
                 httpretty.register_uri(
                     getattr(httpretty, method), 'https://{}:443/{}'.format(framework, resource),
                     body=open('{}/{}/{}'.format(self.mock_dir, framework, filename)).read()
                 )
 
-        self.logger.debug('Adding mocked {} endpoint {} {}'.format(framework, 'POST', 'qps/rest/3.0/create/was/report'))
+        self.logger.info('Adding mocked {} endpoint {} {}'.format(framework, 'POST', 'qps/rest/3.0/create/was/report'))
         httpretty.register_uri(
             httpretty.POST, 'https://{}:443/qps/rest/3.0/create/was/report'.format(framework),
             body=self.qualys_web_callback)
 
     def openvas_callback(self, request, uri, response_headers):
-        self.logger.debug('Simulating response for {} ({})'.format(uri, request.body))
+        self.logger.info('Simulating response for {} ({})'.format(uri, request.body))
         if request.querystring['cmd'][0] in ['get_reports', 'get_report_formats']:
             response_body = open('{}/{}'.format(self.openvas_path, request.querystring['cmd'][0])).read()
 
