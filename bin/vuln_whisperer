@@ -71,9 +71,11 @@ def main():
     try:
         if args.config and not args.section:
             # this remains a print since we are in the main binary
-            print('WARNING: {warning}'.format(warning='No section was specified, vulnwhisperer will scrape enabled modules from config file. \
-                            \nPlease specify a section using -s. \
-                                                    \nExample vuln_whisperer -c config.ini -s nessus'))
+            print(
+                "WARNING: No section was specified, vulnwhisperer will scrape enabled modules from config file. \
+                \nPlease specify a section using -s. \
+                \nExample vuln_whisperer -c config.ini -s nessus"
+            )
             logger.info('No section was specified, vulnwhisperer will scrape enabled modules from the config file.')
 
             config = vwConfig(config_in=args.config)

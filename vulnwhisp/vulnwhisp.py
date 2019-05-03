@@ -63,8 +63,6 @@ class vulnWhispererBase(object):
             self.db_path = self.config.get(self.CONFIG_SECTION, 'db_path')
 
         self.logger = logging.getLogger('vulnWhispererBase')
-        self.logger.setLevel(logging.INFO)
-        self.logger.info('Running {} framwork'.format(self.CONFIG_SECTION))
         self.logger.setLevel(logging.DEBUG if debug else logging.INFO if verbose else logging.WARNING)
 
         if self.db_name is not None:
@@ -274,7 +272,7 @@ class vulnWhispererBase(object):
                 # Map CVSS to severity name
                 df.loc[df[cvss_version].astype(str) == '', cvss_version] = None
                 df[cvss_version] = df[cvss_version].astype('float')
-                df.loc[df[cvss_version] == 0, cvss_version + '_severity'] = 'informational'
+                df.loc[cvss_version + '_severity'] = 'informational'
                 df.loc[(df[cvss_version] > 0) & (df[cvss_version] < 3), cvss_version + '_severity'] = 'low'
                 df.loc[(df[cvss_version] >= 3) & (df[cvss_version] < 6), cvss_version + '_severity'] = 'medium'
                 df.loc[(df[cvss_version] >= 6) & (df[cvss_version] < 9), cvss_version + '_severity'] = 'high'
@@ -556,7 +554,7 @@ class vulnWhispererQualys(vulnWhispererBase):
             debug=False,
         ):
 
-        super(vulnWhispererQualys, self).__init__(config=config, debug=debug)
+        super(vulnWhispererQualys, self).__init__(config=config, verbose=verbose, debug=debug)
         self.logger = logging.getLogger('vulnWhispererQualys')
         if not verbose:
             verbose = self.config.getbool(self.CONFIG_SECTION, 'verbose')
@@ -729,7 +727,7 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
             verbose=False,
             debug=False,
     ):
-        super(vulnWhispererOpenVAS, self).__init__(config=config, debug=debug)
+        super(vulnWhispererOpenVAS, self).__init__(config=config, verbose=verbose, debug=debug)
         self.logger = logging.getLogger('vulnWhispererOpenVAS')
         if not verbose:
             verbose = self.config.getbool(self.CONFIG_SECTION, 'verbose')
@@ -854,7 +852,7 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
             debug=False,
         ):
 
-        super(vulnWhispererQualysVuln, self).__init__(config=config, debug=debug)
+        super(vulnWhispererQualysVuln, self).__init__(config=config, verbose=verbose, debug=debug)
         self.logger = logging.getLogger('vulnWhispererQualysVuln')
         if not verbose:
             verbose = self.config.getbool(self.CONFIG_SECTION, 'verbose')
@@ -984,7 +982,7 @@ class vulnWhispererJIRA(vulnWhispererBase):
             verbose=False,
             debug=False,
         ):
-        super(vulnWhispererJIRA, self).__init__(config=config, debug=debug)
+        super(vulnWhispererJIRA, self).__init__(config=config, verbose=verbose, debug=debug)
 
         self.logger = logging.getLogger('vulnWhispererJira')
         if not verbose:
@@ -1269,38 +1267,53 @@ class vulnWhisperer(object):
         self.logger = logging.getLogger('vulnWhisperer')
         self.logger.setLevel(logging.DEBUG if debug else logging.INFO if verbose else logging.WARNING)
         self.profile = profile
+        self.verbose = verbose
+        self.debug = debug
         self.config = config
         self.source = source
         self.scanname = scanname
         self.exit_code = 0
 
     def whisper_vulnerabilities(self):
-
+        self.logger.setLevel(logging.INFO)
+        self.logger.info('Running {} framwork'.format(self.profile))
         if self.profile == 'nessus':
             vw = vulnWhispererNessus(config=self.config,
-                                     profile=self.profile)
+                                     profile=self.profile,
+                                     verbose=self.verbose,
+                                     debug=self.debug)
             self.exit_code += vw.whisper_nessus()
 
         elif self.profile == 'qualys_web':
-            vw = vulnWhispererQualys(config=self.config)
+            vw = vulnWhispererQualys(config=self.config,
+                                     verbose=self.verbose,
+                                     debug=self.debug)
             self.exit_code += vw.process_web_assets()
 
         elif self.profile == 'openvas':
-            vw_openvas = vulnWhispererOpenVAS(config=self.config)
+            vw_openvas = vulnWhispererOpenVAS(config=self.config,
+                                              verbose=self.verbose,
+                                              debug=self.debug)
             self.exit_code += vw_openvas.process_openvas_scans()
 
         elif self.profile == 'tenable':
             vw = vulnWhispererNessus(config=self.config,
-                                     profile=self.profile)
+                                     profile=self.profile,
+                                     verbose=self.verbose,
+                                     debug=self.debug)
             self.exit_code += vw.whisper_nessus()
 
         elif self.profile == 'qualys_vuln':
-            vw = vulnWhispererQualysVuln(config=self.config)
+            vw = vulnWhispererQualysVuln(config=self.config,
+                                         verbose=self.verbose,
+                                         debug=self.debug)
             self.exit_code += vw.process_vuln_scans()
 
         elif self.profile == 'jira':
             #first we check config fields are created, otherwise we create them
-            vw = vulnWhispererJIRA(config=self.config)
+            vw = vulnWhispererJIRA(config=self.config,
+                                   verbose=self.verbose,
+                                   debug=self.debug)
             if not (self.source and self.scanname):
                 self.logger.info('No source/scan_name selected, all enabled scans will be synced')
                 success = vw.sync_all()
