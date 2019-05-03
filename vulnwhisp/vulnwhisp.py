@@ -272,7 +272,7 @@ class vulnWhispererBase(object):
                 # Map CVSS to severity name
                 df.loc[df[cvss_version].astype(str) == '', cvss_version] = None
                 df[cvss_version] = df[cvss_version].astype('float')
-                df.loc[cvss_version + '_severity'] = 'informational'
+                df[cvss_version + '_severity'] = 'informational'
                 df.loc[(df[cvss_version] > 0) & (df[cvss_version] < 3), cvss_version + '_severity'] = 'low'
                 df.loc[(df[cvss_version] >= 3) & (df[cvss_version] < 6), cvss_version + '_severity'] = 'medium'
                 df.loc[(df[cvss_version] >= 6) & (df[cvss_version] < 9), cvss_version + '_severity'] = 'high'
@@ -311,7 +311,7 @@ class vulnWhispererNessus(vulnWhispererBase):
 
         super(vulnWhispererNessus, self).__init__(config=config, verbose=verbose, debug=debug)
 
-        self.logger = logging.getLogger('vulnWhispererNessus')
+        self.logger = logging.getLogger('vulnWhisperer{}'.format(self.CONFIG_SECTION))
         if not verbose:
             verbose = self.config.getbool(self.CONFIG_SECTION, 'verbose')
         self.logger.setLevel(logging.DEBUG if debug else logging.INFO if verbose else logging.WARNING)
