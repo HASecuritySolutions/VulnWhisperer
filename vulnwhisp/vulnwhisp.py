@@ -18,8 +18,8 @@ from lxml import objectify
 from base.config import vwConfig
 from frameworks.nessus import NessusAPI
 from frameworks.openvas import OpenVAS_API
-from frameworks.qualys_vuln import qualysVulnScan
-from frameworks.qualys_web import qualysScanReport
+from frameworks.qualys_vm import qualysVulnScan
+from frameworks.qualys_was import qualysScanReport
 from reporting.jira_api import JiraAPI
 
 
@@ -544,9 +544,9 @@ class vulnWhispererNessus(vulnWhispererBase):
         return self.exit_code
 
 
-class vulnWhispererQualys(vulnWhispererBase):
+class vulnWhispererQualysWAS(vulnWhispererBase):
 
-    CONFIG_SECTION = 'qualys_web'
+    CONFIG_SECTION = 'qualys_was'
     def __init__(
             self,
             config=None,
@@ -556,8 +556,8 @@ class vulnWhispererQualys(vulnWhispererBase):
             debug=False,
         ):
 
-        super(vulnWhispererQualys, self).__init__(config=config, verbose=verbose, debug=debug)
-        self.logger = logging.getLogger('vulnWhispererQualys')
+        super(vulnWhispererQualysWAS, self).__init__(config=config, verbose=verbose, debug=debug)
+        self.logger = logging.getLogger('vulnWhispererQualysWAS')
         if not verbose:
             verbose = self.config.getbool(self.CONFIG_SECTION, 'verbose')
         self.logger.setLevel(logging.DEBUG if debug else logging.INFO if verbose else logging.WARNING)
@@ -583,7 +583,7 @@ class vulnWhispererQualys(vulnWhispererBase):
         try:
             if 'Z' in launched_date:
                 launched_date = self.qualys_scan.utils.iso_to_epoch(launched_date)
-            report_name = 'qualys_web_' + str(report_id) \
+            report_name = 'qualys_was_' + str(report_id) \
                           + '_{last_updated}'.format(last_updated=launched_date) \
                           + '.{extension}'.format(extension=output_format)
 
@@ -843,7 +843,7 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
 
 class vulnWhispererQualysVuln(vulnWhispererBase):
 
-    CONFIG_SECTION = 'qualys_vuln'
+    CONFIG_SECTION = 'qualys_vm'
 
     def __init__(
             self,
@@ -873,7 +873,7 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
                         cleanup=True):
             if 'Z' in launched_date:
                 launched_date = self.qualys_scan.utils.iso_to_epoch(launched_date)
-            report_name = 'qualys_vuln_' + report_id.replace('/','_') \
+            report_name = 'qualys_vm_' + report_id.replace('/','_') \
                           + '_{last_updated}'.format(last_updated=launched_date) \
                           + '.{extension}'.format(extension=output_format)
 
@@ -1122,7 +1122,7 @@ class vulnWhispererJIRA(vulnWhispererBase):
 
         return vulnerabilities
 
-    def parse_qualys_vuln_vulnerabilities(self, fullpath, source, scan_name, min_critical, dns_resolv = False):
+    def parse_qualys_vm_vulnerabilities(self, fullpath, source, scan_name, min_critical, dns_resolv = False):
         #parsing of the qualys vulnerabilities schema
         #parse json
         vulnerabilities = []
@@ -1230,8 +1230,8 @@ class vulnWhispererJIRA(vulnWhispererBase):
             vulnerabilities = self.parse_nessus_vulnerabilities(fullpath, source, scan_name, min_critical)
 
         #***Qualys VM parsing***
-        if source == "qualys_vuln":
-            vulnerabilities = self.parse_qualys_vuln_vulnerabilities(fullpath, source, scan_name, min_critical, dns_resolv)
+        if source == "qualys_vm":
+            vulnerabilities = self.parse_qualys_vm_vulnerabilities(fullpath, source, scan_name, min_critical, dns_resolv)
 
         #***JIRA sync***
         if vulnerabilities:
@@ -1286,8 +1286,8 @@ class vulnWhisperer(object):
                                      debug=self.debug)
             self.exit_code += vw.whisper_nessus()
 
-        elif self.profile == 'qualys_web':
-            vw = vulnWhispererQualys(config=self.config,
+        elif self.profile == 'qualys_was':
+            vw = vulnWhispererQualysWAS(config=self.config,
                                      verbose=self.verbose,
                                      debug=self.debug)
             self.exit_code += vw.process_web_assets()
@@ -1305,7 +1305,7 @@ class vulnWhisperer(object):
                                      debug=self.debug)
             self.exit_code += vw.whisper_nessus()
 
-        elif self.profile == 'qualys_vuln':
+        elif self.profile == 'qualys_vm':
             vw = vulnWhispererQualysVuln(config=self.config,
                                          verbose=self.verbose,
                                          debug=self.debug)

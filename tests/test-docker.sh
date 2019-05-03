@@ -89,20 +89,20 @@ else
 fi
 
 # Test Qualys signature:OpenSSL Multiple Remote Security Vulnerabilities
-qualys_vuln_doc=$(curl -s "$elasticsearch_url/logstash-vulnwhisperer-*/_search?q=tags:qualys_vuln%20AND%20ip:%22176.28.50.164%22%20AND%20signature:%22OpenSSL%20Multiple%20Remote%20Security%20Vulnerabilities%22%20AND%20port:465" | jq '.hits.hits[]._source')
+qualys_vm_doc=$(curl -s "$elasticsearch_url/logstash-vulnwhisperer-*/_search?q=tags:qualys_vm%20AND%20ip:%22176.28.50.164%22%20AND%20signature:%22OpenSSL%20Multiple%20Remote%20Security%20Vulnerabilities%22%20AND%20port:465" | jq '.hits.hits[]._source')
 # Test @timestamp
-if echo $qualys_vuln_doc | jq '.["@timestamp"]' | grep -q '2019-03-30T10:17:41.000Z'; then
+if echo $qualys_vm_doc | jq '.["@timestamp"]' | grep -q '2019-03-30T10:17:41.000Z'; then
     green "✅ Passed: Qualys VM @timestamp == 2019-03-30T10:17:41.000Z"
 else
-    red "❌ Failed: Qualys VM @timestamp == 2019-03-30T10:17:41.000Z was: $(echo $qualys_vuln_doc | jq '.["@timestamp"]') instead"
+    red "❌ Failed: Qualys VM @timestamp == 2019-03-30T10:17:41.000Z was: $(echo $qualys_vm_doc | jq '.["@timestamp"]') instead"
     ((return_code = return_code + 1))
 fi
 
 # Test @XXXX
-if echo $qualys_vuln_doc | jq '.cvss' | grep -q '5.6'; then
+if echo $qualys_vm_doc | jq '.cvss' | grep -q '5.6'; then
     green "✅ Passed: Qualys VM cvss == 5.6"
 else
-    red "❌ Failed: Qualys VM cvss == 5.6 was: $(echo $qualys_vuln_doc | jq '.cvss') instead"
+    red "❌ Failed: Qualys VM cvss == 5.6 was: $(echo $qualys_vm_doc | jq '.cvss') instead"
     ((return_code = return_code + 1))
 fi
 

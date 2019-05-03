@@ -18,7 +18,7 @@ class qualysWhisperAPI(object):
         self.logger = logging.getLogger('qualysWhisperAPI')
         self.config = config
         try:
-            self.qgc = qualysapi.connect(config, 'qualys_vuln')
+            self.qgc = qualysapi.connect(config, 'qualys_vm')
             # Fail early if we can't make a request or auth is incorrect
             self.qgc.request('about.php')
             self.logger.info('Connected to Qualys at {}'.format(self.qgc.server))
