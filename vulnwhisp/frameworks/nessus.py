@@ -17,7 +17,7 @@ class NessusAPI(object):
     SCANS = '/scans'
     SCAN_ID = SCANS + '/{scan_id}'
     HOST_VULN = SCAN_ID + '/hosts/{host_id}'
-    PLUGINS = HOST_VULN + '/plugins/{plugin_id}'
+    PLUGINS = HOST_VULN + '/plugins/{signature_id}'
     EXPORT = SCAN_ID + '/export'
     EXPORT_TOKEN_DOWNLOAD = '/scans/exports/{token_id}/download'
     EXPORT_FILE_DOWNLOAD = EXPORT + '/{file_id}/download'
@@ -25,17 +25,19 @@ class NessusAPI(object):
     EXPORT_HISTORY = EXPORT + '?history_id={history_id}'
     # All column mappings should be lowercase
     COLUMN_MAPPING = {
-        'cvss base score': 'cvss_base',
-        'cvss temporal score': 'cvss_temporal',
-        'cvss temporal vector': 'cvss_temporal_vector',
+        'cvss base score': 'cvss2_base',
+        'cvss temporal score': 'cvss2_temporal',
+        'cvss temporal vector': 'cvss2_temporal_vector',
+        'cvss vector': 'cvss2_vector',
         'cvss3 base score': 'cvss3_base',
         'cvss3 temporal score': 'cvss3_temporal',
         'cvss3 temporal vector': 'cvss3_temporal_vector',
         'fqdn': 'dns',
         'host': 'asset',
         'ip address': 'ip',
-        'name': 'plugin_name',
+        'name': 'signature',
         'os': 'operating_system',
+        'plugin id': 'signature_id',
         'see also': 'exploitability',
         'system type': 'category',
         'vulnerability state': 'state'

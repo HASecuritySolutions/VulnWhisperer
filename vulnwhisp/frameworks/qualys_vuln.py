@@ -83,10 +83,10 @@ class qualysVulnScan:
         'impact': 'synopsis',
         'ip_status': 'state',
         'os': 'operating_system',
-        'qid': 'plugin_id',
+        'qid': 'signature_id',
         'results': 'plugin_output',
         'threat': 'description',
-        'title': 'plugin_name'
+        'title': 'signature'
     }
 
     SEVERITY_MAPPING = {0: 'none', 1: 'low', 2: 'medium', 3: 'high',4: 'critical'}
@@ -164,10 +164,12 @@ class qualysVulnScan:
 
         # Contruct the CVSS vector
         self.logger.info('Extracting CVSS components')
-        df['cvss_vector'] = df['cvss_base'].str.extract('\((.*)\)', expand=False)
-        df['cvss_base'] = df['cvss_base'].str.extract('^(\d+(?:\.\d+)?)', expand=False)
-        df['cvss_temporal_vector'] = df['cvss_temporal'].str.extract('\((.*)\)', expand=False)
-        df['cvss_temporal'] = df['cvss_temporal'].str.extract('^(\d+(?:\.\d+)?)', expand=False)
+        df['cvss2_vector'] = df['cvss_base'].str.extract('\((.*)\)', expand=False)
+        df['cvss2_base'] = df['cvss_base'].str.extract('^(\d+(?:\.\d+)?)', expand=False)
+        df['cvss2_temporal_vector'] = df['cvss_temporal'].str.extract('\((.*)\)', expand=False)
+        df['cvss2_temporal'] = df['cvss_temporal'].str.extract('^(\d+(?:\.\d+)?)', expand=False)
+        df.drop('cvss_base', axis=1, inplace=True, errors='ignore')
+        df.drop('cvss_temporal', axis=1, inplace=True, errors='ignore')
 
         # Set asset to ip
         df['asset'] = df['ip']

@@ -61,8 +61,8 @@ fi
 #     ((return_code = return_code + 1))
 # fi
 
-# Test Nessus plugin_name:Backported Security Patch Detection (FTP)
-nessus_doc=$(curl -s "$elasticsearch_url/logstash-vulnwhisperer-*/_search?q=plugin_name:%22Backported%20Security%20Patch%20Detection%20(FTP)%22%20AND%20asset:176.28.50.164%20AND%20tags:nessus" | jq '.hits.hits[]._source')
+# Test Nessus signature:Backported Security Patch Detection (FTP)
+nessus_doc=$(curl -s "$elasticsearch_url/logstash-vulnwhisperer-*/_search?q=signature:%22Backported%20Security%20Patch%20Detection%20(FTP)%22%20AND%20asset:176.28.50.164%20AND%20tags:nessus" | jq '.hits.hits[]._source')
 if echo $nessus_doc | jq '.risk' | grep -q "none"; then
     green "✅ Passed: Nessus risk == none"
 else
@@ -70,8 +70,8 @@ else
     ((return_code = return_code + 1))
 fi
 
-# Test Tenable plugin_name:Backported Security Patch Detection (FTP)
-tenable_doc=$(curl -s "$elasticsearch_url/logstash-vulnwhisperer-*/_search?q=plugin_name:%22Backported%20Security%20Patch%20Detection%20(FTP)%22%20AND%20asset:176.28.50.164%20AND%20tags:tenable" | jq '.hits.hits[]._source')
+# Test Tenable signature:Backported Security Patch Detection (FTP)
+tenable_doc=$(curl -s "$elasticsearch_url/logstash-vulnwhisperer-*/_search?q=signature:%22Backported%20Security%20Patch%20Detection%20(FTP)%22%20AND%20asset:176.28.50.164%20AND%20tags:tenable" | jq '.hits.hits[]._source')
 # Test asset
 if echo $tenable_doc | jq .asset | grep -q '176.28.50.164'; then
     green "✅ Passed: Tenable asset == 176.28.50.164"
@@ -88,8 +88,8 @@ else
     ((return_code = return_code + 1))
 fi
 
-# Test Qualys plugin_name:OpenSSL Multiple Remote Security Vulnerabilities
-qualys_vuln_doc=$(curl -s "$elasticsearch_url/logstash-vulnwhisperer-*/_search?q=tags:qualys_vuln%20AND%20ip:%22176.28.50.164%22%20AND%20plugin_name:%22OpenSSL%20Multiple%20Remote%20Security%20Vulnerabilities%22%20AND%20port:465" | jq '.hits.hits[]._source')
+# Test Qualys signature:OpenSSL Multiple Remote Security Vulnerabilities
+qualys_vuln_doc=$(curl -s "$elasticsearch_url/logstash-vulnwhisperer-*/_search?q=tags:qualys_vuln%20AND%20ip:%22176.28.50.164%22%20AND%20signature:%22OpenSSL%20Multiple%20Remote%20Security%20Vulnerabilities%22%20AND%20port:465" | jq '.hits.hits[]._source')
 # Test @timestamp
 if echo $qualys_vuln_doc | jq '.["@timestamp"]' | grep -q '2019-03-30T10:17:41.000Z'; then
     green "✅ Passed: Qualys VM @timestamp == 2019-03-30T10:17:41.000Z"

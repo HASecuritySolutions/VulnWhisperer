@@ -249,15 +249,17 @@ class vulnWhispererBase(object):
         """Map and transform common data values"""
         self.logger.info('Start common normalisation')
 
+        df.replace({'': np.nan}, inplace=True)
+
         self.logger.debug('Normalising CVSS')
-        for cvss_version in ['cvss', 'cvss3']:
+        for cvss_version in ['cvss2', 'cvss3']:
+            # cvssX = cvssX_temporal else cvssX_base
             if cvss_version + '_base' in df:
                 self.logger.debug('Normalising {} base'.format(cvss_version))
-                # CVSS = cvss_temporal or cvss_base
                 df[cvss_version] = df[cvss_version + '_base']
-                df.loc[df[cvss_version + '_temporal'] != '', cvss_version] = df[cvss_version + '_temporal']
+                df[cvss_version] = df[cvss_version + '_temporal'].fillna(df[cvss_version])
 
-            # Combine CVSS and CVSS3 vectors
+            # Combine cvssX temporal and base vectors
             if cvss_version + '_vector' in df and cvss_version + '_temporal_vector' in df:
                 self.logger.debug('Normalising {} vector'.format(cvss_version))
                 df[cvss_version + '_vector'] = (
@@ -267,16 +269,22 @@ class vulnWhispererBase(object):
                 )
                 df.drop(cvss_version + '_temporal_vector', axis=1, inplace=True)
 
+            # Map cvssX to severity name
             if cvss_version in df:
                 self.logger.debug('Normalising {} severity'.format(cvss_version))
-                # Map CVSS to severity name
-                df.loc[df[cvss_version].astype(str) == '', cvss_version] = None
                 df[cvss_version] = df[cvss_version].astype('float')
                 df[cvss_version + '_severity'] = 'informational'
                 df.loc[(df[cvss_version] > 0) & (df[cvss_version] < 3), cvss_version + '_severity'] = 'low'
                 df.loc[(df[cvss_version] >= 3) & (df[cvss_version] < 6), cvss_version + '_severity'] = 'medium'
                 df.loc[(df[cvss_version] >= 6) & (df[cvss_version] < 9), cvss_version + '_severity'] = 'high'
-                df.loc[(df[cvss_version] > 9) & (df[cvss_version].notnull()), cvss_version + '_severity'] = 'critical'
+                df.loc[df[cvss_version] > 9, cvss_version + '_severity'] = 'critical'
+
+        # Get a single cvss score derived from cvss3 else cvss2
+        if not 'cvss' in df:
+            if 'cvss3' in df:
+                df['cvss'] = df['cvss3'].fillna(df['cvss2'])
+            elif 'cvss2' in df:
+                df['cvss'] = df['cvss2']
 
         self.logger.debug('Creating Unique Document ID')
         df['_unique'] = df.index.values
@@ -284,12 +292,6 @@ class vulnWhispererBase(object):
             df['_unique'] = df[['scan_id', 'history_id', '_unique']].apply(lambda x: '_'.join(x.astype(str)), axis=1)
         else:
             df['_unique'] = df[['scan_id', '_unique']].apply(lambda x: '_'.join(x.astype(str)), axis=1)
-
-        # Rename cvss to cvss2
-        # Make cvss with no suffix == cvss3 else cvss2
-        # cvss = cvss3 if cvss3 else cvss2
-        # cvss_severity = cvss3_severity if cvss3_severity else cvss2_severity
-        df.replace({'': np.nan}, inplace=True)
 
         return df
 
@@ -700,7 +702,7 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
                       'CVSS': 'cvss',
                       'Severity': 'severity',
                       'Solution Type': 'category',
-                      'NVT Name': 'plugin_name',
+                      'NVT Name': 'signature',
                       'Summary': 'synopsis',
                       'Specific Result': 'plugin_output',
                       'NVT OID': 'nvt_oid',
@@ -1141,16 +1143,16 @@ class vulnWhispererJIRA(vulnWhispererBase):
                 continue
 
             elif data[index]['type'] == 'Practice' or data[index]['type'] == 'Ig':
-                self.logger.debug("Vulnerability '{vuln}' ignored, as it is 'Practice/Potential', not verified.".format(vuln=data[index]['plugin_name']))
+                self.logger.debug("Vulnerability '{vuln}' ignored, as it is 'Practice/Potential', not verified.".format(vuln=data[index]['signature']))
                 continue
 
-            if not vulnerabilities or data[index]['plugin_name'] not in [entry['title'] for entry in vulnerabilities]:
+            if not vulnerabilities or data[index]['signature'] not in [entry['title'] for entry in vulnerabilities]:
                 vuln = {}
                 #vulnerabilities should have all the info for creating all JIRA labels
                 vuln['source'] = source
                 vuln['scan_name'] = scan_name
                 #vulnerability variables
-                vuln['title'] = data[index]['plugin_name']
+                vuln['title'] = data[index]['signature']
                 vuln['diagnosis'] =  data[index]['threat'].replace('\\n',' ')
                 vuln['consequence'] = data[index]['impact'].replace('\\n',' ')
                 vuln['solution'] = data[index]['solution'].replace('\\n',' ')
@@ -1171,7 +1173,7 @@ class vulnWhispererJIRA(vulnWhispererBase):
             else:
                 # grouping assets by vulnerability to open on single ticket, as each asset has its own nessus entry
                 for vuln in vulnerabilities:
-                    if vuln['title'] == data[index]['plugin_name']:
+                    if vuln['title'] == data[index]['signature']:
                         vuln['ips'].append("{ip} - {protocol}/{port} - {dns}".format(**self.get_asset_fields(data[index], dns_resolv)))
 
         return vulnerabilities

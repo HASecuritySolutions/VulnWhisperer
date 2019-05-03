@@ -29,20 +29,20 @@
         "cve": {
           "type": "keyword"
         },
-        "cvss_base": {
-          "type": "float"
-        },
-        "cvss_severity": {
-          "type": "keyword"
-        },
-        "cvss_temporal": {
-          "type": "float"
-        },
-        "cvss_vector": {
-          "type": "keyword"
-        },
         "cvss": {
           "type": "float"
+        },
+        "cvss2_base": {
+          "type": "float"
+        },
+        "cvss2_severity": {
+          "type": "keyword"
+        },
+        "cvss2_temporal": {
+          "type": "float"
+        },
+        "cvss2_vector": {
+          "type": "keyword"
         },
         "cvss3_base": {
           "type": "float"
@@ -136,10 +136,10 @@
         "plugin_family": {
           "type": "keyword"
         },
-        "plugin_id": {
+        "signature_id": {
           "type": "keyword"
         },
-        "plugin_name": {
+        "signature": {
           "type": "keyword"
         },
         "plugin_output": {
