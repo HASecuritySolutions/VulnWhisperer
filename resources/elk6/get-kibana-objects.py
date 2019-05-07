@@ -12,4 +12,4 @@ for object_type in ['dashboard', 'visualization', 'search', 'index-pattern', 'ti
 for api_object in api_objects:
     api_object.pop('updated_at', None)
 
-json.dump(api_objects, open('kibana_APIonly.json', 'w'), indent=2)
+json.dump(sorted(api_objects, key=lambda x:x['id']), open('kibana_APIonly.json', 'w'), indent=2)
