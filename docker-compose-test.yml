@@ -81,12 +81,13 @@ services:
     entrypoint: [
                   "vuln_whisperer",
                   "-F",
+                  "-v",
                   "-c",
                   "/opt/VulnWhisperer/vulnwhisperer.ini",
                   "--mock",
                   "--mock_dir",
                   "/tests/data"
-    ]    
+    ]
     volumes:
       - ./data/vulnwhisperer/:/opt/VulnWhisperer/data
       # - ./resources/elk6/vulnwhisperer.ini:/opt/VulnWhisperer/vulnwhisperer.ini

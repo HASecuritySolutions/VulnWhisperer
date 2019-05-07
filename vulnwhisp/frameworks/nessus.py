@@ -42,7 +42,6 @@ class NessusAPI(object):
         'system type': 'category',
         'vulnerability state': 'state'
     }
-    SEVERITY_MAPPING = {'none': 0, 'low': 1, 'medium': 2, 'high': 3, 'critical': 4}
 
     def __init__(self, hostname=None, port=None, username=None, password=None, verbose=True, profile=None, access_key=None, secret_key=None):
         self.logger = logging.getLogger('NessusAPI')
@@ -228,10 +227,6 @@ class NessusAPI(object):
         df['cve'] = df['cve'].str.upper()
         df['protocol'] = df['protocol'].str.lower()
         df['risk'] = df['risk'].str.lower()
-
-        # Map risk to a SEVERITY MAPPING value
-        self.logger.debug('Mapping risk to severity number')
-        df['risk_number'] = df['risk'].map(self.SEVERITY_MAPPING)
 
         df.fillna('', inplace=True)
 

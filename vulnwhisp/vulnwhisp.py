@@ -26,6 +26,8 @@ from reporting.jira_api import JiraAPI
 class vulnWhispererBase(object):
 
     CONFIG_SECTION = None
+    SEVERITY_NAME_MAPPING = {'none': 0, 'low': 1, 'medium': 2, 'high': 3, 'critical': 4}
+    SEVERITY_NUMBER_MAPPING = {0: 'none', 1: 'low', 2: 'medium', 3: 'high', 4: 'critical'}
 
     def __init__(
             self,
@@ -250,6 +252,16 @@ class vulnWhispererBase(object):
         self.logger.info('Start common normalisation')
 
         df.replace({'': np.nan}, inplace=True)
+
+        # Map risk name to a risk value
+        if 'risk' in df and not 'risk_number' in df:
+            self.logger.debug('Mapping risk name to risk number')
+            df['risk_number'] = df['risk'].map(self.SEVERITY_NAME_MAPPING)
+
+        # Map risk value to a risk name
+        if 'risk_number' in df and not 'risk' in df:
+            self.logger.debug('Mapping risk number to risk name')
+            df['risk'] = df['risk_number'].map(self.SEVERITY_NUMBER_MAPPING)
 
         self.logger.debug('Normalising CVSS')
         for cvss_version in ['cvss2', 'cvss3']:
@@ -694,32 +706,6 @@ class vulnWhispererQualysWAS(vulnWhispererBase):
 
 class vulnWhispererOpenVAS(vulnWhispererBase):
     CONFIG_SECTION = 'openvas'
-    COLUMN_MAPPING = {'IP': 'asset',
-                      'Hostname': 'hostname',
-                      'Port': 'port',
-                      'Port Protocol': 'protocol',
-                      'CVEs': 'cve',
-                      'CVSS': 'cvss',
-                      'Severity': 'severity',
-                      'Solution Type': 'category',
-                      'NVT Name': 'signature',
-                      'Summary': 'synopsis',
-                      'Specific Result': 'plugin_output',
-                      'NVT OID': 'nvt_oid',
-                      'Task ID': 'task_id',
-                      'Task Name': 'scan_name',
-                      'Timestamp': 'timestamp',
-                      'Result ID': 'result_id',
-                      'Impact': 'description',
-                      'Solution': 'solution',
-                      'Affected Software/OS': 'affected_software',
-                      'Vulnerability Insight': 'vulnerability_insight',
-                      'Vulnerability Detection Method': 'vulnerability_detection_method',
-                      'Product Detection Result': 'product_detection_result',
-                      'BIDs': 'bids',
-                      'CERTs': 'certs',
-                      'Other References': 'see_also'
-                      }
 
     def __init__(
             self,
@@ -782,12 +768,7 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
                 # Map and transform fields
                 vuln_ready = self.openvas_api.normalise(vuln_ready)
 
-                # TODO move the following to the openvas_api.transform_values
-                vuln_ready.rename(columns=self.COLUMN_MAPPING, inplace=True)
-                vuln_ready.port = vuln_ready.port.replace('', 0).astype(int)
-
                 # Set common fields
-                # vuln_ready['scan_name'] = scan_name.encode('utf8')
                 vuln_ready['scan_id'] = report_id
                 vuln_ready['scan_time'] = launched_date
                 vuln_ready['scan_source'] = self.CONFIG_SECTION
@@ -841,7 +822,7 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
         return self.exit_code
 
 
-class vulnWhispererQualysVuln(vulnWhispererBase):
+class vulnWhispererQualysVM(vulnWhispererBase):
 
     CONFIG_SECTION = 'qualys_vm'
 
@@ -854,8 +835,8 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
             debug=False,
         ):
 
-        super(vulnWhispererQualysVuln, self).__init__(config=config, verbose=verbose, debug=debug)
-        self.logger = logging.getLogger('vulnWhispererQualysVuln')
+        super(vulnWhispererQualysVM, self).__init__(config=config, verbose=verbose, debug=debug)
+        self.logger = logging.getLogger('vulnWhispererQualysVM')
         if not verbose:
             verbose = self.config.getbool(self.CONFIG_SECTION, 'verbose')
         self.logger.setLevel(logging.DEBUG if debug else logging.INFO if verbose else logging.WARNING)
@@ -1306,7 +1287,7 @@ class vulnWhisperer(object):
             self.exit_code += vw.whisper_nessus()
 
         elif self.profile == 'qualys_vm':
-            vw = vulnWhispererQualysVuln(config=self.config,
+            vw = vulnWhispererQualysVM(config=self.config,
                                          verbose=self.verbose,
                                          debug=self.debug)
             self.exit_code += vw.process_vuln_scans()

@@ -13,6 +13,20 @@ from bs4 import BeautifulSoup
 
 class OpenVAS_API(object):
     OMP = '/omp'
+    COLUMN_MAPPING = {
+                      'affected software/os': 'affected_software',
+                      'cves': 'cve',
+                      'impact': 'description',
+                      'nvt name': 'signature',
+                      'nvt oid': 'signature_id',
+                      'other references': 'exploitability',
+                      'port protocol': 'protocol',
+                      'severity': 'risk',
+                      'solution type': 'category',
+                      'task name': 'scan_name',
+                      'specific result': 'plugin_output',
+                      'summary': 'synopsis',
+                      }
 
     def __init__(self,
                  hostname=None,
@@ -200,9 +214,16 @@ class OpenVAS_API(object):
 
     def map_fields(self, df):
         self.logger.debug('Mapping fields')
+        # Lowercase and map fields from COLUMN_MAPPING
+        df.columns = [x.lower() for x in df.columns]
+        df.rename(columns=self.COLUMN_MAPPING, inplace=True)
+        df.columns = [x.replace(' ', '_') for x in df.columns]
         return df
 
     def transform_values(self, df):
         self.logger.debug('Transforming values')
+        df['port'].fillna(0).astype(int)
+        df['risk'] = df['risk'].str.lower()
+        df['asset'] = df['ip']
         df.fillna('', inplace=True)
         return df

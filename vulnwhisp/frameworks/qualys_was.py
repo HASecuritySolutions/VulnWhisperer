@@ -300,8 +300,6 @@ class qualysScanReport:
         'Vulnerability Category': 'type',
     }
 
-    SEVERITY_MAPPING = {0: 'none', 1: 'low', 2: 'medium', 3: 'high', 4: 'critical'}
-
     # URL Vulnerability Information
     WEB_SCAN_VULN_BLOCK = list(qualysReportFields.VULN_BLOCK)
     WEB_SCAN_VULN_BLOCK.insert(WEB_SCAN_VULN_BLOCK.index('QID'), 'Detection ID')
@@ -521,7 +519,6 @@ class qualysScanReport:
 
         # Convert Qualys severity to standardised risk number
         df['risk_number'] =  df['severity'].astype(int)-1
-        df['risk'] = df['risk_number'].map(self.SEVERITY_MAPPING)
 
         # Extract dns field from URL
         df['dns'] = df['url'].str.extract('https?://([^/]+)', expand=False)

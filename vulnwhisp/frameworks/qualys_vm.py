@@ -89,8 +89,6 @@ class qualysVulnScan:
         'title': 'signature'
     }
 
-    SEVERITY_MAPPING = {0: 'none', 1: 'low', 2: 'medium', 3: 'high',4: 'critical'}
-
     def __init__(
         self,
         config=None,
@@ -176,7 +174,6 @@ class qualysVulnScan:
 
         # Convert Qualys severity to standardised risk number
         df['risk_number'] =  df['severity'].astype(int)-1
-        df['risk'] = df['risk_number'].map(self.SEVERITY_MAPPING)
 
         df.fillna('', inplace=True)
 
