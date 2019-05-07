@@ -32,6 +32,9 @@
         "cvss": {
           "type": "float"
         },
+        "cvss_severity": {
+          "type": "keyword"
+        },
         "cvss2_base": {
           "type": "float"
         },

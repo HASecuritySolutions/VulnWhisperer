@@ -285,6 +285,8 @@ class qualysUtils:
 class qualysScanReport:
 
     COLUMN_MAPPING = {
+        'CVSS Base': 'cvss2_base',
+        'CVSS Temporal': 'cvss2_temporal',
         'DescriptionCatSev': 'category_description',
         'DescriptionSeverity': 'synopsis',
         'Evidence #1': 'evidence',

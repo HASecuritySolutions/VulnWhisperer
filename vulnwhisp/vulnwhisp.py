@@ -264,7 +264,7 @@ class vulnWhispererBase(object):
             df['risk'] = df['risk_number'].map(self.SEVERITY_NUMBER_MAPPING)
 
         self.logger.debug('Normalising CVSS')
-        for cvss_version in ['cvss2', 'cvss3']:
+        for cvss_version in ['cvss', 'cvss2', 'cvss3']:
             # cvssX = cvssX_temporal else cvssX_base
             if cvss_version + '_base' in df:
                 self.logger.debug('Normalising {} base'.format(cvss_version))
@@ -295,8 +295,10 @@ class vulnWhispererBase(object):
         if not 'cvss' in df:
             if 'cvss3' in df:
                 df['cvss'] = df['cvss3'].fillna(df['cvss2'])
+                df['cvss_severity'] = df['cvss3_severity'].fillna(df['cvss2_severity'])
             elif 'cvss2' in df:
                 df['cvss'] = df['cvss2']
+                df['cvss_severity'] = df['cvss2_severity']
 
         self.logger.debug('Creating Unique Document ID')
         df['_unique'] = df.index.values
@@ -638,6 +640,7 @@ class vulnWhispererQualysWAS(vulnWhispererBase):
                     vuln_ready['scan_name'] = scan_name.encode('utf8')
                     vuln_ready['scan_source'] = self.CONFIG_SECTION
                     vuln_ready['scan_time'] = launched_date
+                    vuln_ready['vendor'] = 'qualys'
 
                     vuln_ready = self.common_normalise(vuln_ready)
 
@@ -772,6 +775,7 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
                 vuln_ready['scan_id'] = report_id
                 vuln_ready['scan_time'] = launched_date
                 vuln_ready['scan_source'] = self.CONFIG_SECTION
+                vuln_ready['vendor'] = 'greenbone'
 
                 vuln_ready = self.common_normalise(vuln_ready)
 
@@ -890,6 +894,7 @@ class vulnWhispererQualysVM(vulnWhispererBase):
                     vuln_ready['scan_id'] = report_id
                     vuln_ready['scan_time'] = launched_date
                     vuln_ready['scan_source'] = self.CONFIG_SECTION
+                    vuln_ready['vendor'] = 'qualys'
 
                     vuln_ready = self.common_normalise(vuln_ready)
 
