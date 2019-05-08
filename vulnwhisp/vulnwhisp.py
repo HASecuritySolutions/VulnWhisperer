@@ -529,6 +529,7 @@ class vulnWhispererNessus(vulnWhispererBase):
                     vuln_ready['scan_name'] = scan_name.encode('utf8')
                     vuln_ready['scan_source'] = self.CONFIG_SECTION
                     vuln_ready['scan_time'] = norm_time
+                    vuln_ready['vendor'] = 'Tenable'
 
                     vuln_ready = self.common_normalise(vuln_ready)
 
@@ -640,7 +641,7 @@ class vulnWhispererQualysWAS(vulnWhispererBase):
                     vuln_ready['scan_name'] = scan_name.encode('utf8')
                     vuln_ready['scan_source'] = self.CONFIG_SECTION
                     vuln_ready['scan_time'] = launched_date
-                    vuln_ready['vendor'] = 'qualys'
+                    vuln_ready['vendor'] = 'Qualys'
 
                     vuln_ready = self.common_normalise(vuln_ready)
 
@@ -775,7 +776,7 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
                 vuln_ready['scan_id'] = report_id
                 vuln_ready['scan_time'] = launched_date
                 vuln_ready['scan_source'] = self.CONFIG_SECTION
-                vuln_ready['vendor'] = 'greenbone'
+                vuln_ready['vendor'] = 'Greenbone'
 
                 vuln_ready = self.common_normalise(vuln_ready)
 
@@ -894,7 +895,7 @@ class vulnWhispererQualysVM(vulnWhispererBase):
                     vuln_ready['scan_id'] = report_id
                     vuln_ready['scan_time'] = launched_date
                     vuln_ready['scan_source'] = self.CONFIG_SECTION
-                    vuln_ready['vendor'] = 'qualys'
+                    vuln_ready['vendor'] = 'Qualys'
 
                     vuln_ready = self.common_normalise(vuln_ready)
 
