@@ -171,7 +171,14 @@
           "type": "keyword"
         },
         "scan_name": {
-          "type": "keyword"
+          "fields": {
+            "keyword": {
+              "ignore_above": 256,
+              "type": "keyword"
+            }
+          },
+          "norms": false,
+          "type": "text"
         },
         "scan_source": {
           "type": "keyword"
