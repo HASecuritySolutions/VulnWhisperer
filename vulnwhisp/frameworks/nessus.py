@@ -206,10 +206,6 @@ class NessusAPI(object):
             self.logger.debug('Dropping redundant tenable fields')
             df.drop('CVSS', axis=1, inplace=True, errors='ignore')
 
-        if self.profile == 'nessus':
-            # Set IP from Host field
-            df['ip'] = df['Host']
-
         # Lowercase and map fields from COLUMN_MAPPING
         df.columns = [x.lower() for x in df.columns]
         df.rename(columns=self.COLUMN_MAPPING, inplace=True)
@@ -221,6 +217,14 @@ class NessusAPI(object):
         self.logger.debug('Transforming values')
 
         df.fillna('', inplace=True)
+
+        if self.profile == 'nessus':
+            # Set IP from asset field
+            df.loc[
+                df["asset"].str.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$"), "ip"
+            ] = df.loc[
+                df["asset"].str.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$"), "asset"
+            ]
 
         # upper/lowercase fields
         self.logger.debug('Changing case of fields')
