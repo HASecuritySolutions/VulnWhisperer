@@ -220,11 +220,7 @@ class NessusAPI(object):
 
         if self.profile == 'nessus':
             # Set IP from asset field
-            df.loc[
-                df["asset"].str.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$"), "ip"
-            ] = df.loc[
-                df["asset"].str.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$"), "asset"
-            ]
+            df["ip"] = df.loc[df["asset"].str.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$"), "asset"]
 
         # upper/lowercase fields
         self.logger.debug('Changing case of fields')
