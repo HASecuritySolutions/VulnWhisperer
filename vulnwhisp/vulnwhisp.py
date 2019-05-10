@@ -11,7 +11,7 @@ import socket
 import sqlite3
 import sys
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import numpy as np
 import pandas as pd
@@ -85,7 +85,7 @@ class vulnWhispererBase(object):
             # self.scan_filter = re.compile(scan_filter)
 
         if self.days != None:
-            self.logger.info('Searching for scans within {} days'.format(self.days))
+            self.logger.info('Searching for scans within {} days to {}'.format(self.days, (datetime.now() - timedelta(days=days)).isoformat()))
             # self.days = dp.parse(days)
             # self.logger.info('Searching for scans after {}'.format(self.days))
 
@@ -428,6 +428,8 @@ class vulnWhispererNessus(vulnWhispererBase):
 
         self.logger.info('Gathering all scan data... this may take a while...')
         scan_records = []
+        if self.days:
+            earliest_time = int((datetime.now() - timedelta(days=self.days)).strftime("%s"))
         for s in scans:
             if s:
                 record = {}
@@ -450,6 +452,8 @@ class vulnWhispererNessus(vulnWhispererBase):
                             int(record["last_modification_date"]),
                             local_tz=self.nessus.tz_conv(record["timezone"]),
                         )
+                        if self.days and record["norm_time"] < earliest_time:
+                            continue
                         scan_records.append(record.copy())
                 except Exception as e:
                     # Generates error each time nonetype is encountered.
