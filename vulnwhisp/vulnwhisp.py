@@ -341,7 +341,7 @@ class vulnWhispererBase(object):
         print '-' * 110
         for scan in sorted(scan_list, key=lambda k: k['time'], reverse=True):
             scan['imported'] = scan['imported'].ljust(8)
-            scan['scan_name'] = scan['scan_name'].encode('utf-8')[:60].ljust(60)
+            scan['scan_name'] = scan['scan_name'][:60].ljust(60).encode('utf-8')
             scan['time'] = scan['time'][:19].ljust(19)
             scan['status'] = scan['status'][:10].ljust(10)
             print output_string.format(**scan)
@@ -991,32 +991,35 @@ class vulnWhispererQualysVM(vulnWhispererBase):
 
             else:
                 try:
-                    self.logger.info('Processing {}: {}'.format(report_id, scan_name.encode('utf8')))
+                    self.logger.info('Processing {} ({})'.format(scan_name.encode('utf8'), report_id))
                     vuln_ready = self.qualys_scan.process_data(scan_id=report_id)
-                    # Map and transform fields
-                    vuln_ready = self.qualys_scan.normalise(vuln_ready)
 
-                    # Set common fields
-                    vuln_ready['scan_name'] = scan_name.encode('utf8')
-                    vuln_ready['scan_id'] = report_id
-                    vuln_ready['scan_time'] = launched_date
-                    vuln_ready['scan_source'] = self.CONFIG_SECTION
-                    vuln_ready['vendor'] = 'Qualys'
+                    if len(vuln_ready) != 0:
+                        # Map and transform fields
+                        vuln_ready = self.qualys_scan.normalise(vuln_ready)
 
-                    vuln_ready = self.common_normalise(vuln_ready)
+                        # Set common fields
+                        vuln_ready['scan_name'] = scan_name.encode('utf8')
+                        vuln_ready['scan_id'] = report_id
+                        vuln_ready['scan_time'] = launched_date
+                        vuln_ready['scan_source'] = self.CONFIG_SECTION
+                        vuln_ready['vendor'] = 'Qualys'
+
+                        vuln_ready = self.common_normalise(vuln_ready)
 
                 except Exception as e:
                     self.logger.error('Could not process {}: {}'.format(report_id, str(e)))
                     self.exit_code += 1
                     return self.exit_code
 
-                if output_format == 'json':
-                    vuln_ready.to_json(relative_path_name + '.tmp', orient='records', lines=True)
-                elif output_format == 'csv':
-                    vuln_ready.to_csv(relative_path_name + '.tmp', index=False, header=True)
-                os.rename(relative_path_name + '.tmp', relative_path_name)
-                self.logger.info('{records} records written to {path} '.format(records=vuln_ready.shape[0],
-                                                                               path=relative_path_name))
+                if len(vuln_ready) != 0:
+                    if output_format == 'json':
+                        vuln_ready.to_json(relative_path_name + '.tmp', orient='records', lines=True)
+                    elif output_format == 'csv':
+                        vuln_ready.to_csv(relative_path_name + '.tmp', index=False, header=True)
+                    os.rename(relative_path_name + '.tmp', relative_path_name)
+                    self.logger.info('{records} records written to {path} '.format(records=vuln_ready.shape[0],
+                                                                                path=relative_path_name))
 
                 record_meta = (
                     scan_name,
