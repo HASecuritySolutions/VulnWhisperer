@@ -128,6 +128,7 @@ class NessusAPI(object):
         return response
 
     def get_scans(self, days=None):
+        parameters = {}
         if days:
             parameters = {
                 "last_modification_date": (datetime.now() - timedelta(days=days)).strftime("%s")
