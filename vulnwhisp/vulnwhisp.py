@@ -477,8 +477,6 @@ class vulnWhispererNessus(vulnWhispererBase):
 
         if self.scan_filter:
             self.logger.info('Filtering scans that match "{}"'.format(self.scan_filter))
-            import code
-            code.interact(local=dict(globals(), **locals()))
             all_scans = [
                 x for x in all_scans
                 if re.findall(self.scan_filter, x["scan_name"], re.IGNORECASE)
