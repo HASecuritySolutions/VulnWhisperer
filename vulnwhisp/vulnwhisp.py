@@ -339,7 +339,7 @@ class vulnWhispererBase(object):
         print '-' * 110
         print output_string.format(time='Time'.ljust(19), scan_name='Scan Name'.ljust(60), imported='Imported'.ljust(8), status='Status'.ljust(10))
         print '-' * 110
-        for scan in sorted(scan_list, key=lambda k: k['time']):
+        for scan in sorted(scan_list, key=lambda k: k['time'], reverse=True):
             scan['imported'] = scan['imported'].ljust(8)
             scan['scan_name'] = scan['scan_name'].encode('utf-8')[:60].ljust(60)
             scan['time'] = scan['time'][:19].ljust(19)
