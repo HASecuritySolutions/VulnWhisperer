@@ -120,6 +120,8 @@ class qualysWhisperAPI(object):
                     _records.append(scan_info)
             self.logger.debug('Converting XML to DataFrame')
             dataframes = [self.xml_parser(xml) for xml in _records]
+            if not dataframes:
+                return pd.DataFrame(columns=['id'])
         except Exception as e:
             self.logger.error("Couldn't process all scans: {}".format(e))
 
