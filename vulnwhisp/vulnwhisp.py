@@ -335,17 +335,17 @@ class vulnWhispererBase(object):
         """
         Takes a list of dicts with fields 'time', 'scan_name', 'imported' and 'status' and prints a table
         """
-        output_string = '| {time} | {scan_name}\t| {imported}\t| {status} |'
-        print '-' * 118
+        output_string = '| {time} | {scan_name} | {imported} | {status} |'
+        print '-' * 110
         print output_string.format(time='Time'.ljust(19), scan_name='Scan Name'.ljust(60), imported='Imported'.ljust(8), status='Status'.ljust(10))
-        print '-' * 118
+        print '-' * 110
         for scan in sorted(scan_list, key=lambda k: k['time']):
             scan['imported'] = scan['imported'].ljust(8)
             scan['scan_name'] = scan['scan_name'].encode('utf-8')[:60].ljust(60)
             scan['time'] = scan['time'][:19].ljust(19)
             scan['status'] = scan['status'][:10].ljust(10)
             print output_string.format(**scan)
-        print '-' * 118
+        print '-' * 110
 
         return 0
 
