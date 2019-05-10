@@ -28,6 +28,10 @@ def main():
                         help='Path of config file', type=lambda x: isFileValid(parser, x.strip()))
     parser.add_argument('-s', '--section', dest='section', required=False,
                         help='Section in config')
+    parser.add_argument('-f', '--filter', dest='scan_filter', required=False,
+                        help='Regex filter to limit to matching scan names')
+    parser.add_argument('--days', dest='days', type=int, required=False,
+                        help='Only import scans in the last X days')
     parser.add_argument('--source', dest='source', required=False,
                         help='JIRA required only! Source scanner to report')
     parser.add_argument('-n', '--scanname', dest='scanname', required=False,
@@ -87,6 +91,8 @@ def main():
                                    verbose=args.verbose,
                                    debug=args.debug,
                                    source=args.source,
+                                   scan_filter=args.scan_filter,
+                                   days=args.days,
                                    scanname=args.scanname)
                 exit_code += vw.whisper_vulnerabilities()
         else:
@@ -96,6 +102,8 @@ def main():
                                verbose=args.verbose,
                                debug=args.debug,
                                source=args.source,
+                               scan_filter=args.scan_filter,
+                               days=args.days,
                                scanname=args.scanname)
             exit_code += vw.whisper_vulnerabilities()
 

@@ -10,6 +10,7 @@ import socket
 import sqlite3
 import sys
 import time
+import re
 
 import numpy as np
 import pandas as pd
@@ -37,6 +38,8 @@ class vulnWhispererBase(object):
             verbose=False,
             debug=False,
             section=None,
+            scan_filter=None,
+            days=None,
             develop=False,
         ):
 
@@ -47,6 +50,7 @@ class vulnWhispererBase(object):
         self.db_name = db_name
         self.purge = purge
         self.develop = develop
+        self.days = days
 
         if config is not None:
             self.config = vwConfig(config_in=config)
@@ -61,11 +65,28 @@ class vulnWhispererBase(object):
             except:
                 self.username = None
                 self.password = None
+            try:
+                self.scan_filter = self.config.get(self.CONFIG_SECTION, 'scan_filter')
+            except:
+                self.scan_filter = scan_filter
             self.write_path = self.config.get(self.CONFIG_SECTION, 'write_path')
             self.db_path = self.config.get(self.CONFIG_SECTION, 'db_path')
 
         self.logger = logging.getLogger('vulnWhispererBase')
         self.logger.setLevel(logging.DEBUG if debug else logging.INFO if verbose else logging.WARNING)
+
+        # Preference command line argument over config file
+        if scan_filter:
+            self.scan_filter = scan_filter
+
+        if self.scan_filter:
+            self.logger.info('Filtering for scan names matching "{}"'.format(self.scan_filter))
+            # self.scan_filter = re.compile(scan_filter)
+
+        if self.days:
+            self.logger.info('Searching for scans within {} days'.format(self.days))
+            # self.days = dp.parse(days)
+            # self.logger.info('Searching for scans after {}'.format(self.days))
 
         if self.db_name is not None:
             if self.db_path:
@@ -321,11 +342,13 @@ class vulnWhispererNessus(vulnWhispererBase):
             purge=False,
             verbose=False,
             debug=False,
-            profile='nessus'
+            profile='nessus',
+            scan_filter=None,
+            days=None,
     ):
         self.CONFIG_SECTION=profile
 
-        super(vulnWhispererNessus, self).__init__(config=config, verbose=verbose, debug=debug)
+        super(vulnWhispererNessus, self).__init__(config=config, verbose=verbose, debug=debug, scan_filter=scan_filter, days=days)
 
         self.logger = logging.getLogger('vulnWhisperer{}'.format(self.CONFIG_SECTION))
         if not verbose:
@@ -422,7 +445,7 @@ class vulnWhispererNessus(vulnWhispererBase):
             self.exit_code += 1
             return self.exit_code
 
-        scan_data = self.nessus.scans
+        scan_data = self.nessus.get_scans(self.days)
         folders = scan_data['folders']
         scans = scan_data['scans'] if scan_data['scans'] else []
         all_scans = self.scan_count(scans)
@@ -434,6 +457,12 @@ class vulnWhispererNessus(vulnWhispererBase):
             ]
         else:
             scan_list = all_scans
+        if self.scan_filter:
+            self.logger.info('Filtering scans that match "{}"'.format(self.scan_filter))
+            scan_list = [
+                x for x in scan_list
+                if re.match(self.scan_filter, x["scan_name"], re.IGNORECASE)
+            ]
         self.logger.info(
             "Identified {new} scans to be processed".format(new=len(scan_list))
         )
@@ -569,16 +598,18 @@ class vulnWhispererQualysWAS(vulnWhispererBase):
             purge=False,
             verbose=False,
             debug=False,
+            scan_filter=None,
+            days=None,
         ):
 
-        super(vulnWhispererQualysWAS, self).__init__(config=config, verbose=verbose, debug=debug)
+        super(vulnWhispererQualysWAS, self).__init__(config=config, verbose=verbose, debug=debug, scan_filter=scan_filter, days=days)
         self.logger = logging.getLogger('vulnWhispererQualysWAS')
         if not verbose:
             verbose = self.config.getbool(self.CONFIG_SECTION, 'verbose')
         self.logger.setLevel(logging.DEBUG if debug else logging.INFO if verbose else logging.WARNING)
 
         self.qualys_scan = qualysScanReport(config=config)
-        self.latest_scans = self.qualys_scan.qw.get_all_scans()
+        self.latest_scans = self.qualys_scan.qw.get_all_scans(days=self.days)
         self.directory_check()
         self.scans_to_process = None
 
@@ -683,6 +714,11 @@ class vulnWhispererQualysWAS(vulnWhispererBase):
 
 
     def identify_scans_to_process(self):
+        if self.scan_filter:
+            self.logger.info('Filtering scans that match "{}"'.format(self.scan_filter))
+            self.latest_scans = self.latest_scans.loc[
+                self.latest_scans["name"].str.contains(self.scan_filter, case=False)
+            ]
         if self.uuids:
             self.scans_to_process = self.latest_scans[~self.latest_scans['id'].isin(self.uuids)]
         else:
@@ -718,8 +754,10 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
             purge=False,
             verbose=False,
             debug=False,
+            scan_filter=None,
+            days=None,
     ):
-        super(vulnWhispererOpenVAS, self).__init__(config=config, verbose=verbose, debug=debug)
+        super(vulnWhispererOpenVAS, self).__init__(config=config, verbose=verbose, debug=debug, scan_filter=scan_filter, days=days)
         self.logger = logging.getLogger('vulnWhispererOpenVAS')
         if not verbose:
             verbose = self.config.getbool(self.CONFIG_SECTION, 'verbose')
@@ -838,9 +876,11 @@ class vulnWhispererQualysVM(vulnWhispererBase):
             purge=False,
             verbose=False,
             debug=False,
+            scan_filter=None,
+            days=None,
         ):
 
-        super(vulnWhispererQualysVM, self).__init__(config=config, verbose=verbose, debug=debug)
+        super(vulnWhispererQualysVM, self).__init__(config=config, verbose=verbose, debug=debug, scan_filter=scan_filter, days=days)
         self.logger = logging.getLogger('vulnWhispererQualysVM')
         if not verbose:
             verbose = self.config.getbool(self.CONFIG_SECTION, 'verbose')
@@ -929,9 +969,13 @@ class vulnWhispererQualysVM(vulnWhispererBase):
 
             return self.exit_code
 
-
     def identify_scans_to_process(self):
-        self.latest_scans = self.qualys_scan.qw.get_all_scans()
+        self.latest_scans = self.qualys_scan.qw.get_all_scans(days=self.days)
+        if self.scan_filter:
+            self.logger.info('Filtering scans that match "{}"'.format(self.scan_filter))
+            self.latest_scans = self.latest_scans.loc[
+                self.latest_scans["name"].str.contains(self.scan_filter, case=False)
+            ]
         if self.uuids:
             self.scans_to_process = self.latest_scans.loc[
                 (~self.latest_scans['id'].isin(self.uuids))
@@ -1251,6 +1295,8 @@ class vulnWhisperer(object):
                  debug=False,
                  config=None,
                  source=None,
+                 scan_filter=None,
+                 days=None,
                  scanname=None):
 
         self.logger = logging.getLogger('vulnWhisperer')
@@ -1260,6 +1306,8 @@ class vulnWhisperer(object):
         self.debug = debug
         self.config = config
         self.source = source
+        self.scan_filter = scan_filter
+        self.days = days
         self.scanname = scanname
         self.exit_code = 0
 
@@ -1269,18 +1317,24 @@ class vulnWhisperer(object):
         if self.profile == 'nessus':
             vw = vulnWhispererNessus(config=self.config,
                                      profile=self.profile,
+                                     scan_filter=self.scan_filter,
+                                     days=self.days,
                                      verbose=self.verbose,
                                      debug=self.debug)
             self.exit_code += vw.whisper_nessus()
 
         elif self.profile == 'qualys_was':
             vw = vulnWhispererQualysWAS(config=self.config,
-                                     verbose=self.verbose,
-                                     debug=self.debug)
+                                        scan_filter=self.scan_filter,
+                                        days=self.days,
+                                        verbose=self.verbose,
+                                        debug=self.debug)
             self.exit_code += vw.process_web_assets()
 
         elif self.profile == 'openvas':
             vw_openvas = vulnWhispererOpenVAS(config=self.config,
+                                              scan_filter=self.scan_filter,
+                                              days=self.days,
                                               verbose=self.verbose,
                                               debug=self.debug)
             self.exit_code += vw_openvas.process_openvas_scans()
@@ -1288,14 +1342,18 @@ class vulnWhisperer(object):
         elif self.profile == 'tenable':
             vw = vulnWhispererNessus(config=self.config,
                                      profile=self.profile,
+                                     scan_filter=self.scan_filter,
+                                     days=self.days,
                                      verbose=self.verbose,
                                      debug=self.debug)
             self.exit_code += vw.whisper_nessus()
 
         elif self.profile == 'qualys_vm':
             vw = vulnWhispererQualysVM(config=self.config,
-                                         verbose=self.verbose,
-                                         debug=self.debug)
+                                       scan_filter=self.scan_filter,
+                                       days=self.days,
+                                       verbose=self.verbose,
+                                       debug=self.debug)
             self.exit_code += vw.process_vuln_scans()
 
         elif self.profile == 'jira':

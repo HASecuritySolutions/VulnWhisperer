@@ -7,6 +7,7 @@ import logging
 import os
 import sys
 import xml.etree.ElementTree as ET
+from datetime import datetime, timedelta
 
 import dateutil.parser as dp
 import pandas as pd
@@ -60,10 +61,12 @@ class qualysWhisperAPI(object):
         """
         Checks number of scans, used to control the api limits
         """
-        parameters = (
-            E.ServiceRequest(
+        parameters = E.ServiceRequest(
                 E.filters(
-                    E.Criteria({'field': 'status', 'operator': 'EQUALS'}, status))))
+                    E.Criteria({"field": "status", "operator": "EQUALS"}, status),
+                    E.Criteria({"field": "launchedDate", "operator": "GREATER"}, self.launched_date)
+                )
+            )
         xml_output = self.qgc.request(self.COUNT_WASSCAN, parameters)
         root = objectify.fromstring(xml_output.encode('utf-8'))
         return root.count.text
@@ -71,8 +74,8 @@ class qualysWhisperAPI(object):
     def generate_scan_result_XML(self, limit=1000, offset=1, status='FINISHED'):
         report_xml = E.ServiceRequest(
             E.filters(
-                E.Criteria({'field': 'status', 'operator': 'EQUALS'}, status
-                           ),
+                E.Criteria({'field': 'status', 'operator': 'EQUALS'}, status),
+                E.Criteria({"field": "launchedDate", "operator": "GREATER"}, self.launched_date)
             ),
             E.preferences(
                 E.startFromOffset(str(offset)),
@@ -104,7 +107,12 @@ class qualysWhisperAPI(object):
                 all_records.append(record)
         return pd.DataFrame(all_records)
 
-    def get_all_scans(self, limit=1000, offset=1, status='FINISHED'):
+
+    def get_all_scans(self, limit=1000, offset=1, status='FINISHED', days=None):
+        if not days:
+            self.launched_date = '0001-01-01'
+        else:
+            self.launched_date = (datetime.now() - timedelta(days=days)).strftime('%Y-%m-%d')
         qualys_api_limit = limit
         dataframes = []
         _records = []

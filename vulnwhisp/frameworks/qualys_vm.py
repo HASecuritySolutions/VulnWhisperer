@@ -5,6 +5,7 @@ __author__ = 'Nathan Young'
 import logging
 import sys
 import xml.etree.ElementTree as ET
+from datetime import datetime, timedelta
 
 import dateutil.parser as dp
 import pandas as pd
@@ -29,7 +30,7 @@ class qualysWhisperAPI(object):
     def scan_xml_parser(self, xml):
         all_records = []
         root = ET.XML(xml.encode('utf-8'))
-        if not root.find('.//SCAN_LIST'):
+        if len(root.find('.//SCAN_LIST')) == 0:
             return pd.DataFrame(columns=['id', 'status'])
         for child in root.find('.//SCAN_LIST'):
             all_records.append({
@@ -42,12 +43,17 @@ class qualysWhisperAPI(object):
             })
         return pd.DataFrame(all_records)
 
-    def get_all_scans(self):
+    def get_all_scans(self, days=None):
+        if not days:
+            self.launched_date = '0001-01-01'
+        else:
+            self.launched_date = (datetime.now() - timedelta(days=days)).strftime('%Y-%m-%d')
         parameters = {
             'action': 'list',
             'echo_request': 0,
             'show_op': 0,
-            'launched_after_datetime': '0001-01-01'
+            'state': 'Finished',
+            'launched_after_datetime': self.launched_date
         }
         scans_xml = self.qgc.request(self.SCANS, parameters)
         return self.scan_xml_parser(scans_xml)

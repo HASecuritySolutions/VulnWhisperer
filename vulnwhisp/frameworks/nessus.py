@@ -2,7 +2,7 @@ import json
 import logging
 import sys
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pytz
 import requests
@@ -81,9 +81,6 @@ class NessusAPI(object):
         else:
             self.login()
 
-        self.scans = self.get_scans()
-        self.scan_ids = self.get_scan_ids()
-
     def login(self):
         auth = '{"username":"%s", "password":"%s"}' % (self.user, self.password)
         resp = self.request(self.SESSION, data=auth, json_output=False)
@@ -92,7 +89,7 @@ class NessusAPI(object):
         else:
             raise Exception('[FAIL] Could not login to Nessus')
 
-    def request(self, url, data=None, headers=None, method='POST', download=False, json_output=False):
+    def request(self, url, data=None, headers=None, method='POST', download=False, json_output=False, params=None):
         timeout = 0
         success = False
 
@@ -101,7 +98,7 @@ class NessusAPI(object):
         self.logger.debug('Requesting to url {}'.format(url))
 
         while (timeout <= 10) and (not success):
-            response = getattr(self.session, method)(url, data=data)
+            response = getattr(self.session, method)(url, data=data, params=params)
             if response.status_code == 401:
                 if url == self.base + self.SESSION:
                     break
@@ -130,12 +127,15 @@ class NessusAPI(object):
             return response_data
         return response
 
-    def get_scans(self):
-        scans = self.request(self.SCANS, method='GET', json_output=True)
+    def get_scans(self, days=None):
+        if days:
+            parameters = {
+                "last_modification_date": (datetime.now() - timedelta(days=days)).strftime("%s")
+            }
+        scans = self.request(self.SCANS, method="GET", params=parameters, json_output=True)
         return scans
 
-    def get_scan_ids(self):
-        scans = self.scans
+    def get_scan_ids(self, scans):
         scan_ids = [scan_id['id'] for scan_id in scans['scans']] if scans['scans'] else []
         self.logger.debug('Found {} scan_ids'.format(len(scan_ids)))
         return scan_ids
