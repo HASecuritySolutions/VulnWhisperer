@@ -475,6 +475,15 @@ class vulnWhispererNessus(vulnWhispererBase):
         scans = scan_data['scans'] if scan_data['scans'] else []
         all_scans = self.scan_count(scans)
 
+        if self.scan_filter:
+            self.logger.info('Filtering scans that match "{}"'.format(self.scan_filter))
+            import code
+            code.interact(local=dict(globals(), **locals()))
+            all_scans = [
+                x for x in all_scans
+                if re.findall(self.scan_filter, x["scan_name"], re.IGNORECASE)
+            ]
+
         if self.list_scans:
             scan_list = []
             for scan in all_scans:
@@ -493,12 +502,7 @@ class vulnWhispererNessus(vulnWhispererBase):
             ]
         else:
             scan_list = all_scans
-        if self.scan_filter:
-            self.logger.info('Filtering scans that match "{}"'.format(self.scan_filter))
-            scan_list = [
-                x for x in scan_list
-                if re.match(self.scan_filter, x["scan_name"], re.IGNORECASE)
-            ]
+
         self.logger.info(
             "Identified {new} scans to be processed".format(new=len(scan_list))
         )
@@ -1046,9 +1050,10 @@ class vulnWhispererQualysVM(vulnWhispererBase):
         if self.uuids:
             self.scans_to_process = self.latest_scans.loc[
                 (~self.latest_scans['id'].isin(self.uuids))
-                & (self.latest_scans['status'] == 'Finished')]
+                & (self.latest_scans['status'] == 'Finished')].copy()
         else:
-            self.scans_to_process = self.latest_scans
+            self.scans_to_process = self.latest_scans.copy()
+        self.scans_to_process.sort_values(by='date', inplace=True)
         self.logger.info('Identified {new} scans to be processed'.format(new=len(self.scans_to_process)))
 
 
