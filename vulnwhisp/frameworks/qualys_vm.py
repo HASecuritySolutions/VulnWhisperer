@@ -44,7 +44,7 @@ class qualysWhisperAPI(object):
         return pd.DataFrame(all_records)
 
     def get_all_scans(self, days=None):
-        if not days:
+        if days == None:
             self.launched_date = '0001-01-01'
         else:
             self.launched_date = (datetime.now() - timedelta(days=days)).strftime('%Y-%m-%d')

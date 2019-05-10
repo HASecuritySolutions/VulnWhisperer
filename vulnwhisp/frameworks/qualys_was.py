@@ -109,7 +109,7 @@ class qualysWhisperAPI(object):
 
 
     def get_all_scans(self, limit=1000, offset=1, status='FINISHED', days=None):
-        if not days:
+        if days == None:
             self.launched_date = '0001-01-01'
         else:
             self.launched_date = (datetime.now() - timedelta(days=days)).strftime('%Y-%m-%d')

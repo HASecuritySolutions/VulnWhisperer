@@ -84,7 +84,7 @@ class vulnWhispererBase(object):
             self.logger.info('Filtering for scan names matching "{}"'.format(self.scan_filter))
             # self.scan_filter = re.compile(scan_filter)
 
-        if self.days:
+        if self.days != None:
             self.logger.info('Searching for scans within {} days'.format(self.days))
             # self.days = dp.parse(days)
             # self.logger.info('Searching for scans after {}'.format(self.days))
