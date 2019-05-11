@@ -29,9 +29,9 @@ def main():
     parser.add_argument('-s', '--section', dest='section', required=False,
                         help='Section in config')
     parser.add_argument('-f', '--filter', dest='scan_filter', required=False,
-                        help='Regex filter to limit to matching scan names')
+                        help='Retrieve scans matching this regex pattern')
     parser.add_argument('--days', dest='days', type=int, required=False,
-                        help='Only import scans in the last X days')
+                        help='Retrieve scans from this many days ago to now')
     parser.add_argument('-l', '--list', dest='list_scans', required=False, action="store_true",
                         help='List available scans')
     parser.add_argument('--source', dest='source', required=False,
