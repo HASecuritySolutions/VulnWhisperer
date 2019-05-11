@@ -11,6 +11,7 @@ import socket
 import sqlite3
 import sys
 import time
+import warnings
 from datetime import datetime, timedelta
 
 import numpy as np
@@ -24,6 +25,8 @@ from frameworks.qualys_vm import qualysVulnScan
 from frameworks.qualys_was import qualysScanReport
 from reporting.jira_api import JiraAPI
 
+# Don't warn about capturing groups in regex filter
+warnings.filterwarnings("ignore", 'This pattern has match groups')
 
 class vulnWhispererBase(object):
 
@@ -345,7 +348,7 @@ class vulnWhispererBase(object):
             scan['time'] = scan['time'][:19].ljust(19)
             scan['status'] = scan['status'][:10].ljust(10)
             print output_string.format(**scan)
-        print '-' * 110
+        print '{}\n'.format('-' * 110)
 
         return 0
 
@@ -771,7 +774,7 @@ class vulnWhispererQualysWAS(vulnWhispererBase):
             ]
 
         if self.list_scans:
-            if self.uuids:
+            if self.uuids and len(self.latest_scans) > 0:
                 self.latest_scans.loc[self.latest_scans['id'].isin(self.uuids), 'imported'] = 'Yes'
             else:
                 self.latest_scans['imported'] = 'No'
@@ -897,17 +900,23 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
 
     def identify_scans_to_process(self):
         if self.uuids:
-            self.scans_to_process = self.openvas_api.openvas_reports[
-                ~self.openvas_api.openvas_reports.report_ids.isin(self.uuids)]
-        else:
-            self.scans_to_process = self.openvas_api.openvas_reports
+            self.scans_to_process = self.scans_to_process[
+                ~self.scans_to_process.report_ids.isin(self.uuids)]
         self.logger.info('Identified {new} scans to be processed'.format(new=len(self.scans_to_process)))
 
     def process_openvas_scans(self):
         counter = 0
+
+        self.scans_to_process = self.openvas_api.openvas_reports.copy()
+
+        if self.scan_filter:
+            self.logger.info('Filtering scans that match "{}"'.format(self.scan_filter))
+            self.scans_to_process = self.scans_to_process.loc[
+                self.scans_to_process["task"].str.contains(self.scan_filter, case=False)
+            ]
+
         if self.list_scans:
-            self.scans_to_process = self.openvas_api.openvas_reports
-            if self.uuids:
+            if self.uuids and len(self.scans_to_process) > 0:
                 self.scans_to_process.loc[self.scans_to_process['report_ids'].isin(self.uuids), 'imported'] = 'Yes'
             else:
                 self.scans_to_process['imported'] = 'No'
@@ -915,9 +924,8 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
             self.scans_to_process['time'] = pd.to_datetime(self.scans_to_process['epoch'], unit='s').astype(str)
             self.scans_to_process.rename(columns={'task': 'scan_name'}, inplace=True)
             print 'Available {} scans:'.format(self.CONFIG_SECTION)
-
             self.print_available_scans(self.scans_to_process[['time', 'scan_name', 'imported', 'status']].to_dict(orient='records'))
-            return 0
+            return self.exit_code
 
         self.identify_scans_to_process()
         if self.scans_to_process.shape[0]:
@@ -1064,7 +1072,7 @@ class vulnWhispererQualysVM(vulnWhispererBase):
             ]
 
         if self.list_scans:
-            if self.uuids:
+            if self.uuids and len(self.latest_scans) > 0:
                 self.latest_scans.loc[self.latest_scans['id'].isin(self.uuids), 'imported'] = 'Yes'
             else:
                 self.latest_scans['imported'] = 'No'
@@ -1072,7 +1080,7 @@ class vulnWhispererQualysVM(vulnWhispererBase):
             self.latest_scans.rename(columns={'date': 'time', 'name': 'scan_name'}, inplace=True)
             print 'Available {} scans:'.format(self.CONFIG_SECTION)
             self.print_available_scans(self.latest_scans[['time', 'scan_name', 'imported', 'status']].to_dict(orient='records'))
-            return 0
+            return self.exit_code
 
         self.identify_scans_to_process()
         if self.scans_to_process.shape[0]:
