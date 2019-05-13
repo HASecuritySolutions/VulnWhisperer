@@ -318,12 +318,12 @@ class vulnWhispererBase(object):
 
         # Get a single cvss score derived from cvss3 else cvss2
         if not 'cvss' in df:
+            if 'cvss2' in df:
+                df.loc[df['cvss2'].notnull(), 'cvss'] = df.loc[df['cvss2'].notnull(), 'cvss2']
+                df.loc[df['cvss2'].notnull(), 'cvss_severity'] = df.loc[df['cvss2'].notnull(), 'cvss2_severity']
             if 'cvss3' in df:
-                df['cvss'] = df['cvss3'].fillna(df['cvss2'])
-                df['cvss_severity'] = df['cvss3_severity'].fillna(df['cvss2_severity'])
-            elif 'cvss2' in df:
-                df['cvss'] = df['cvss2']
-                df['cvss_severity'] = df['cvss2_severity']
+                df.loc[df['cvss3'].notnull(), 'cvss'] = df.loc[df['cvss3'].notnull(), 'cvss3']
+                df.loc[df['cvss3'].notnull(), 'cvss_severity'] = df.loc[df['cvss3'].notnull(), 'cvss3_severity']
 
         self.logger.debug('Creating Unique Document ID')
         df['_unique'] = df.index.values
