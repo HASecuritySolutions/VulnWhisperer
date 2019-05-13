@@ -310,11 +310,11 @@ class vulnWhispererBase(object):
             if cvss_version in df:
                 self.logger.debug('Normalising {} severity'.format(cvss_version))
                 df[cvss_version] = df[cvss_version].astype('float')
-                df[cvss_version + '_severity'] = 'informational'
+                # df[cvss_version + '_severity'] = 'informational'
                 df.loc[(df[cvss_version] > 0) & (df[cvss_version] < 3), cvss_version + '_severity'] = 'low'
                 df.loc[(df[cvss_version] >= 3) & (df[cvss_version] < 6), cvss_version + '_severity'] = 'medium'
                 df.loc[(df[cvss_version] >= 6) & (df[cvss_version] < 9), cvss_version + '_severity'] = 'high'
-                df.loc[df[cvss_version] > 9, cvss_version + '_severity'] = 'critical'
+                df.loc[(df[cvss_version] >= 9) & (df[cvss_version].notnull()), cvss_version + '_severity'] = 'critical'
 
         # Get a single cvss score derived from cvss3 else cvss2
         if not 'cvss' in df:
@@ -324,6 +324,7 @@ class vulnWhispererBase(object):
             if 'cvss3' in df:
                 df.loc[df['cvss3'].notnull(), 'cvss'] = df.loc[df['cvss3'].notnull(), 'cvss3']
                 df.loc[df['cvss3'].notnull(), 'cvss_severity'] = df.loc[df['cvss3'].notnull(), 'cvss3_severity']
+        df['cvss_severity'].fillna('informational', inplace=True)
 
         self.logger.debug('Creating Unique Document ID')
         df['_unique'] = df.index.values

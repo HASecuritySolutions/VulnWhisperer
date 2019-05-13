@@ -180,8 +180,11 @@ class qualysVulnScan:
         # Set asset to ip
         df['asset'] = df['ip']
 
+        # Set dns to fqdn if missing
+        df.loc[df['dns'] == '', 'dns'] = df['fqdn']
+
         # Convert Qualys severity to standardised risk number
-        df['risk_number'] =  df['severity'].astype(int)-1
+        df['risk_number'] = df['severity'].astype(int)-1
 
         df.fillna('', inplace=True)
 
