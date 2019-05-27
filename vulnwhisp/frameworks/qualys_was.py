@@ -7,6 +7,7 @@ import logging
 import os
 import sys
 import xml.etree.ElementTree as ET
+from datetime import datetime, timedelta
 
 import dateutil.parser as dp
 import pandas as pd
@@ -38,7 +39,7 @@ class qualysWhisperAPI(object):
         self.logger = logging.getLogger('qualysWhisperAPI')
         self.config = config
         try:
-            self.qgc = qualysapi.connect(config, 'qualys_web')
+            self.qgc = qualysapi.connect(config, 'qualys_was')
             self.logger.info('Connected to Qualys at {}'.format(self.qgc.server))
         except Exception as e:
             self.logger.error('Could not connect to Qualys: {}'.format(str(e)))
@@ -46,7 +47,7 @@ class qualysWhisperAPI(object):
             #"content-type": "text/xml"}
             "Accept" : "application/json",
             "Content-Type": "application/json"}
-        self.config_parse = qcconf.QualysConnectConfig(config, 'qualys_web')
+        self.config_parse = qcconf.QualysConnectConfig(config, 'qualys_was')
         try:
             self.template_id = self.config_parse.get_template_id()
         except:
@@ -60,10 +61,12 @@ class qualysWhisperAPI(object):
         """
         Checks number of scans, used to control the api limits
         """
-        parameters = (
-            E.ServiceRequest(
+        parameters = E.ServiceRequest(
                 E.filters(
-                    E.Criteria({'field': 'status', 'operator': 'EQUALS'}, status))))
+                    E.Criteria({"field": "status", "operator": "EQUALS"}, status),
+                    E.Criteria({"field": "launchedDate", "operator": "GREATER"}, self.launched_date)
+                )
+            )
         xml_output = self.qgc.request(self.COUNT_WASSCAN, parameters)
         root = objectify.fromstring(xml_output.encode('utf-8'))
         return root.count.text
@@ -71,8 +74,8 @@ class qualysWhisperAPI(object):
     def generate_scan_result_XML(self, limit=1000, offset=1, status='FINISHED'):
         report_xml = E.ServiceRequest(
             E.filters(
-                E.Criteria({'field': 'status', 'operator': 'EQUALS'}, status
-                           ),
+                E.Criteria({'field': 'status', 'operator': 'EQUALS'}, status),
+                E.Criteria({"field": "launchedDate", "operator": "GREATER"}, self.launched_date)
             ),
             E.preferences(
                 E.startFromOffset(str(offset)),
@@ -104,7 +107,12 @@ class qualysWhisperAPI(object):
                 all_records.append(record)
         return pd.DataFrame(all_records)
 
-    def get_all_scans(self, limit=1000, offset=1, status='FINISHED'):
+
+    def get_all_scans(self, limit=1000, offset=1, status='FINISHED', days=None):
+        if days == None:
+            self.launched_date = '0001-01-01'
+        else:
+            self.launched_date = (datetime.now() - timedelta(days=days)).strftime('%Y-%m-%d')
         qualys_api_limit = limit
         dataframes = []
         _records = []
@@ -120,6 +128,8 @@ class qualysWhisperAPI(object):
                     _records.append(scan_info)
             self.logger.debug('Converting XML to DataFrame')
             dataframes = [self.xml_parser(xml) for xml in _records]
+            if not dataframes:
+                return pd.DataFrame(columns=['id'])
         except Exception as e:
             self.logger.error("Couldn't process all scans: {}".format(e))
 
@@ -285,22 +295,22 @@ class qualysUtils:
 class qualysScanReport:
 
     COLUMN_MAPPING = {
+        'CVSS Base': 'cvss2_base',
+        'CVSS Temporal': 'cvss2_temporal',
         'DescriptionCatSev': 'category_description',
         'DescriptionSeverity': 'synopsis',
         'Evidence #1': 'evidence',
         'Payload #1': 'payload',
-        'QID': 'plugin_id',
+        'QID': 'signature_id',
         'Request Headers #1': 'request_headers',
         'Request Method #1': 'request_method',
         'Request URL #1': 'request_url',
         'Response #1': 'plugin_output',
-        'Title': 'plugin_name',
+        'Title': 'signature',
         'Url': 'uri',
         'URL': 'url',
         'Vulnerability Category': 'type',
     }
-
-    SEVERITY_MAPPING = {0: 'none', 1: 'low', 2: 'medium', 3: 'high', 4: 'critical'}
 
     # URL Vulnerability Information
     WEB_SCAN_VULN_BLOCK = list(qualysReportFields.VULN_BLOCK)
@@ -521,11 +531,10 @@ class qualysScanReport:
 
         # Convert Qualys severity to standardised risk number
         df['risk_number'] =  df['severity'].astype(int)-1
-        df['risk'] = df['risk_number'].map(self.SEVERITY_MAPPING)
 
         # Extract dns field from URL
         df['dns'] = df['url'].str.extract('https?://([^/]+)', expand=False)
-        df.loc[df['uri'] != '','dns'] = df.loc[df['uri'] != '','uri'].str.extract('https?://([^/]+)', expand=False)
+        df['dns'] = df.loc[df['uri'] != '','uri'].str.extract('https?://([^/]+)', expand=False)
 
         # Set asset to web_application_name
         df['asset'] = df['web_application_name']

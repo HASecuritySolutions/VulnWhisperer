@@ -59,8 +59,8 @@ yellow "\n*********************************************"
 yellow "*           Test two failed scans           *"
 yellow "*********************************************"
 rm -rf /opt/VulnWhisperer/*
-yellow "Removing ${TEST_PATH}/qualys_vuln/scan_1553941061.87241"
-mv "${TEST_PATH}/qualys_vuln/scan_1553941061.87241"{,.bak}
+yellow "Removing ${TEST_PATH}/qualys_vm/scan_1553941061.87241"
+mv "${TEST_PATH}/qualys_vm/scan_1553941061.87241"{,.bak}
 if vuln_whisperer -F -c configs/test.ini --mock --mock_dir "${TEST_PATH}"; [[ $? -eq 2 ]]; then
     green "\n✅ Passed: Test two failed scans"
 else
@@ -83,7 +83,7 @@ yellow "\n*********************************************"
 yellow "* Test only Qualys VM with one failed scan  *"
 yellow "*********************************************"
 rm -rf /opt/VulnWhisperer/*
-if vuln_whisperer -F -c configs/test.ini -s qualys_vuln --mock --mock_dir "${TEST_PATH}"; [[ $? -eq 1 ]]; then
+if vuln_whisperer -F -c configs/test.ini -s qualys_vm --mock --mock_dir "${TEST_PATH}"; [[ $? -eq 1 ]]; then
     green "\n✅ Passed: Test only Qualys VM with one failed scan"
 else
     red "\n❌ Failed: Test only Qualys VM with one failed scan"
@@ -91,7 +91,7 @@ else
 fi
 
 # Restore the removed files
-mv "${TEST_PATH}/qualys_vuln/scan_1553941061.87241.bak" "${TEST_PATH}/qualys_vuln/scan_1553941061.87241"
+mv "${TEST_PATH}/qualys_vm/scan_1553941061.87241.bak" "${TEST_PATH}/qualys_vm/scan_1553941061.87241"
 mv "${TEST_PATH}/nessus/GET_scans_exports_164_download.bak" "${TEST_PATH}/nessus/GET_scans_exports_164_download"
 
 exit $return_code

@@ -2,7 +2,7 @@ import json
 import logging
 import sys
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pytz
 import requests
@@ -17,7 +17,7 @@ class NessusAPI(object):
     SCANS = '/scans'
     SCAN_ID = SCANS + '/{scan_id}'
     HOST_VULN = SCAN_ID + '/hosts/{host_id}'
-    PLUGINS = HOST_VULN + '/plugins/{plugin_id}'
+    PLUGINS = HOST_VULN + '/plugins/{signature_id}'
     EXPORT = SCAN_ID + '/export'
     EXPORT_TOKEN_DOWNLOAD = '/scans/exports/{token_id}/download'
     EXPORT_FILE_DOWNLOAD = EXPORT + '/{file_id}/download'
@@ -25,27 +25,27 @@ class NessusAPI(object):
     EXPORT_HISTORY = EXPORT + '?history_id={history_id}'
     # All column mappings should be lowercase
     COLUMN_MAPPING = {
-        'cvss base score': 'cvss_base',
-        'cvss temporal score': 'cvss_temporal',
-        'cvss temporal vector': 'cvss_temporal_vector',
+        'cvss base score': 'cvss2_base',
+        'cvss temporal score': 'cvss2_temporal',
+        'cvss temporal vector': 'cvss2_temporal_vector',
+        'cvss vector': 'cvss2_vector',
         'cvss3 base score': 'cvss3_base',
         'cvss3 temporal score': 'cvss3_temporal',
         'cvss3 temporal vector': 'cvss3_temporal_vector',
         'fqdn': 'dns',
         'host': 'asset',
         'ip address': 'ip',
-        'name': 'plugin_name',
+        'name': 'signature',
         'os': 'operating_system',
+        'plugin id': 'signature_id',
         'see also': 'exploitability',
         'system type': 'category',
         'vulnerability state': 'state'
     }
-    SEVERITY_MAPPING = {'none': 0, 'low': 1, 'medium': 2, 'high': 3, 'critical': 4}
 
     def __init__(self, hostname=None, port=None, username=None, password=None, verbose=True, profile=None, access_key=None, secret_key=None):
         self.logger = logging.getLogger('NessusAPI')
-        if verbose:
-            self.logger.setLevel(logging.DEBUG)
+        self.logger.setLevel(logging.DEBUG if verbose else logging.INFO)
         if not all((username, password)) and not all((access_key, secret_key)):
             raise Exception('ERROR: Missing username, password or API keys.')
 
@@ -81,9 +81,6 @@ class NessusAPI(object):
         else:
             self.login()
 
-        self.scans = self.get_scans()
-        self.scan_ids = self.get_scan_ids()
-
     def login(self):
         auth = '{"username":"%s", "password":"%s"}' % (self.user, self.password)
         resp = self.request(self.SESSION, data=auth, json_output=False)
@@ -92,7 +89,7 @@ class NessusAPI(object):
         else:
             raise Exception('[FAIL] Could not login to Nessus')
 
-    def request(self, url, data=None, headers=None, method='POST', download=False, json_output=False):
+    def request(self, url, data=None, headers=None, method='POST', download=False, json_output=False, params=None):
         timeout = 0
         success = False
 
@@ -101,7 +98,7 @@ class NessusAPI(object):
         self.logger.debug('Requesting to url {}'.format(url))
 
         while (timeout <= 10) and (not success):
-            response = getattr(self.session, method)(url, data=data)
+            response = getattr(self.session, method)(url, data=data, params=params)
             if response.status_code == 401:
                 if url == self.base + self.SESSION:
                     break
@@ -130,12 +127,16 @@ class NessusAPI(object):
             return response_data
         return response
 
-    def get_scans(self):
-        scans = self.request(self.SCANS, method='GET', json_output=True)
+    def get_scans(self, days=None):
+        parameters = {}
+        if days != None:
+            parameters = {
+                "last_modification_date": (datetime.now() - timedelta(days=days)).strftime("%s")
+            }
+        scans = self.request(self.SCANS, method="GET", params=parameters, json_output=True)
         return scans
 
-    def get_scan_ids(self):
-        scans = self.scans
+    def get_scan_ids(self, scans):
         scan_ids = [scan_id['id'] for scan_id in scans['scans']] if scans['scans'] else []
         self.logger.debug('Found {} scan_ids'.format(len(scan_ids)))
         return scan_ids
@@ -165,8 +166,6 @@ class NessusAPI(object):
             report_status = self.request(self.EXPORT_STATUS.format(scan_id=scan_id, file_id=file_id), method='GET',
                                          json_output=True)
             running = report_status['status'] != 'ready'
-            sys.stdout.write('.')
-            sys.stdout.flush()
         if self.profile == 'tenable' or self.api_keys:
             content = self.request(self.EXPORT_FILE_DOWNLOAD.format(scan_id=scan_id, file_id=file_id), method='GET', download=True)
         else:
@@ -208,10 +207,6 @@ class NessusAPI(object):
             self.logger.debug('Dropping redundant tenable fields')
             df.drop('CVSS', axis=1, inplace=True, errors='ignore')
 
-        if self.profile == 'nessus':
-            # Set IP from Host field
-            df['ip'] = df['Host']
-
         # Lowercase and map fields from COLUMN_MAPPING
         df.columns = [x.lower() for x in df.columns]
         df.rename(columns=self.COLUMN_MAPPING, inplace=True)
@@ -224,15 +219,15 @@ class NessusAPI(object):
 
         df.fillna('', inplace=True)
 
+        if self.profile == 'nessus':
+            # Set IP from asset field
+            df["ip"] = df.loc[df["asset"].str.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$"), "asset"]
+
         # upper/lowercase fields
         self.logger.debug('Changing case of fields')
         df['cve'] = df['cve'].str.upper()
         df['protocol'] = df['protocol'].str.lower()
         df['risk'] = df['risk'].str.lower()
-
-        # Map risk to a SEVERITY MAPPING value
-        self.logger.debug('Mapping risk to severity number')
-        df['risk_number'] = df['risk'].map(self.SEVERITY_MAPPING)
 
         df.fillna('', inplace=True)
 

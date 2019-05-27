@@ -5,6 +5,7 @@ __author__ = 'Nathan Young'
 import logging
 import sys
 import xml.etree.ElementTree as ET
+from datetime import datetime, timedelta
 
 import dateutil.parser as dp
 import pandas as pd
@@ -18,7 +19,7 @@ class qualysWhisperAPI(object):
         self.logger = logging.getLogger('qualysWhisperAPI')
         self.config = config
         try:
-            self.qgc = qualysapi.connect(config, 'qualys_vuln')
+            self.qgc = qualysapi.connect(config, 'qualys_vm')
             # Fail early if we can't make a request or auth is incorrect
             self.qgc.request('about.php')
             self.logger.info('Connected to Qualys at {}'.format(self.qgc.server))
@@ -29,6 +30,8 @@ class qualysWhisperAPI(object):
     def scan_xml_parser(self, xml):
         all_records = []
         root = ET.XML(xml.encode('utf-8'))
+        if len(root.find('.//SCAN_LIST')) == 0:
+            return pd.DataFrame(columns=['id', 'status'])
         for child in root.find('.//SCAN_LIST'):
             all_records.append({
                 'name': child.find('TITLE').text,
@@ -40,12 +43,17 @@ class qualysWhisperAPI(object):
             })
         return pd.DataFrame(all_records)
 
-    def get_all_scans(self):
+    def get_all_scans(self, days=None):
+        if days == None:
+            self.launched_date = '0001-01-01'
+        else:
+            self.launched_date = (datetime.now() - timedelta(days=days)).strftime('%Y-%m-%d')
         parameters = {
             'action': 'list',
             'echo_request': 0,
             'show_op': 0,
-            'launched_after_datetime': '0001-01-01'
+            'state': 'Finished',
+            'launched_after_datetime': self.launched_date
         }
         scans_xml = self.qgc.request(self.SCANS, parameters)
         return self.scan_xml_parser(scans_xml)
@@ -83,13 +91,11 @@ class qualysVulnScan:
         'impact': 'synopsis',
         'ip_status': 'state',
         'os': 'operating_system',
-        'qid': 'plugin_id',
+        'qid': 'signature_id',
         'results': 'plugin_output',
         'threat': 'description',
-        'title': 'plugin_name'
+        'title': 'signature'
     }
-
-    SEVERITY_MAPPING = {0: 'none', 1: 'low', 2: 'medium', 3: 'high',4: 'critical'}
 
     def __init__(
         self,
@@ -164,17 +170,21 @@ class qualysVulnScan:
 
         # Contruct the CVSS vector
         self.logger.info('Extracting CVSS components')
-        df['cvss_vector'] = df['cvss_base'].str.extract('\((.*)\)', expand=False)
-        df['cvss_base'] = df['cvss_base'].str.extract('^(\d+(?:\.\d+)?)', expand=False)
-        df['cvss_temporal_vector'] = df['cvss_temporal'].str.extract('\((.*)\)', expand=False)
-        df['cvss_temporal'] = df['cvss_temporal'].str.extract('^(\d+(?:\.\d+)?)', expand=False)
+        df['cvss2_vector'] = df['cvss_base'].str.extract('\((.*)\)', expand=False)
+        df['cvss2_base'] = df['cvss_base'].str.extract('^(\d+(?:\.\d+)?)', expand=False)
+        df['cvss2_temporal_vector'] = df['cvss_temporal'].str.extract('\((.*)\)', expand=False)
+        df['cvss2_temporal'] = df['cvss_temporal'].str.extract('^(\d+(?:\.\d+)?)', expand=False)
+        df.drop('cvss_base', axis=1, inplace=True, errors='ignore')
+        df.drop('cvss_temporal', axis=1, inplace=True, errors='ignore')
 
         # Set asset to ip
         df['asset'] = df['ip']
 
+        # Set dns to fqdn if missing
+        df.loc[df['dns'] == '', 'dns'] = df['fqdn']
+
         # Convert Qualys severity to standardised risk number
-        df['risk_number'] =  df['severity'].astype(int)-1
-        df['risk'] = df['risk_number'].map(self.SEVERITY_MAPPING)
+        df['risk_number'] = df['severity'].astype(int)-1
 
         df.fillna('', inplace=True)
 
