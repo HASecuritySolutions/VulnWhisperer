@@ -983,6 +983,13 @@ class vulnWhispererJIRA(vulnWhispererBase):
         self.config_path = config
         self.config = vwConfig(config)
         self.host_resolv_cache = {}
+        self.host_no_resolv = []
+        self.no_resolv_by_team_dict = {}
+        #Save locally those assets without DNS entry for flag to system owners
+        self.no_resolv_fname="no_resolv.txt"
+        if os.path.isfile(self.no_resolv_fname):
+            with open(self.no_resolv_fname, "r") as json_file:
+                self.no_resolv_by_team_dict = json.load(json_file)
         self.directory_check()
 
         if config is not None:
@@ -1190,6 +1197,7 @@ class vulnWhispererJIRA(vulnWhispererBase):
                         self.logger.debug("Hostname found: {hostname}.".format(hostname=values['dns']))
                     except:
                         self.host_resolv_cache[values['ip']] = ''
+                        self.host_no_resolv.append(values['ip'])
                         self.logger.debug("Hostname not found for: {ip}.".format(ip=values['ip']))
 
         for key in values.keys():
@@ -1235,6 +1243,14 @@ class vulnWhispererJIRA(vulnWhispererBase):
             self.set_latest_scan_reported(fullpath.split("/")[-1])
             return False
 
+        #writing to file those assets without DNS resolution
+        #if its not empty
+        if self.host_no_resolv:
+            #we will replace old list of non resolved for the new one or create if it doesn't exist already
+            self.no_resolv_by_team_dict[scan_name] = self.host_no_resolv
+            with open(self.no_resolv_fname, 'w') as outfile:  
+                    json.dump(self.no_resolv_by_team_dict, outfile)
+        
         self.set_latest_scan_reported(fullpath.split("/")[-1])
         return True
 
