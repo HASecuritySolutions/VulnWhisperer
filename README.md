@@ -30,7 +30,7 @@ Currently Supports
 
 ### Reporting Frameworks
 
-- [X] [ELK](https://www.elastic.co/elk-stack)
+- [X] [ELK (**v6**/**v7**)](https://www.elastic.co/elk-stack)
 - [X] [Jira](https://www.atlassian.com/software/jira)
 - [ ] [Splunk](https://www.splunk.com/)
 
