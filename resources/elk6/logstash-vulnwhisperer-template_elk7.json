@@ -1,0 +1,231 @@
+{
+  "index_patterns": "logstash-vulnwhisperer-*",
+  "mappings": {
+    "properties": {
+      "@timestamp": {
+        "type": "date"
+      },
+      "@version": {
+        "type": "keyword"
+      },
+      "asset": {
+        "type": "text",
+        "norms": false,
+        "fields": {
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 256
+          }
+        }
+      },
+      "asset_uuid": {
+        "type": "keyword"
+      },
+      "assign_ip": {
+        "type": "ip"
+      },
+      "category": {
+        "type": "keyword"
+      },
+      "cve": {
+        "type": "keyword"
+      },
+      "cvss_base": {
+        "type": "float"
+      },
+      "cvss_temporal_vector": {
+        "type": "keyword"
+      },
+      "cvss_temporal": {
+        "type": "float"
+      },
+      "cvss_vector": {
+        "type": "keyword"
+      },
+      "cvss": {
+        "type": "float"
+      },
+      "cvss3_base": {
+        "type": "float"
+      },
+      "cvss3_temporal_vector": {
+        "type": "keyword"
+      },
+      "cvss3_temporal": {
+        "type": "float"
+      },
+      "cvss3_vector": {
+        "type": "keyword"
+      },
+      "cvss3": {
+        "type": "float"
+      },
+      "description": {
+        "fields": {
+          "keyword": {
+            "ignore_above": 256,
+            "type": "keyword"
+          }
+        },
+        "norms": false,
+        "type": "text"
+      },
+      "dns": {
+        "type": "keyword"
+      },
+      "exploitability": {
+        "fields": {
+          "keyword": {
+            "ignore_above": 256,
+            "type": "keyword"
+          }
+        },
+        "norms": false,
+        "type": "text"
+      },
+      "fqdn": {
+        "type": "keyword"
+      },
+      "geoip": {
+        "dynamic": true,
+        "type": "object",
+        "properties": {
+          "ip": {
+            "type": "ip"
+          },
+          "latitude": {
+            "type": "float"
+          },
+          "location": {
+            "type": "geo_point"
+          },
+          "longitude": {
+            "type": "float"
+          }
+        }
+      },
+      "history_id": {
+        "type": "keyword"
+      },
+      "host": {
+        "type": "keyword"
+      },
+      "host_end": {
+        "type": "date"
+      },
+      "host_start": {
+        "type": "date"
+      },
+      "impact": {
+        "fields": {
+          "keyword": {
+            "ignore_above": 256,
+            "type": "keyword"
+          }
+        },
+        "norms": false,
+        "type": "text"
+      },
+      "ip_status": {
+        "type": "keyword"
+      },
+      "ip": {
+        "type": "ip"
+      },
+      "last_updated": {
+        "type": "date"
+      },
+      "operating_system": {
+        "type": "keyword"
+      },
+      "path": {
+        "type": "keyword"
+      },
+      "pci_vuln": {
+        "type": "keyword"
+      },
+      "plugin_family": {
+        "type": "keyword"
+      },
+      "plugin_id": {
+        "type": "keyword"
+      },
+      "plugin_name": {
+        "type": "keyword"
+      },
+      "plugin_output": {
+        "fields": {
+          "keyword": {
+            "ignore_above": 256,
+            "type": "keyword"
+          }
+        },
+        "norms": false,
+        "type": "text"
+      },
+      "port": {
+        "type": "integer"
+      },
+      "protocol": {
+        "type": "keyword"
+      },
+      "results": {
+        "type": "text"
+      },
+      "risk_number": {
+        "type": "integer"
+      },
+      "risk_score_name": {
+        "type": "keyword"
+      },
+      "risk_score": {
+        "type": "float"
+      },
+      "risk": {
+        "type": "keyword"
+      },
+      "scan_id": {
+        "type": "keyword"
+      },
+      "scan_name": {
+        "type": "keyword"
+      },
+      "scan_reference": {
+        "type": "keyword"
+      },
+      "see_also": {
+        "type": "keyword"
+      },
+      "solution": {
+        "type": "keyword"
+      },
+      "source": {
+        "type": "keyword"
+      },
+      "ssl": {
+        "type": "keyword"
+      },
+      "synopsis": {
+        "type": "keyword"
+      },
+      "system_type": {
+        "type": "keyword"
+      },
+      "tags": {
+        "type": "keyword"
+      },
+      "threat": {
+        "type": "text"
+      },
+      "type": {
+        "type": "keyword"
+      },
+      "vendor_reference": {
+        "type": "keyword"
+      },
+      "vulnerability_state": {
+        "type": "keyword"
+      }
+    }
+  }
+}
