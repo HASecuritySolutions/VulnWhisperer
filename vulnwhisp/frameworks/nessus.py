@@ -165,7 +165,7 @@ class NessusAPI(object):
     def get_utc_from_local(self, date_time, local_tz=None, epoch=True):
         date_time = datetime.fromtimestamp(date_time)
         if local_tz is None:
-            local_tz = pytz.timezone('US/Central')
+            local_tz = pytz.timezone('UTC')
         else:
             local_tz = pytz.timezone(local_tz)
         local_time = local_tz.normalize(local_tz.localize(date_time))
