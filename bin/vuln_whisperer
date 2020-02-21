@@ -83,14 +83,17 @@ def main():
             enabled_sections = config.get_sections_with_attribute('enabled')
 
             for section in enabled_sections:
-                vw = vulnWhisperer(config=args.config,
-                                   profile=section,
-                                   verbose=args.verbose,
-                                   username=args.username,
-                                   password=args.password,
-                                   source=args.source,
-                                   scanname=args.scanname)
-                exit_code += vw.whisper_vulnerabilities()
+                try:
+                    vw = vulnWhisperer(config=args.config,
+                                       profile=section,
+                                       verbose=args.verbose,
+                                       username=args.username,
+                                       password=args.password,
+                                       source=args.source,
+                                       scanname=args.scanname)
+                    exit_code += vw.whisper_vulnerabilities()
+                except Exception as e:
+                    logger.error("VulnWhisperer was unable to perform the processing on '{}'".format(args.source))
         else:
             logger.info('Running vulnwhisperer for section {}'.format(args.section))
             vw = vulnWhisperer(config=args.config,

@@ -319,7 +319,8 @@ class vulnWhispererNessus(vulnWhispererBase):
                             e=e))
             except Exception as e:
                 self.logger.error('Could not properly load your config!\nReason: {e}'.format(e=e))
-                sys.exit(1)
+                return False
+                #sys.exit(1)
 
 
 
@@ -575,8 +576,11 @@ class vulnWhispererQualys(vulnWhispererBase):
         self.logger = logging.getLogger('vulnWhispererQualys')
         if debug:
             self.logger.setLevel(logging.DEBUG)
-
-        self.qualys_scan = qualysScanReport(config=config)
+        try:
+            self.qualys_scan = qualysScanReport(config=config)
+        except Exception as e:
+            self.logger.error("Unable to establish connection with Qualys scanner. Reason: {}".format(e))
+            return False
         self.latest_scans = self.qualys_scan.qw.get_all_scans()
         self.directory_check()
         self.scans_to_process = None
@@ -747,10 +751,14 @@ class vulnWhispererOpenVAS(vulnWhispererBase):
         self.develop = True
         self.purge = purge
         self.scans_to_process = None
-        self.openvas_api = OpenVAS_API(hostname=self.hostname,
-                                       port=self.port,
-                                       username=self.username,
-                                       password=self.password)
+        try:
+            self.openvas_api = OpenVAS_API(hostname=self.hostname,
+                                           port=self.port,
+                                           username=self.username,
+                                           password=self.password)
+        except Exception as e:
+            self.logger.error("Unable to establish connection with OpenVAS scanner. Reason: {}".format(e))
+            return False
 
     def whisper_reports(self, output_format='json', launched_date=None, report_id=None, cleanup=True):
         report = None
@@ -861,8 +869,11 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
         self.logger = logging.getLogger('vulnWhispererQualysVuln')
         if debug:
             self.logger.setLevel(logging.DEBUG)
-
-        self.qualys_scan = qualysVulnScan(config=config)
+        try:
+            self.qualys_scan = qualysVulnScan(config=config)
+        except Exception as e:
+            self.logger.error("Unable to create connection with Qualys. Reason: {}".format(e))
+            return False
         self.directory_check()
         self.scans_to_process = None
 
@@ -1009,7 +1020,8 @@ class vulnWhispererJIRA(vulnWhispererBase):
                 raise Exception(
                     'Could not connect to nessus -- Please verify your settings in {config} are correct and try again.\nReason: {e}'.format(
                         config=self.config.config_in, e=e))
-                sys.exit(1)
+                return False
+                #sys.exit(1)
 
         profiles = []
         profiles = self.get_scan_profiles()
@@ -1261,7 +1273,10 @@ class vulnWhispererJIRA(vulnWhispererBase):
 
         if autoreport_sections:
             for scan in autoreport_sections:
-                self.jira_sync(self.config.get(scan, 'source'), self.config.get(scan, 'scan_name'))
+                try:
+                    self.jira_sync(self.config.get(scan, 'source'), self.config.get(scan, 'scan_name'))
+                except Exception as e:
+                    self.logger.error("VulnWhisperer wasn't able to report the vulnerabilities from the '{}'s source".format(self.config.get(scan, 'source')))
             return True
         return False
 
@@ -1294,36 +1309,42 @@ class vulnWhisperer(object):
         if self.profile == 'nessus':
             vw = vulnWhispererNessus(config=self.config,
                                      profile=self.profile)
-            self.exit_code += vw.whisper_nessus()
+            if vw:
+                self.exit_code += vw.whisper_nessus()
 
         elif self.profile == 'qualys_web':
             vw = vulnWhispererQualys(config=self.config)
-            self.exit_code += vw.process_web_assets()
+            if vw:
+                self.exit_code += vw.process_web_assets()
 
         elif self.profile == 'openvas':
             vw_openvas = vulnWhispererOpenVAS(config=self.config)
-            self.exit_code += vw_openvas.process_openvas_scans()
+            if vw:
+                self.exit_code += vw_openvas.process_openvas_scans()
 
         elif self.profile == 'tenable':
             vw = vulnWhispererNessus(config=self.config,
                                      profile=self.profile)
-            self.exit_code += vw.whisper_nessus()
+            if vw:
+                self.exit_code += vw.whisper_nessus()
 
         elif self.profile == 'qualys_vuln':
             vw = vulnWhispererQualysVuln(config=self.config)
-            self.exit_code += vw.process_vuln_scans()
+            if vw:
+                self.exit_code += vw.process_vuln_scans()
 
         elif self.profile == 'jira':
             #first we check config fields are created, otherwise we create them
             vw = vulnWhispererJIRA(config=self.config)
-            if not (self.source and self.scanname):
-                self.logger.info('No source/scan_name selected, all enabled scans will be synced')
-                success = vw.sync_all()
-                if not success:
-                    self.logger.error('All scans sync failed!')
-                    self.logger.error('Source scanner and scan name needed!')
-                    return 0
-            else:
-                vw.jira_sync(self.source, self.scanname)
+            if vw:
+                if not (self.source and self.scanname):
+                    self.logger.info('No source/scan_name selected, all enabled scans will be synced')
+                    success = vw.sync_all()
+                    if not success:
+                        self.logger.error('All scans sync failed!')
+                        self.logger.error('Source scanner and scan name needed!')
+                        return 0
+                else:
+                    vw.jira_sync(self.source, self.scanname)
 
         return self.exit_code
