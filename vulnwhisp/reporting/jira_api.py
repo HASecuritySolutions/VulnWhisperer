@@ -226,32 +226,44 @@ class JiraAPI(object):
     def ticket_get_unique_fields(self, ticket):
         title = ticket.raw.get('fields', {}).get('summary').encode("ascii").strip()
         ticketid = ticket.key.encode("ascii")
-        assets = []
-        try:
-            affected_assets_section = ticket.raw.get('fields', {}).get('description').encode("ascii").split("{panel:title=Affected Assets}")[1].split("{panel}")[0]
-            assets = list(set(re.findall(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b", affected_assets_section)))
-        
-        except Exception as e:
-            self.logger.error("Ticket IPs regex failed. Ticket ID: {}. Reason: {}".format(ticketid, e))
-            assets = []
-        
-        try:     
-            if not assets:
-                #check if attachment, if so, get assets from attachment
-                affected_assets_section = self.check_ips_attachment(ticket)
-                if affected_assets_section:
-                    assets = list(set(re.findall(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b", affected_assets_section)))
-        except Exception as e:
-            self.logger.error("Ticket IPs Attachment regex failed. Ticket ID: {}. Reason: {}".format(ticketid, e))
+
+        assets = self.get_assets_from_description(ticket)
+        if not assets:
+            #check if attachment, if so, get assets from attachment
+            assets = self.get_assets_from_attachment(ticket)
                 
         return ticketid, title, assets
 
-    def check_ips_attachment(self, ticket):
-        affected_assets_section = []
+    def get_assets_from_description(self, ticket, _raw = False):
+        # Get the assets as a string "host - protocol/port - hostname" separated by "\n"
+        # structure the text to have the same structure as the assets from the attachment
+        affected_assets = ""
+        try:
+            affected_assets = ticket.raw.get('fields', {}).get('description').encode("ascii").split("{panel:title=Affected Assets}")[1].split("{panel}")[0].replace('\n','').replace(' * ','\n').replace('\n', '', 1)
+        except Exception as e:
+            self.logger.error("Unable to process the Ticket's 'Affected Assets'. Ticket ID: {}. Reason: {}".format(ticket, e))
+
+        if affected_assets:
+            if _raw:
+                # from line 406 check if the text in the panel corresponds to having added an attachment
+                if "added as an attachment" in affected_assets:
+                    return False
+                return affected_assets
+
+            try:
+                # if _raw is not true, we return only the IPs of the affected assets
+                return list(set(re.findall(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b", affected_assets)))
+            except Exception as e:
+                self.logger.error("Ticket IPs regex failed. Ticket ID: {}. Reason: {}".format(ticket, e))
+        return False
+
+    def get_assets_from_attachment(self, ticket, _raw = False):
+        # Get the assets as a string "host - protocol/port - hostname" separated by "\n"
+        affected_assets = []
         try:
             fields = self.jira.issue(ticket.key).raw.get('fields', {})
             attachments = fields.get('attachment', {})
-            affected_assets_section = ""
+            affected_assets = ""
             #we will make sure we get the latest version of the file
             latest = ''
             attachment_id = ''
@@ -265,12 +277,43 @@ class JiraAPI(object):
                             if latest < item.get('created'):
                                 latest = item.get('created')         
                                 attachment_id = item.get('id') 
-            affected_assets_section = self.jira.attachment(attachment_id).get()
+            affected_assets = self.jira.attachment(attachment_id).get()
 
         except Exception as e:
             self.logger.error("Failed to get assets from ticket attachment. Ticket ID: {}. Reason: {}".format(ticket, e))
 
-        return affected_assets_section
+        if affected_assets:
+            if _raw:
+                return affected_assets
+
+            try:
+                # if _raw is not true, we return only the IPs of the affected assets
+                affected_assets = list(set(re.findall(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b", affected_assets)))
+                return affected_assets
+            except Exception as e:
+                self.logger.error("Ticket IPs Attachment regex failed. Ticket ID: {}. Reason: {}".format(ticket, e))
+
+        return False
+
+    def parse_asset_to_json(self, asset):
+        hostname, protocol, port = "", "", ""
+        asset_info = asset.split(" - ")
+        ip = asset_info[0]
+        proto_port = asset_info[1]
+        # in case there is some case where hostname is not reported at all
+        if len(asset_info) == 3:
+            hostname = asset_info[2]
+        if proto_port != "N/A/N/A":
+            protocol, port = proto_port.split("/")
+
+        asset_dict = {
+            "host": ip,
+            "protocol": protocol,
+            "port": port,
+            "hostname": hostname
+        }
+
+        return asset_dict
 
     def clean_old_attachments(self, ticket):
         fields = ticket.raw.get('fields')
@@ -522,7 +565,7 @@ class JiraAPI(object):
     def close_obsolete_tickets(self):
         # Close tickets older than 12 months, vulnerabilities not solved will get created a new ticket 
         self.logger.info("Closing obsolete tickets older than {} months".format(self.max_time_tracking))
-        jql = "labels=vulnerability_management AND created <startOfMonth(-{}) and resolution=Unresolved".format(self.max_time_tracking)
+        jql = "labels=vulnerability_management AND NOT labels=advisory AND created <startOfMonth(-{}) and resolution=Unresolved".format(self.max_time_tracking)
         tickets_to_close = self.jira.search_issues(jql, maxResults=0)
         
         comment = '''This ticket is being closed for hygiene, as it is more than {} months old.
@@ -553,8 +596,35 @@ class JiraAPI(object):
             return True
         try:
             self.logger.info("Saving locally tickets from the last {} months".format(self.max_time_tracking))
-            jql = "labels=vulnerability_management AND created >=startOfMonth(-{})".format(self.max_time_tracking)
+            jql = "labels=vulnerability_management AND NOT labels=advisory AND created >=startOfMonth(-{})".format(self.max_time_tracking)
             tickets_data = self.jira.search_issues(jql, maxResults=0)
+
+            #TODO process tickets, creating a new field called "_metadata" with all the affected assets well structured
+            # for future processing in ELK/Splunk; this includes downloading attachments with assets and processing them
+
+            processed_tickets = []
+
+            for ticket in tickets_data:
+                assets = self.get_assets_from_description(ticket, _raw=True)
+                if not assets:
+                    # check if attachment, if so, get assets from attachment
+                    assets = self.get_assets_from_attachment(ticket, _raw=True)
+                # process the affected assets to save them as json structure on a new field from the JSON
+                _metadata = {"affected_hosts": []}
+                if assets:
+                    if "\n" in assets:
+                        for asset in assets.split("\n"):
+                            assets_json = self.parse_asset_to_json(asset)
+                            _metadata["affected_hosts"].append(assets_json)
+                    else:
+                        assets_json = self.parse_asset_to_json(assets)
+                        _metadata["affected_hosts"].append(assets_json)
+
+
+                temp_ticket = ticket.raw.get('fields')
+                temp_ticket['_metadata'] = _metadata
+
+                processed_tickets.append(temp_ticket)
             
             #end of line needed, as writelines() doesn't add it automatically, otherwise one big line
             to_save = [json.dumps(ticket.raw.get('fields'))+"\n" for ticket in tickets_data]
@@ -566,7 +636,7 @@ class JiraAPI(object):
 
         except Exception as e:
             self.logger.error("Tickets could not be saved locally: {}.".format(e))
-        
+
         return False 
 
     def decommission_cleanup(self):

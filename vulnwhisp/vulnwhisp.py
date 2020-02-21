@@ -204,6 +204,7 @@ class vulnWhispererBase(object):
     def get_latest_results(self, source, scan_name):
         processed = 0
         results = []
+        reported = ""
 
         try:
             self.conn.text_factory = str
@@ -222,6 +223,7 @@ class vulnWhispererBase(object):
 
         except Exception as e:
             self.logger.error("Error when getting latest results from {}.{} : {}".format(source, scan_name, e))
+
         return results, reported
 
     def get_scan_profiles(self):
@@ -871,7 +873,7 @@ class vulnWhispererQualysVuln(vulnWhispererBase):
                         scan_reference=None,
                         output_format='json',
                         cleanup=True):
-            launched_date
+
             if 'Z' in launched_date:
                 launched_date = self.qualys_scan.utils.iso_to_epoch(launched_date)
             report_name = 'qualys_vuln_' + report_id.replace('/','_') \
