@@ -305,7 +305,7 @@ class JiraAPI(object):
             hostname = asset_info[2]
         if proto_port != "N/A/N/A":
             protocol, port = proto_port.split("/")
-            port = int(port)
+            port = int(float(port))
 
         asset_dict = {
             "host": ip,
