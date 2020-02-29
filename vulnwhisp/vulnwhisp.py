@@ -1318,9 +1318,9 @@ class vulnWhisperer(object):
                 self.exit_code += vw.process_web_assets()
 
         elif self.profile == 'openvas':
-            vw_openvas = vulnWhispererOpenVAS(config=self.config)
+            vw = vulnWhispererOpenVAS(config=self.config)
             if vw:
-                self.exit_code += vw_openvas.process_openvas_scans()
+                self.exit_code += vw.process_openvas_scans()
 
         elif self.profile == 'tenable':
             vw = vulnWhispererNessus(config=self.config,
