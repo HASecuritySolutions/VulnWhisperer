@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import sys
 import logging
 
@@ -5,7 +6,7 @@ import logging
 if sys.version_info > (3, 0):
     import configparser as cp
 else:
-    import ConfigParser as cp
+    import six.moves.configparser as cp
 
 
 class vwConfig(object):

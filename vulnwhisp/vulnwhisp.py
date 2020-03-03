@@ -1,13 +1,16 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+from six.moves import range
+from functools import reduce
 __author__ = 'Austin Taylor'
 
-from base.config import vwConfig
-from frameworks.nessus import NessusAPI
-from frameworks.qualys_web import qualysScanReport
-from frameworks.qualys_vuln import qualysVulnScan
-from frameworks.openvas import OpenVAS_API
-from reporting.jira_api import JiraAPI
+from .base.config import vwConfig
+from .frameworks.nessus import NessusAPI
+from .frameworks.qualys_web import qualysScanReport
+from .frameworks.qualys_vuln import qualysVulnScan
+from .frameworks.openvas import OpenVAS_API
+from .reporting.jira_api import JiraAPI
 import pandas as pd
 from lxml import objectify
 import sys
@@ -1200,7 +1203,7 @@ class vulnWhispererJIRA(vulnWhispererBase):
             if vuln['dns']:
                 values['dns'] = vuln['dns']
             else:
-                if values['ip'] in self.host_resolv_cache.keys():
+                if values['ip'] in list(self.host_resolv_cache.keys()):
                     self.logger.debug("Hostname from {ip} cached, retrieving from cache.".format(ip=values['ip']))
                     values['dns'] = self.host_resolv_cache[values['ip']]
                 else:

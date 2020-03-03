@@ -93,7 +93,7 @@ def main():
                                        scanname=args.scanname)
                     exit_code += vw.whisper_vulnerabilities()
                 except Exception as e:
-                    logger.error("VulnWhisperer was unable to perform the processing on '{}'".format(args.source))
+                    logger.error("VulnWhisperer was unable to perform the processing on '{}'".format(section))
         else:
             logger.info('Running vulnwhisperer for section {}'.format(args.section))
             vw = vulnWhisperer(config=args.config,
