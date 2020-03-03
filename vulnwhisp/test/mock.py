@@ -21,10 +21,12 @@ class mockAPI(object):
 
     def get_directories(self, path):
         dir, subdirs, files = next(os.walk(path))
+        self.logger.debug('Subdirectories found: {}'.format(subdirs))
         return subdirs
 
     def get_files(self, path):
         dir, subdirs, files = next(os.walk(path))
+        self.logger.debug('Files found: {}'.format(files))
         return files
 
     def qualys_vuln_callback(self, request, uri, response_headers):
