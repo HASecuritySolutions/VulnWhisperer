@@ -67,18 +67,23 @@ class JiraAPI(object):
             if not exists:
                 self.logger.error("Error creating Ticket: component {} not found".format(component))
                 return 0
-                    
-        new_issue = self.jira.create_issue(project=project,
-                                           summary=title,
-                                           description=desc,
-                                           issuetype={'name': 'Bug'},
-                                           labels=labels,
-                                           components=components_ticket)
         
-        self.logger.info("Ticket {} created successfully".format(new_issue))
+        try:
+            new_issue = self.jira.create_issue(project=project,
+                                               summary=title,
+                                               description=desc,
+                                               issuetype={'name': 'Bug'},
+                                               labels=labels,
+                                               components=components_ticket)
+            
+            self.logger.info("Ticket {} created successfully".format(new_issue))
+            
+            if attachment_contents:
+                self.add_content_as_attachment(new_issue, attachment_contents)
         
-        if attachment_contents:
-            self.add_content_as_attachment(new_issue, attachment_contents)
+        except Exception as e:
+            self.logger.error("Failed to create ticket on Jira Project '{}'. Error: {}".format(project, e))
+            new_issue = False
         
         return new_issue
     
@@ -485,7 +490,7 @@ class JiraAPI(object):
             if transition.get('name') == self.JIRA_REOPEN_ISSUE:
                 self.logger.debug("Ticket is reopenable")
                 return True
-        self.logger.warn("Ticket can't be opened. Check Jira transitions.")
+        self.logger.error("Ticket {} can't be opened. Check Jira transitions.".format(ticket_obj))
         return False
 
     def is_ticket_closeable(self, ticket_obj):
@@ -493,7 +498,7 @@ class JiraAPI(object):
         for transition in transitions:
             if transition.get('name') == self.JIRA_CLOSE_ISSUE:
                 return True
-        self.logger.warn("Ticket can't closed. Check Jira transitions.")
+        self.logger.error("Ticket {} can't closed. Check Jira transitions.".format(ticket_obj))
         return False
 
     def is_ticket_resolved(self, ticket_obj):

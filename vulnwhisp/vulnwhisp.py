@@ -1247,15 +1247,20 @@ class vulnWhispererJIRA(vulnWhispererBase):
             vulnerabilities = self.parse_qualys_vuln_vulnerabilities(fullpath, source, scan_name, min_critical, dns_resolv)
 
         #***JIRA sync***
-        if vulnerabilities:
-            self.logger.info('{source} data has been successfuly parsed'.format(source=source.upper()))
-            self.logger.info('Starting JIRA sync')
+        try:
+            if vulnerabilities:
+                self.logger.info('{source} data has been successfuly parsed'.format(source=source.upper()))
+                self.logger.info('Starting JIRA sync')
 
-            self.jira.sync(vulnerabilities, project, components)
-        else:
-            self.logger.info("[{source}.{scan_name}] No vulnerabilities or vulnerabilities not parsed.".format(source=source, scan_name=scan_name))
-            self.set_latest_scan_reported(fullpath.split("/")[-1])
+                self.jira.sync(vulnerabilities, project, components)
+            else:
+                self.logger.info("[{source}.{scan_name}] No vulnerabilities or vulnerabilities not parsed.".format(source=source, scan_name=scan_name))
+                self.set_latest_scan_reported(fullpath.split("/")[-1])
+                return False
+        except Exception as e:
+            self.logger.error("Error: {}".format(e))
             return False
+
 
         #writing to file those assets without DNS resolution
         #if its not empty
@@ -1276,7 +1281,10 @@ class vulnWhispererJIRA(vulnWhispererBase):
                 try:
                     self.jira_sync(self.config.get(scan, 'source'), self.config.get(scan, 'scan_name'))
                 except Exception as e:
-                    self.logger.error("VulnWhisperer wasn't able to report the vulnerabilities from the '{}'s source".format(self.config.get(scan, 'source')))
+                    self.logger.error(
+                        "VulnWhisperer wasn't able to report the vulnerabilities from the '{}'s source, section {}.\
+                         \nError: {}".format(
+                            self.config.get(scan, 'source'), self.config.get(scan, 'scan_name'), e))
             return True
         return False
 
