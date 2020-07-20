@@ -7,7 +7,7 @@
 VulnWhisperer is a vulnerability management tool and report aggregator. VulnWhisperer will pull all the reports from the different Vulnerability scanners and create a file with a unique filename for each one, using that data later to sync with Jira and feed Logstash. Jira does a closed cycle full Sync with the data provided by the Scanners, while Logstash indexes and tags all of the information inside the report (see logstash files at /resources/elk6/pipeline/). Data is then shipped to ElasticSearch to be indexed, and ends up in a visual and searchable format in Kibana with already defined dashboards.
 
 [![Build Status](https://travis-ci.org/HASecuritySolutions/VulnWhisperer.svg?branch=master)](https://travis-ci.org/HASecuritySolutions/VulnWhisperer)
-[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](http://choosealicense.com/licenses/mit/)
+[![GitHub license](https://img.shields.io/github/license/HASecuritySolutions/VulnWhisperer)](https://github.com/HASecuritySolutions/VulnWhisperer/blob/master/LICENSE)
 [![Twitter](https://img.shields.io/twitter/follow/VulnWhisperer.svg?style=social&label=Follow)](https://twitter.com/VulnWhisperer)
 
 Currently Supports
