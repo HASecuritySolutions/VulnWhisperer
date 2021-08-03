@@ -259,13 +259,7 @@ class qualysUtils:
     def __init__(self):
         self.logger = logging.getLogger('qualysUtils')
 
-    def grab_section(
-            self,
-            report,
-            section,
-            end=[],
-            pop_last=False,
-    ):
+    def grab_section(self, report, section, end=[], pop_last=False):
         temp_list = []
         max_col_count = 0
         with open(report, 'rt') as csvfile:
