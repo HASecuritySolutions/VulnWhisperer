@@ -136,7 +136,8 @@ class qualysWhisperAPI(object):
         return self.qgc.request(self.REPORT_STATUS.format(report_id=report_id))
 
     def download_report(self, report_id):
-        return self.qgc.request(self.REPORT_DOWNLOAD.format(report_id=report_id))
+        return self.qgc.request(
+                self.REPORT_DOWNLOAD.format(report_id=report_id), http_method='get')
 
     def generate_scan_report_XML(self, scan_id):
         """Generates a CSV report for an asset based on template defined in .ini file"""
