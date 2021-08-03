@@ -229,14 +229,8 @@ class qualysScanReport:
     ]
     CATEGORY_HEADER = ['Category', 'Severity', 'Level', 'Description']
 
-    def __init__(
-            self,
-            config=None,
-            file_in=None,
-            file_stream=False,
-            delimiter=',',
-            quotechar='"',
-    ):
+    def __init__(self, config=None, file_in=None, 
+            file_stream=False, delimiter=',', quotechar='"'):
         self.logger = logging.getLogger('qualysScanReport')
         self.file_in = file_in
         self.file_stream = file_stream
