@@ -21,21 +21,12 @@ csv.field_size_limit(sys.maxsize)
 
 
 class qualysWhisperAPI(object):
-    COUNT_WEBAPP = '/count/was/webapp'
     COUNT_WASSCAN = '/count/was/wasscan'
     DELETE_REPORT = '/delete/was/report/{report_id}'
-    GET_WEBAPP_DETAILS = '/get/was/webapp/{was_id}'
-    QPS_REST_3 = '/qps/rest/3.0'
-    REPORT_DETAILS = '/get/was/report/{report_id}'
     REPORT_STATUS = '/status/was/report/{report_id}'
     REPORT_CREATE = '/create/was/report'
     REPORT_DOWNLOAD = '/download/was/report/{report_id}'
-    SCAN_DETAILS = '/get/was/wasscan/{scan_id}'
-    SCAN_DOWNLOAD = '/download/was/wasscan/{scan_id}'
-    SEARCH_REPORTS = '/search/was/report'
-    SEARCH_WEB_APPS = '/search/was/webapp'
     SEARCH_WAS_SCAN = '/search/was/wasscan'
-    VERSION = '/qps/rest/portal/version'
 
     def __init__(self, config=None):
         self.logger = logging.getLogger('qualysWhisperAPI')
