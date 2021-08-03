@@ -17,6 +17,7 @@ import os
 import csv
 import logging
 import dateutil.parser as dp
+csv.field_size_limit(sys.maxsize)
 
 
 class qualysWhisperAPI(object):
