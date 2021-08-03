@@ -37,7 +37,6 @@ class qualysWhisperAPI(object):
         except Exception as e:
             self.logger.error('Could not connect to Qualys: {}'.format(str(e)))
         self.headers = {
-            #"content-type": "text/xml"}
             "Accept" : "application/json",
             "Content-Type": "application/json"}
         self.config_parse = qcconf.QualysConnectConfig(config, 'qualys_web')
