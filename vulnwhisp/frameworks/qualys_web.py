@@ -196,12 +196,11 @@ class qualysScanReport:
         "Info#1", "CVSS V3 Base", "CVSS V3 Temporal", "CVSS V3 Attack Vector",
         "Request Body #1"
     ]
-
     WEB_SCAN_VULN_BLOCK = [CATEGORIES[0]] + WEB_SCAN_BLOCK
-    WEB_SCAN_VULN_HEADER = WEB_SCAN_VULN_BLOCK
-
     WEB_SCAN_SENSITIVE_BLOCK = [CATEGORIES[1]] + WEB_SCAN_BLOCK
-    WEB_SCAN_SENSITIVE_HEADER = WEB_SCAN_SENSITIVE_BLOCK
+
+    WEB_SCAN_HEADER = ["Vulnerability Category"] + WEB_SCAN_BLOCK
+
 
     WEB_SCAN_INFO_BLOCK = [
         "INFORMATION_GATHERED", "ID", "Detection ID", "QID", "Results", "Detection Date",
@@ -210,7 +209,7 @@ class qualysScanReport:
     ]
 
     WEB_SCAN_INFO_HEADER = [
-        "Vulnerability Category", "ID", "Detection ID", "QID", "Results", "Detection Date",
+        "Vulnerability Category", "ID", "Detection ID", "QID", "Results", "Last Time Detected",
         "Unique ID", "Flags", "Protocol", "Virtual Host", "IP", "Port", "Result",
         "Info#1"
     ]
@@ -259,21 +258,20 @@ class qualysScanReport:
         self.downloaded_file = None
 
     def grab_sections(self, report):
-        all_dataframes = []
-        dict_tracker = {
+        return {
             'WEB_SCAN_VULN_BLOCK': pd.DataFrame(
                 self.utils.grab_section(
                     report,
                     self.WEB_SCAN_VULN_BLOCK,
                     end=[self.WEB_SCAN_SENSITIVE_BLOCK, self.WEB_SCAN_INFO_BLOCK],
                     pop_last=True),
-                columns=self.WEB_SCAN_VULN_HEADER),
+                columns=self.WEB_SCAN_HEADER),
             'WEB_SCAN_SENSITIVE_BLOCK': pd.DataFrame(
                 self.utils.grab_section(report,
                     self.WEB_SCAN_SENSITIVE_BLOCK,
                     end=[self.WEB_SCAN_INFO_BLOCK, self.WEB_SCAN_SENSITIVE_BLOCK],
                     pop_last=True),
-                columns=self.WEB_SCAN_SENSITIVE_HEADER),
+                columns=self.WEB_SCAN_HEADER),
             'WEB_SCAN_INFO_BLOCK': pd.DataFrame(
                 self.utils.grab_section(
                     report,
@@ -321,10 +319,6 @@ class qualysScanReport:
                     self.CATEGORY_HEADER),
                 columns=self.CATEGORY_HEADER)
         }
-        all_dataframes.append(dict_tracker)
-
-
-        return all_dataframes
 
     def data_normalizer(self, dataframes):
         """
@@ -332,12 +326,21 @@ class qualysScanReport:
         :param dataframes:
         :return:
         """
-        df_dict = dataframes[0]
-        merged_df = pd.concat([df_dict['WEB_SCAN_VULN_BLOCK'], df_dict['WEB_SCAN_SENSITIVE_BLOCK'],
-                               df_dict['WEB_SCAN_INFO_BLOCK']], axis=0,
-                              ignore_index=False)
-        merged_df = pd.merge(merged_df, df_dict['QID_HEADER'], left_on='QID',
-                             right_on='Id')
+        df_dict = dataframes
+        merged_df = pd.concat([
+            df_dict['WEB_SCAN_VULN_BLOCK'],
+            df_dict['WEB_SCAN_SENSITIVE_BLOCK'],
+            df_dict['WEB_SCAN_INFO_BLOCK']
+        ], axis=0, ignore_index=False)
+
+        merged_df = pd.merge(
+                merged_df,
+                df_dict['QID_HEADER'].drop(
+                    #these columns always seem to be the same as what we're merging into
+                    ['CVSS V3 Attack Vector', 'CVSS V3 Base', 'CVSS V3 Temporal'],
+                    axis=1),
+                left_on='QID', right_on='Id'
+        )
 
         if 'Content' not in merged_df:
             merged_df['Content'] = ''
@@ -354,8 +357,11 @@ class qualysScanReport:
 
         merged_df = merged_df.assign(**df_dict['SCAN_META'].to_dict(orient='records')[0])
 
-        merged_df = pd.merge(merged_df, df_dict['CATEGORY_HEADER'], how='left', left_on=['Category', 'Severity Level'],
-                             right_on=['Category', 'Severity'], suffixes=('Severity', 'CatSev'))
+        merged_df = pd.merge(
+                merged_df, df_dict['CATEGORY_HEADER'],
+                how='left', left_on=['Category', 'Severity Level'],
+                right_on=['Category', 'Severity'], suffixes=('Severity', 'CatSev')
+        )
 
         merged_df = merged_df.replace('N/A', '').fillna('')
 
