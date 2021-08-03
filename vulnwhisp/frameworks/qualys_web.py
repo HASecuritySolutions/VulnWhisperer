@@ -180,81 +180,6 @@ class qualysWhisperAPI(object):
     def delete_report(self, report_id):
         return self.qgc.request(self.DELETE_REPORT.format(report_id=report_id))
 
-
-class qualysReportFields:
-    CATEGORIES = ['VULNERABILITY',
-                  'SENSITIVECONTENT',
-                  'INFORMATION_GATHERED']
-
-    # URL Vulnerability Information
-
-    VULN_BLOCK = [
-        CATEGORIES[0],
-        'ID',
-        'QID',
-        'Url',
-        'Param',
-        'Function',
-        'Form Entry Point',
-        'Access Path',
-        'Authentication',
-        'Ajax Request',
-        'Ajax Request ID',
-        'Ignored',
-        'Ignore Reason',
-        'Ignore Date',
-        'Ignore User',
-        'Ignore Comments',
-        'First Time Detected',
-        'Last Time Detected',
-        'Last Time Tested',
-        'Times Detected',
-        'Payload #1',
-        'Request Method #1',
-        'Request URL #1',
-        'Request Headers #1',
-        'Response #1',
-        'Evidence #1',
-    ]
-
-    INFO_HEADER = [
-        'Vulnerability Category',
-        'ID',
-        'QID',
-        'Response #1',
-        'Last Time Detected',
-    ]
-    INFO_BLOCK = [
-        CATEGORIES[2],
-        'ID',
-        'QID',
-        'Results',
-        'Detection Date',
-    ]
-
-    QID_HEADER = [
-        'QID',
-        'Id',
-        'Title',
-        'Category',
-        'Severity Level',
-        'Groups',
-        'OWASP',
-        'WASC',
-        'CWE',
-        'CVSS Base',
-        'CVSS Temporal',
-        'Description',
-        'Impact',
-        'Solution',
-    ]
-    GROUP_HEADER = ['GROUP', 'Name', 'Category']
-    OWASP_HEADER = ['OWASP', 'Code', 'Name']
-    WASC_HEADER = ['WASC', 'Code', 'Name']
-    SCAN_META = ['Web Application Name', 'URL', 'Owner', 'Scope', 'Operating System']
-    CATEGORY_HEADER = ['Category', 'Severity', 'Level', 'Description']
-
-
 class qualysUtils:
     def __init__(self):
         self.logger = logging.getLogger('qualysUtils')
@@ -288,35 +213,50 @@ class qualysUtils:
         return _data
 
 class qualysScanReport:
-    # URL Vulnerability Information
-    WEB_SCAN_VULN_BLOCK = list(qualysReportFields.VULN_BLOCK)
-    WEB_SCAN_VULN_BLOCK.insert(WEB_SCAN_VULN_BLOCK.index('QID'), 'Detection ID')
+    CATEGORIES = ['VULNERABILITY', 'SENSITIVECONTENT', 'INFORMATION_GATHERED']
 
-    WEB_SCAN_VULN_HEADER = list(WEB_SCAN_VULN_BLOCK)
-    WEB_SCAN_VULN_HEADER[WEB_SCAN_VULN_BLOCK.index(qualysReportFields.CATEGORIES[0])] = \
-        'Vulnerability Category'
+    WEB_SCAN_BLOCK = [
+        "ID", "Detection ID", "QID", "Url", "Param/Cookie", "Function",
+        "Form Entry Point", "Access Path", "Authentication", "Ajax Request",
+        "Ajax Request ID", "Ignored", "Ignore Reason", "Ignore Date", "Ignore User",
+        "Ignore Comments", "Detection Date", "Payload #1", "Request Method #1",
+        "Request URL #1", "Request Headers #1", "Response #1", "Evidence #1",
+        "Unique ID", "Flags", "Protocol", "Virtual Host", "IP", "Port", "Result",
+        "Info#1", "CVSS V3 Base", "CVSS V3 Temporal", "CVSS V3 Attack Vector",
+        "Request Body #1"
+    ]
 
-    WEB_SCAN_SENSITIVE_HEADER = list(WEB_SCAN_VULN_HEADER)
-    WEB_SCAN_SENSITIVE_HEADER.insert(WEB_SCAN_SENSITIVE_HEADER.index('Url'
-                                                                     ), 'Content')
+    WEB_SCAN_VULN_BLOCK = [CATEGORIES[0]] + WEB_SCAN_BLOCK
+    WEB_SCAN_VULN_HEADER = WEB_SCAN_VULN_BLOCK
 
-    WEB_SCAN_SENSITIVE_BLOCK = list(WEB_SCAN_SENSITIVE_HEADER)
-    WEB_SCAN_SENSITIVE_BLOCK.insert(WEB_SCAN_SENSITIVE_BLOCK.index('QID'), 'Detection ID')
-    WEB_SCAN_SENSITIVE_BLOCK[WEB_SCAN_SENSITIVE_BLOCK.index('Vulnerability Category'
-                                                            )] = qualysReportFields.CATEGORIES[1]
+    WEB_SCAN_SENSITIVE_BLOCK = [CATEGORIES[1]] + WEB_SCAN_BLOCK
+    WEB_SCAN_SENSITIVE_HEADER = WEB_SCAN_SENSITIVE_BLOCK
 
-    WEB_SCAN_INFO_HEADER = list(qualysReportFields.INFO_HEADER)
-    WEB_SCAN_INFO_HEADER.insert(WEB_SCAN_INFO_HEADER.index('QID'), 'Detection ID')
+    WEB_SCAN_INFO_BLOCK = [
+        "INFORMATION_GATHERED", "ID", "Detection ID", "QID", "Results", "Detection Date",
+        "Unique ID", "Flags", "Protocol", "Virtual Host", "IP", "Port", "Result",
+        "Info#1"
+    ]
 
-    WEB_SCAN_INFO_BLOCK = list(qualysReportFields.INFO_BLOCK)
-    WEB_SCAN_INFO_BLOCK.insert(WEB_SCAN_INFO_BLOCK.index('QID'), 'Detection ID')
+    WEB_SCAN_INFO_HEADER = [
+        "Vulnerability Category", "ID", "Detection ID", "QID", "Results", "Detection Date",
+        "Unique ID", "Flags", "Protocol", "Virtual Host", "IP", "Port", "Result",
+        "Info#1"
+    ]
 
-    QID_HEADER = list(qualysReportFields.QID_HEADER)
-    GROUP_HEADER = list(qualysReportFields.GROUP_HEADER)
-    OWASP_HEADER = list(qualysReportFields.OWASP_HEADER)
-    WASC_HEADER = list(qualysReportFields.WASC_HEADER)
-    SCAN_META = list(qualysReportFields.SCAN_META)
-    CATEGORY_HEADER = list(qualysReportFields.CATEGORY_HEADER)
+    QID_HEADER = [
+        "QID", "Id", "Title", "Category", "Severity Level", "Groups", "OWASP", "WASC",
+        "CWE", "CVSS Base", "CVSS Temporal", "Description", "Impact", "Solution",
+        "CVSS V3 Base", "CVSS V3 Temporal", "CVSS V3 Attack Vector"
+    ]
+    GROUP_HEADER = ['GROUP', 'Name', 'Category']
+    OWASP_HEADER = ['OWASP', 'Code', 'Name']
+    WASC_HEADER = ['WASC', 'Code', 'Name']
+    SCAN_META = [
+        "Web Application Name", "URL", "Owner", "Scope", "ID", "Tags",
+        "Custom Attributes"
+    ]
+    CATEGORY_HEADER = ['Category', 'Severity', 'Level', 'Description']
 
     def __init__(
             self,
