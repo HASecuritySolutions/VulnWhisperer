@@ -63,14 +63,8 @@ class qualysWhisperAPI(object):
 
     def generate_scan_result_XML(self, limit=1000, offset=1, status='FINISHED'):
         report_xml = E.ServiceRequest(
-            E.filters(
-                E.Criteria({'field': 'status', 'operator': 'EQUALS'}, status
-                           ),
-            ),
-            E.preferences(
-                E.startFromOffset(str(offset)),
-                E.limitResults(str(limit))
-            ),
+            E.filters(E.Criteria({'field': 'status', 'operator': 'EQUALS'}, status)),
+            E.preferences(E.startFromOffset(str(offset)), E.limitResults(str(limit))),
         )
         return report_xml
 
@@ -109,8 +103,10 @@ class qualysWhisperAPI(object):
                 if i % limit == 0:
                     if (total - i) < limit:
                         qualys_api_limit = total - i
-                    self.logger.info('Making a request with a limit of {} at offset {}'.format((str(qualys_api_limit)), str(i + 1)))
-                    scan_info = self.get_scan_info(limit=qualys_api_limit, offset=i + 1, status=status)
+                    self.logger.info('Making a request with a limit of {} at offset {}'
+                            .format((str(qualys_api_limit)), str(i + 1)))
+                    scan_info = self.get_scan_info(
+                            limit=qualys_api_limit, offset=i + 1, status=status)
                     _records.append(scan_info)
             self.logger.debug('Converting XML to DataFrame')
             dataframes = [self.xml_parser(xml) for xml in _records]
@@ -140,20 +136,8 @@ class qualysWhisperAPI(object):
                     E.format('CSV'),
                     #type is not needed, as the template already has it
                     E.type('WAS_SCAN_REPORT'),
-                    E.template(
-                        E.id(self.template_id)
-                    ),
-                    E.config(
-                        E.scanReport(
-                            E.target(
-                                E.scans(
-                                    E.WasScan(
-                                        E.id(scan_id)
-                                    )
-                                ),
-                            ),
-                        ),
-                    )
+                    E.template(E.id(self.template_id)),
+                    E.config(E.scanReport(E.target(E.scans(E.WasScan(E.id(scan_id))))))
                 )
             )
         )
@@ -266,7 +250,9 @@ class qualysScanReport:
             try:
                 self.qw = qualysWhisperAPI(config=config)
             except Exception as e:
-                self.logger.error('Could not load config! Please check settings. Error: {}'.format(str(e)))
+                self.logger.error(
+                        'Could not load config! Please check settings. Error: {}'.format(
+                            str(e)))
 
         if file_stream:
             self.open_file = file_in.splitlines()
