@@ -200,6 +200,7 @@ class qualysScanReport:
     WEB_SCAN_SENSITIVE_BLOCK = [CATEGORIES[1]] + WEB_SCAN_BLOCK
 
     WEB_SCAN_HEADER = ["Vulnerability Category"] + WEB_SCAN_BLOCK
+    WEB_SCAN_HEADER[WEB_SCAN_HEADER.index("Detection Date")] = "Last Time Detected"
 
 
     WEB_SCAN_INFO_BLOCK = [
