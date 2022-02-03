@@ -6,6 +6,8 @@
 
 VulnWhisperer is a vulnerability management tool and report aggregator. VulnWhisperer will pull all the reports from the different Vulnerability scanners and create a file with a unique filename for each one, using that data later to sync with Jira and feed Logstash. Jira does a closed cycle full Sync with the data provided by the Scanners, while Logstash indexes and tags all of the information inside the report (see logstash files at /resources/elk6/pipeline/). Data is then shipped to ElasticSearch to be indexed, and ends up in a visual and searchable format in Kibana with already defined dashboards.
 
+VulnWhisperer is an open-source community funded project. VulnWhisperer currently works but is due for a documentation overhaul and code review. This is on the roadmap for the next month or two (February or March of 2022 - hopefully). Please note, crowd funding is an option. If you would like help getting VulnWhisperer up and running, are interested in new features, or are looking for paid support (for those of you that require commercial support contracts to implement open-source solutions), please reach out to **info@hasecuritysolutions.com**.
+
 [![Build Status](https://travis-ci.org/HASecuritySolutions/VulnWhisperer.svg?branch=master)](https://travis-ci.org/HASecuritySolutions/VulnWhisperer)
 [![GitHub license](https://img.shields.io/github/license/HASecuritySolutions/VulnWhisperer)](https://github.com/HASecuritySolutions/VulnWhisperer/blob/master/LICENSE)
 [![Twitter](https://img.shields.io/twitter/follow/VulnWhisperer.svg?style=social&label=Follow)](https://twitter.com/VulnWhisperer)
@@ -30,7 +32,8 @@ Currently Supports
 
 ### Reporting Frameworks
 
-- [X] [ELK (**v6**/**v7**)](https://www.elastic.co/elk-stack)
+- [X] [Elastic Stack (**v6**/**v7**)](https://www.elastic.co/elk-stack)
+- [ ] [OpenSearch - Being considered for next update](https://opensearch.org/)
 - [X] [Jira](https://www.atlassian.com/software/jira)
 - [ ] [Splunk](https://www.splunk.com/)
 
