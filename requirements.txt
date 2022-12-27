@@ -1,5 +1,5 @@
 pandas==0.20.3
-setuptools==40.4.3
+setuptools==65.5.1
 pytz==2017.2
 Requests==2.20.0
 lxml==4.6.5
