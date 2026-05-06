@@ -1,8 +1,8 @@
 pandas==0.20.3
-setuptools==40.4.3
+setuptools>=78.1.1
 pytz==2017.2
-Requests==2.20.0
-lxml==4.6.5
+Requests>=2.33.0
+lxml>=6.1.0
 future-fstrings
 bs4
 jira
